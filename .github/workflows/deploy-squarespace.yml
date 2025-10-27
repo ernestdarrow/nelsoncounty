@@ -1,0 +1,24 @@
+name: Deploy JSON to Squarespace
+
+on:
+  push:
+    paths:
+      - 'data/*.json'   # runs when a JSON file changes
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Squarespace
+        env:
+          SQUARESPACE_TOKEN: ${{ secrets.SQUARESPACE_TOKEN }}
+        run: |
+          for file in data/*.json; do
+            echo "Deploying $file ..."
+            curl -X POST "https://api.squarespace.com/1.0/commerce/products" \
+              -H "Authorization: Bearer $SQUARESPACE_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "@$file"
+          done
