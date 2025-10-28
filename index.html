@@ -2526,19 +2526,13 @@ loadListings();</pre>
                 const response = await fetch('data/config.json');
                 if (response.ok) {
                     const configData = await response.json();
-                    // Only update if the data is valid
                     if (configData.listings && configData.listings.length > 0) {
                         data = configData;
-                        console.log('✅ Loaded data from data/config.json (' + configData.listings.length + ' listings)');
-                    } else {
-                        console.log('⚠️ Config file exists but has no listings, using initialData');
+                        console.log('Loaded ' + configData.listings.length + ' listings from config.json');
                     }
-                } else {
-                    console.log('⚠️ Could not load data/config.json (response not ok), using initialData');
                 }
             } catch (error) {
-                console.log('⚠️ Error loading data/config.json:', error.message);
-                console.log('Using initialData instead');
+                console.log('Using initialData');
             }
         }
         
@@ -3595,7 +3589,6 @@ loadListings();</pre>
         }
         
         window.addEventListener("DOMContentLoaded", async function() {
-            // Load data from config.json first
             await loadDataFromConfig();
             
             renderAmenitiesCheckboxes();
@@ -3654,10 +3647,15 @@ loadListings();</pre>
                 // Get your data object (this already exists in your admin panel)
                 const jsonData = data;
                 
-                console.log('Converting to base64...', jsonData.listings.length, 'listings');
-                
                 // Convert to base64 (required by GitHub API)
-                const content = btoa(JSON.stringify(jsonData, null, 2));
+                let content;
+                try {
+                    content = btoa(JSON.stringify(jsonData, null, 2));
+                } catch (e) {
+                    // If btoa fails due to special characters, use UTF-8 encoding
+                    const jsonString = JSON.stringify(jsonData, null, 2);
+                    content = btoa(unescape(encodeURIComponent(jsonString)));
+                }
                 
                 // Check if file exists to get SHA (required for updates)
                 const getUrl = `https://api.github.com/repos/${username}/${repo}/contents/${path}`;
@@ -3755,7 +3753,7 @@ loadListings();</pre>
         
         // 🔐 CHANGE YOUR PASSWORD HERE
         // Replace 'admin123' with your desired password
-        const correctPassword = 'admin1';
+        const correctPassword = 'admin2';
         
         function checkPassword(event) {
             event.preventDefault();
