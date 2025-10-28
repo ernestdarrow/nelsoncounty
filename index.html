@@ -2520,6 +2520,28 @@ loadListings();</pre>
         let deleteConfirmId = null;
         let deleteConfirmTimeout = null;
         
+        // Load data from config.json on page load
+        async function loadDataFromConfig() {
+            try {
+                const response = await fetch('data/config.json');
+                if (response.ok) {
+                    const configData = await response.json();
+                    // Only update if the data is valid
+                    if (configData.listings && configData.listings.length > 0) {
+                        data = configData;
+                        console.log('✅ Loaded data from data/config.json (' + configData.listings.length + ' listings)');
+                    } else {
+                        console.log('⚠️ Config file exists but has no listings, using initialData');
+                    }
+                } else {
+                    console.log('⚠️ Could not load data/config.json (response not ok), using initialData');
+                }
+            } catch (error) {
+                console.log('⚠️ Error loading data/config.json:', error.message);
+                console.log('Using initialData instead');
+            }
+        }
+        
         function renderListings(listings) {
             if (!listings) listings = data.listings;
             const grid = document.getElementById('listingsGrid');
@@ -3572,7 +3594,10 @@ loadListings();</pre>
             }
         }
         
-        window.addEventListener("DOMContentLoaded", function() {
+        window.addEventListener("DOMContentLoaded", async function() {
+            // Load data from config.json first
+            await loadDataFromConfig();
+            
             renderAmenitiesCheckboxes();
             renderListings();
             updateStats();
@@ -3728,7 +3753,7 @@ loadListings();</pre>
         
         // 🔐 CHANGE YOUR PASSWORD HERE
         // Replace 'admin123' with your desired password
-        const correctPassword = 'admin123';
+        const correctPassword = 'admin';
         
         function checkPassword(event) {
             event.preventDefault();
