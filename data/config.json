@@ -311,25 +311,6 @@
       "featured": true
     },
     {
-      "id": "32",
-      "name": "Cedar Creek Fly Fishing",
-      "type": "Brewery",
-      "area": "Montebello",
-      "description": "Guided fly fishing trips on pristine mountain streams. All skill levels welcome from beginners to experts. Equipment rental available or bring your own. Half-day, full-day, and weekend packages. Learn techniques for catching native brook trout.",
-      "image1": "https://images.unsplash.com/photo-1532623744409-1b1a8215258c?w=800",
-      "image2": "https://images.unsplash.com/photo-1544552866-d3ed42536cfd?w=800",
-      "website": "https://www.cedarcreekflyfishing.com",
-      "phone": "(540) 377-3600",
-      "address": "2710 Cedar Creek Rd, Montebello, VA 24464",
-      "amenities": [
-        "Lessons Available",
-        "Tours Available",
-        "Seasonal",
-        "Reservations Required"
-      ],
-      "featured": false
-    },
-    {
       "id": "33",
       "name": "The Vintage at Nellysford",
       "type": "Brewery",
