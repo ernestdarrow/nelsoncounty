@@ -3654,10 +3654,10 @@ loadListings();</pre>
                 // Get your data object (this already exists in your admin panel)
                 const jsonData = data;
                 
+                console.log('Converting to base64...', jsonData.listings.length, 'listings');
+                
                 // Convert to base64 (required by GitHub API)
-                // Use encodeURIComponent to handle special characters properly
-                const jsonString = JSON.stringify(jsonData, null, 2);
-                const content = btoa(unescape(encodeURIComponent(jsonString)));
+                const content = btoa(JSON.stringify(jsonData, null, 2));
                 
                 // Check if file exists to get SHA (required for updates)
                 const getUrl = `https://api.github.com/repos/${username}/${repo}/contents/${path}`;
