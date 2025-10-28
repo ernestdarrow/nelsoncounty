@@ -399,6 +399,25 @@
         "Pet-Friendly"
       ],
       "featured": false
+    },
+    {
+      "id": "1761658144938",
+      "name": "The Big Test Feature",
+      "type": "Cidery",
+      "area": "Nellysford",
+      "description": "Yet there wasn't much to say",
+      "image1": "https://m.media-amazon.com/images/S/pv-target-images/b9f6a13282559e1245dd036c96e8f6854ab33c36100020602f61f125ea8861c0._SX1080_FMjpg_.jpg",
+      "image2": "",
+      "website": "https://www.test.com",
+      "phone": "",
+      "address": "123 test",
+      "amenities": [
+        "Food Available",
+        "Live Music",
+        "Scenic Views",
+        "Cart Rental"
+      ],
+      "featured": true
     }
   ],
   "filterOptions": {
