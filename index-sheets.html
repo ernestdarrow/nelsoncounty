@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Google Sheets</title>
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         /* ========================================
            CENTRALIZED SVG ICON LIBRARY
@@ -1224,36 +1226,30 @@
     </style>
 </head>
 <body>
-    <!-- Password Login Overlay -->
+    <!-- Google OAuth Login Overlay -->
     <div id="loginOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #4E6B52 0%, #3a5240 100%); display: flex; align-items: center; justify-content: center; z-index: 10000;">
         <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); max-width: 400px; width: 90%;">
             <div style="text-align: center; margin-bottom: 30px;">
-                <h2 style="color: #4E6B52; margin: 0 0 10px 0; font-size: 28px;">🔒 Admin Login</h2>
-                <p style="color: #6c757d; margin: 0; font-size: 14px;">Enter password to access the admin panel</p>
+                <h2 style="color: #4E6B52; margin: 0 0 10px 0; font-size: 28px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    Admin Login
+                </h2>
+                <p style="color: #6c757d; margin: 0; font-size: 14px;">Sign in with your Google account to access the admin panel</p>
             </div>
             
-            <form onsubmit="checkPassword(event)" style="display: flex; flex-direction: column; gap: 20px;">
-                <div>
-                    <label style="display: block; color: #212529; font-weight: 600; margin-bottom: 8px; font-size: 14px;">Password:</label>
-                    <input type="password" id="adminPassword" placeholder="Enter admin password" 
-                           style="width: 100%; padding: 12px; border: 2px solid #dee2e6; border-radius: 6px; font-size: 16px; transition: border-color 0.2s;"
-                           onfocus="this.style.borderColor='#4E6B52'" onblur="this.style.borderColor='#dee2e6'">
-                </div>
-                
-                <div id="loginError" style="display: none; background: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; font-size: 14px; text-align: center;">
-                    ❌ Incorrect password. Please try again.
-                </div>
-                
-                <button type="submit" style="background: #4E6B52; color: white; border: none; padding: 14px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.2s;"
-                        onmouseover="this.style.background='#3a5240'" onmouseout="this.style.background='#4E6B52'">
-                    Login to Admin Panel
-                </button>
-            </form>
+            <div id="g_id_onload" style="display: flex; justify-content: center; margin-bottom: 20px;"></div>
+            
+            <div id="loginError" style="display: none; background: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; font-size: 14px; text-align: center; margin-bottom: 20px;">
+                <span id="loginErrorText"></span>
+            </div>
             
             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #dee2e6; text-align: center;">
                 <p style="color: #6c757d; font-size: 12px; margin: 0;">
-                    💡 <strong>To change password:</strong> Edit line ~3730 in the HTML file<br>
-                    Search for: <code style="background: #f8f9fa; padding: 2px 6px; border-radius: 3px;">const correctPassword</code>
+                    <strong>🔒 Secure Authentication:</strong> Only authorized Google accounts can access this panel.<br>
+                    <small style="color: #999;">Contact the administrator to request access.</small>
                 </p>
             </div>
         </div>
@@ -5329,58 +5325,177 @@ loadListings();</pre>
         });
         
         // ==================================================
-        // PASSWORD PROTECTION
+        // GOOGLE OAUTH AUTHENTICATION
         // ==================================================
         
-        // 🔐 CHANGE YOUR PASSWORD HERE
-        // Replace 'admin123' with your desired password
-        const correctPassword = 'admin2';
+        // 🔐 CONFIGURATION: Google OAuth Client ID
+        // Get this from: https://console.cloud.google.com/apis/credentials
+        // 1. Create OAuth 2.0 Client ID
+        // 2. Application type: Web application
+        // 3. Authorized JavaScript origins: Add your domain (e.g., https://yourdomain.com)
+        // 4. Authorized redirect URIs: Add your domain
+        const GOOGLE_OAUTH_CLIENT_ID = 'YOUR_CLIENT_ID.apps.googleusercontent.com';
         
-        function checkPassword(event) {
-            event.preventDefault();
-            
-            const passwordInput = document.getElementById('adminPassword');
+        // 🔐 AUTHORIZED EMAILS: List of Google email addresses that can access the admin panel
+        // SECURITY NOTE: For better security, move this list to your Google Apps Script
+        // and fetch it via an API call instead of storing it in the client code.
+        const AUTHORIZED_EMAILS = [
+            'ernest@oddplusevenstudio.com',
+            // Add more authorized emails here
+            // Example: 'admin@example.com',
+        ];
+        
+        // Parse JWT token to get user info
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error('Error parsing JWT:', e);
+                return null;
+            }
+        }
+        
+        // Handle Google OAuth callback
+        function handleCredentialResponse(response) {
             const errorDiv = document.getElementById('loginError');
-            const enteredPassword = passwordInput.value;
+            const errorText = document.getElementById('loginErrorText');
             
-            if (enteredPassword === correctPassword) {
-                // Correct password - hide login overlay
-                document.getElementById('loginOverlay').style.display = 'none';
+            try {
+                // Parse the JWT token
+                const payload = parseJwt(response.credential);
                 
-                // Set session flag (lasts until browser is closed)
-                sessionStorage.setItem('adminLoggedIn', 'true');
+                if (!payload || !payload.email) {
+                    throw new Error('Invalid token - missing email');
+                }
                 
-                // Optional: Also save to localStorage for persistent login
-                // localStorage.setItem('adminLoggedIn', 'true');
+                const userEmail = payload.email;
+                const userName = payload.name || userEmail;
                 
-            } else {
-                // Wrong password - show error
+                console.log('Google Sign-In successful:', userEmail);
+                
+                // Check if email is authorized
+                if (AUTHORIZED_EMAILS.includes(userEmail)) {
+                    // Authorized - hide login overlay
+                    document.getElementById('loginOverlay').style.display = 'none';
+                    
+                    // Store session info
+                    sessionStorage.setItem('adminLoggedIn', 'true');
+                    sessionStorage.setItem('adminEmail', userEmail);
+                    sessionStorage.setItem('adminName', userName);
+                    
+                    // Show success message briefly
+                    const overlay = document.getElementById('loginOverlay');
+                    const overlayContent = overlay.querySelector('div');
+                    overlayContent.innerHTML = `
+                        <div style="text-align: center; padding: 40px;">
+                            <div style="color: #22c55e; font-size: 48px; margin-bottom: 20px;">✓</div>
+                            <h2 style="color: #4E6B52; margin: 0 0 10px 0;">Welcome, ${userName}!</h2>
+                            <p style="color: #6c757d; margin: 0;">Loading admin panel...</p>
+                        </div>
+                    `;
+                    
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                    }, 1000);
+                    
+                } else {
+                    // Not authorized
+                    errorText.textContent = `Access denied. ${userEmail} is not authorized to access this admin panel.`;
+                    errorDiv.style.display = 'block';
+                    
+                    // Shake animation
+                    const overlay = document.getElementById('loginOverlay');
+                    overlay.style.animation = 'shake 0.5s';
+                    setTimeout(() => { overlay.style.animation = ''; }, 500);
+                    
+                    // Log the unauthorized attempt
+                    console.warn('Unauthorized access attempt:', userEmail);
+                }
+            } catch (error) {
+                console.error('Error processing Google Sign-In:', error);
+                errorText.textContent = 'Authentication failed. Please try again.';
                 errorDiv.style.display = 'block';
-                passwordInput.value = '';
-                passwordInput.focus();
+            }
+        }
+        
+        // Initialize Google Sign-In
+        function initializeGoogleSignIn() {
+            if (GOOGLE_OAUTH_CLIENT_ID === 'YOUR_CLIENT_ID.apps.googleusercontent.com') {
+                const errorDiv = document.getElementById('loginError');
+                const errorText = document.getElementById('loginErrorText');
+                errorText.innerHTML = `
+                    <strong>Configuration Required:</strong><br>
+                    Please set up Google OAuth Client ID in the code.<br>
+                    <small>See line ~5330 in index-sheets.html</small>
+                `;
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            // Wait for Google Identity Services to load
+            if (typeof google !== 'undefined' && google.accounts) {
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_OAUTH_CLIENT_ID,
+                    callback: handleCredentialResponse,
+                    auto_select: false,
+                    cancel_on_tap_outside: true
+                });
                 
-                // Shake animation
-                const overlay = document.getElementById('loginOverlay');
-                overlay.style.animation = 'shake 0.5s';
-                setTimeout(() => { overlay.style.animation = ''; }, 500);
+                // Render the sign-in button
+                google.accounts.id.renderButton(
+                    document.getElementById('g_id_onload'),
+                    {
+                        theme: 'filled_blue',
+                        size: 'large',
+                        width: '100%',
+                        text: 'signin_with',
+                        type: 'standard'
+                    }
+                );
+                
+                // Also show One Tap (optional)
+                // google.accounts.id.prompt((notification) => {
+                //     if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                //         // User skipped or One Tap is not available
+                //     }
+                // });
+            } else {
+                // Retry after a short delay if Google Identity Services hasn't loaded yet
+                setTimeout(initializeGoogleSignIn, 100);
             }
         }
         
         // Check if user is already logged in
         window.addEventListener('load', function() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
-            // Or use localStorage for persistent login across sessions:
-            // const isLoggedIn = localStorage.getItem('adminLoggedIn');
             
             if (isLoggedIn === 'true') {
                 document.getElementById('loginOverlay').style.display = 'none';
+            } else {
+                // Initialize Google Sign-In when page loads
+                initializeGoogleSignIn();
             }
         });
         
-        // Optional: Add logout function
+        // Logout function
         function logout() {
+            // Revoke Google token if available
+            if (typeof google !== 'undefined' && google.accounts) {
+                google.accounts.id.disableAutoSelect();
+            }
+            
+            // Clear session data
             sessionStorage.removeItem('adminLoggedIn');
+            sessionStorage.removeItem('adminEmail');
+            sessionStorage.removeItem('adminName');
             localStorage.removeItem('adminLoggedIn');
+            
+            // Reload page to show login screen
             location.reload();
         }
     </script>
