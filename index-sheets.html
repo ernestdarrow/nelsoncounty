@@ -318,9 +318,9 @@
                         style="background: #34a853; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                     <span>💾</span> Save All to Google Sheets
                 </button>
-                <button onclick="downloadJSON()"
+                <button onclick="downloadCSV()"
                         style="background: #4E6B52; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                    <span>📥</span> Download JSON Backup
+                    <span>📥</span> Download CSV Backup
                 </button>
                 <div id="sheetsActionStatus" style="margin-left: auto; font-weight: 600; color: #34a853;"></div>
             </div>
@@ -1129,7 +1129,7 @@
             }, 1000);
         });
     </script>
-    <script src="https://ernestdarrow.github.io/nelsoncounty/admin.js" onerror="console.error('Failed to load admin.js'); document.getElementById('loginError').style.display='block'; document.getElementById('loginErrorText').textContent='Failed to load admin.js. Please check that the file exists on GitHub Pages.';"></script>
+    <script src="admin.js"></script>
     
     <script>
         // Fallback: If admin.js fails to load, show error after 2 seconds
