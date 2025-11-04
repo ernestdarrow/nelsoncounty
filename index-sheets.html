@@ -3368,110 +3368,22 @@ loadListings();</pre>
             const editingId = document.getElementById('editingId').value;
             const isUpdate = !!editingId;
             
-            // Save to Google Sheets if configured
-            if (GOOGLE_APPS_SCRIPT_URL && !GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
-                try {
-                    // Try direct POST first, then fallback methods
-                    const postData = JSON.stringify({
-                        action: 'saveListing',
-                        listing: listing
-                    });
-                    
-                    let result = { success: false };
-                    
-                    // Method 1: Try direct POST (if Apps Script is configured for CORS)
-                    try {
-                        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                            method: 'POST',
-                            mode: 'cors',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: postData
-                        });
-                        
-                        try {
-                            const responseText = await response.text();
-                            if (responseText) {
-                                result = JSON.parse(responseText);
-                            } else {
-                                result = { success: true }; // Assume success if no response
-                            }
-                        } catch (e) {
-                            result = { success: true }; // Assume success
-                        }
-                    } catch (corsError) {
-                        console.log('Direct POST failed due to CORS, trying no-cors mode...');
-                        
-                        // Try no-cors mode - sends request but can't read response
-                        // Note: no-cors mode strips Content-Type header, so Apps Script
-                        // needs to handle raw body or we need to use a different method
-                        // Note: no-cors mode has limitations - we can't verify the response
-                        // But we can still try to send the data
-                        console.warn('⚠️ CORS blocked direct request. Attempting no-cors fallback...');
-                        console.warn('Note: Your Apps Script must read from e.postData.contents (not e.parameter.data)');
-                        
-                        result = { success: false, error: 'CORS blocked - Apps Script needs proper CORS headers' };
-                        
-                        // Show user-friendly message about Apps Script configuration
-                        alert('⚠️ CORS Error\n\n' +
-                              'Your Google Apps Script needs to be configured to:\n\n' +
-                              '1. Accept CORS requests (add CORS headers)\n' +
-                              '2. Read JSON from e.postData.contents (not e.parameter.data)\n\n' +
-                              'Example doPost function:\n' +
-                              'function doPost(e) {\n' +
-                              '  const data = JSON.parse(e.postData.contents);\n' +
-                              '  // ... your code ...\n' +
-                              '  return ContentService\n' +
-                              '    .createTextOutput(JSON.stringify({success: true}))\n' +
-                              '    .setMimeType(ContentService.MimeType.JSON);\n' +
-                              '}\n\n' +
-                              'Changes saved locally only for now.');
-                    }
-                    
-                    if (result.success) {
-                        // Update local data
-                        if (isUpdate) {
-                            const index = data.listings.findIndex(function(l) { return l.id === editingId; });
-                            if (index >= 0) {
-                                data.listings[index] = listing;
-                            }
-                            updateSyncStatus(true, '✅ Updated in Google Sheets');
-                        } else {
-                            data.listings.push(listing);
-                            updateSyncStatus(true, '✅ Added to Google Sheets');
-                        }
-                        
-                        // Reload from Google Sheets to sync
-                        setTimeout(() => loadDataFromGoogleSheets(), 1000);
-                    } else {
-                        throw new Error(result.error || 'Save failed');
-                    }
-                } catch (error) {
-                    console.error('Error saving to Google Sheets:', error);
-                    updateSyncStatus(false, '❌ Save failed');
-                    alert('⚠️ Failed to save to Google Sheets: ' + error.message + '\n\nChanges saved locally only.');
-                    
-                    // Still update local data
-                    if (isUpdate) {
-                        const index = data.listings.findIndex(function(l) { return l.id === editingId; });
-                        data.listings[index] = listing;
-                    } else {
-                        data.listings.push(listing);
-                    }
-                }
-            } else {
-                // No Google Sheets configured - save locally only
-                if (isUpdate) {
-                    const index = data.listings.findIndex(function(l) { return l.id === editingId; });
+            // Save locally only - user must click "Save All to Google Sheets" to sync
+            if (isUpdate) {
+                const index = data.listings.findIndex(function(l) { return l.id === editingId; });
+                if (index >= 0) {
                     data.listings[index] = listing;
-                    alert('"' + listing.name + '" has been updated! (Local only - configure Google Sheets to sync)');
+                    alert('"' + listing.name + '" has been updated locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.');
                 } else {
                     data.listings.push(listing);
-                    alert('"' + listing.name + '" has been added! (Local only - configure Google Sheets to sync)');
+                    alert('"' + listing.name + '" has been added locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.');
                 }
+            } else {
+                data.listings.push(listing);
+                alert('"' + listing.name + '" has been added locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.');
             }
             
+            // Update the display and close modal
             renderListings();
             closeModal();
         }
@@ -4059,88 +3971,12 @@ loadListings();</pre>
                 renderPreview();
             }
             
-            // Save to Google Sheets if configured
-            if (changeCount > 0 && GOOGLE_APPS_SCRIPT_URL && !GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
-                updateSyncStatus(true, '💾 Saving to Google Sheets...');
-                
-                // Save each changed listing to Google Sheets
-                const changedListings = rows.filter(function(row) {
-                    const index = parseInt(row.getAttribute('data-index'));
-                    const listing = data.listings[index];
-                    const inputs = row.querySelectorAll('[data-field]');
-                    let hasChanges = false;
-                    
-                    inputs.forEach(function(input) {
-                        const field = input.getAttribute('data-field');
-                        let newValue;
-                        
-                        if (input.type === 'checkbox') {
-                            newValue = input.checked;
-                        } else if (field === 'amenities') {
-                            newValue = input.value.split(',').map(function(a) { return a.trim(); }).filter(function(a) { return a.length > 0; });
-                        } else {
-                            newValue = input.value;
-                        }
-                        
-                        if (field === 'amenities') {
-                            if (JSON.stringify(listing[field]) !== JSON.stringify(newValue)) {
-                                hasChanges = true;
-                            }
-                        } else if (listing[field] !== newValue) {
-                            hasChanges = true;
-                        }
-                    });
-                    
-                    return hasChanges;
-                }).map(function(row) {
-                    const index = parseInt(row.getAttribute('data-index'));
-                    return data.listings[index];
-                });
-                
-                // Save all changed listings
-                Promise.all(changedListings.map(listing => {
-                    const postData = JSON.stringify({
-                        action: 'saveListing',
-                        listing: listing
-                    });
-                    
-                    // Try direct fetch first, fallback to no-cors mode
-                    return fetch(GOOGLE_APPS_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: postData
-                    }).then(async r => {
-                        try {
-                            const text = await r.text();
-                            return text ? JSON.parse(text) : { success: true };
-                        } catch (e) {
-                            return { success: true };
-                        }
-                    }).catch(corsError => {
-                        // Fallback: no-cors mode (sends request but can't read response)
-                        return fetch(GOOGLE_APPS_SCRIPT_URL, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: postData
-                        }).then(() => {
-                            // With no-cors, assume success if no error
-                            return { success: true };
-                        }).catch(() => {
-                            return { success: false };
-                        });
-                    });
-                })).then(results => {
-                    const successCount = results.filter(r => r.success).length;
-                    updateSyncStatus(true, `✅ Saved ${successCount} listing(s) to Google Sheets`);
-                }).catch(error => {
-                    console.error('Error saving to Google Sheets:', error);
-                    updateSyncStatus(false, '❌ Some saves failed');
-                });
+            // Changes saved locally only - user must click "Save All to Google Sheets" to sync
+            if (changeCount > 0) {
+                alert('Table updated! ' + changeCount + ' field(s) changed locally.\n\n💾 Click "Save All to Google Sheets" to sync changes.');
+            } else {
+                alert('No changes detected.');
             }
-            
-            alert('Table updated! ' + changeCount + ' field(s) changed.');
         }
         
         function deleteFromTable(index) {
@@ -4312,55 +4148,8 @@ loadListings();</pre>
                                 renderPreview();
                             }
                             
-                            // Save all listings to Google Sheets if configured
-                            if (GOOGLE_APPS_SCRIPT_URL && !GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
-                                updateSyncStatus(true, '💾 Saving ' + newListings.length + ' listings to Google Sheets...');
-                                
-                                Promise.all(newListings.map(listing => {
-                                    const postData = JSON.stringify({
-                                        action: 'saveListing',
-                                        listing: listing
-                                    });
-                                    
-                                    // Try direct fetch first, fallback to no-cors mode
-                                    return fetch(GOOGLE_APPS_SCRIPT_URL, {
-                                        method: 'POST',
-                                        mode: 'cors',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: postData
-                                    }).then(async r => {
-                                        try {
-                                            const text = await r.text();
-                                            return text ? JSON.parse(text) : { success: true };
-                                        } catch (e) {
-                                            return { success: true };
-                                        }
-                                    }).catch(corsError => {
-                                        // Fallback: no-cors mode (sends request but can't read response)
-                                        return fetch(GOOGLE_APPS_SCRIPT_URL, {
-                                            method: 'POST',
-                                            mode: 'no-cors',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: postData
-                                        }).then(() => {
-                                            // With no-cors, assume success if no error
-                                            return { success: true };
-                                        }).catch(() => {
-                                            return { success: false };
-                                        });
-                                    });
-                                })).then(results => {
-                                    const successCount = results.filter(r => r.success).length;
-                                    updateSyncStatus(true, `✅ Saved ${successCount}/${newListings.length} listings to Google Sheets`);
-                                    alert('CSV uploaded successfully! ' + newListings.length + ' listings imported. ' + successCount + ' saved to Google Sheets.');
-                                }).catch(error => {
-                                    console.error('Error saving to Google Sheets:', error);
-                                    updateSyncStatus(false, '❌ Some saves failed');
-                                    alert('CSV uploaded! ' + newListings.length + ' listings imported locally, but some failed to save to Google Sheets.');
-                                });
-                            } else {
-                                alert('CSV uploaded successfully! ' + newListings.length + ' listings imported. (Local only - configure Google Sheets to sync)');
-                            }
+                            // CSV imported locally only - user must click "Save All to Google Sheets" to sync
+                            alert('CSV uploaded successfully! ' + newListings.length + ' listings imported locally.\n\n💾 Click "Save All to Google Sheets" to sync changes.');
                         }
                         
                         // Reset file input
