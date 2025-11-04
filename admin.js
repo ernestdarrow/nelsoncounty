@@ -1125,57 +1125,57 @@ const initialData =
                         
                         let result = { success: false };
                         
-                    try {
-                        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                            method: 'POST',
+                        // Try direct fetch first
+                        try {
+                            const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                                method: 'POST',
                                 mode: 'cors',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
                                 body: postData
                             });
                             
-                            try {
-                                const responseText = await response.text();
-                                result = responseText ? JSON.parse(responseText) : { success: true };
-                            } catch (e) {
-                                result = { success: true };
-                            }
-                        } catch (corsError) {
-                            // Use no-cors mode as fallback
-                            try {
-                                await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                                    method: 'POST',
-                                    mode: 'no-cors',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                    },
-                                    body: postData
-                                });
-                                result = { success: true };
-                                console.log('Using no-cors mode for delete, assuming success');
-                            } catch (e) {
-                                result = { success: false, error: 'Failed to connect' };
-                            }
+                            const responseText = await response.text();
+                            result = responseText ? JSON.parse(responseText) : { success: true };
+                        } catch (e) {
+                            result = { success: true };
                         }
-                        if (result.success) {
-                            // Update local data
-                            data.listings = data.listings.filter(function(l) { return l.id !== id; });
-                            updateSyncStatus(true, '✅ Deleted from Google Sheets');
-                            
-                            // Reload from Google Sheets to sync
-                            setTimeout(() => loadDataFromGoogleSheets(), 1000);
-                        } else {
-                            throw new Error(result.error || 'Delete failed');
+                    } catch (corsError) {
+                        // Use no-cors mode as fallback
+                        try {
+                            await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                                method: 'POST',
+                                mode: 'no-cors',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: postData
+                            });
+                            result = { success: true };
+                            console.log('Using no-cors mode for delete, assuming success');
+                        } catch (e) {
+                            result = { success: false, error: 'Failed to connect' };
                         }
-                    } catch (error) {
-                        console.error('Error deleting from Google Sheets:', error);
-                        updateSyncStatus(false, '❌ Delete failed');
-                        alert('⚠️ Failed to delete from Google Sheets: ' + error.message + '\n\nDeleted locally only.');
-                        
-                        // Still delete locally
-                        data.listings = data.listings.filter(function(l) { return l.id !== id; });
                     }
+                    if (result.success) {
+                        // Update local data
+                        data.listings = data.listings.filter(function(l) { return l.id !== id; });
+                        updateSyncStatus(true, '✅ Deleted from Google Sheets');
+                        
+                        // Reload from Google Sheets to sync
+                        setTimeout(() => loadDataFromGoogleSheets(), 1000);
+                    } else {
+                        throw new Error(result.error || 'Delete failed');
+                    }
+                } catch (error) {
+                    console.error('Error deleting from Google Sheets:', error);
+                    updateSyncStatus(false, '❌ Delete failed');
+                    alert('⚠️ Failed to delete from Google Sheets: ' + error.message + '\n\nDeleted locally only.');
+                    
+                    // Still delete locally
+                    data.listings = data.listings.filter(function(l) { return l.id !== id; });
+                }
                 } else {
                     // No Google Sheets configured - delete locally only
                     data.listings = data.listings.filter(function(l) { return l.id !== id; });
