@@ -200,7 +200,7 @@
         .btn-info { background: #17a2b8; color: white; font-weight: 600; }
         .btn-info:hover { background: #138496; box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3); }
         
-        .stats { width: 100%; margin: 30px 0; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .stats { width: 100%; margin: 30px 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
         .stat-card { background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px var(--shadow); border-left: 4px solid #4E6B52; }
         .stat-card h3 { font-size: 14px; color: var(--text-secondary); margin-bottom: 10px; }
         .stat-card p { font-size: 32px; font-weight: 700; color: #4E6B52; }
