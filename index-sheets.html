@@ -158,7 +158,7 @@
             color: #721c24;
             padding: 12px;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 14px; 
             text-align: center;
             margin-bottom: 20px;
         }
@@ -205,7 +205,7 @@
                     </svg>
                     Sign in with Google
                 </button>
-            </div>
+                </div>
                 
             <div id="loadingMessage">Loading sign-in button...</div>
                 
@@ -1141,7 +1141,7 @@
             setTimeout(function() {
                 // Check if critical functions exist
                 if (typeof initializeGoogleSignIn === 'undefined') {
-                    const errorDiv = document.getElementById('loginError');
+            const errorDiv = document.getElementById('loginError');
                     const errorText = document.getElementById('loginErrorText');
                     const loadingMessage = document.getElementById('loadingMessage');
                     
@@ -1155,7 +1155,7 @@
                             2. GitHub Pages is enabled for your repository<br>
                             3. The file is accessible at: https://ernestdarrow.github.io/nelsoncounty/admin.js</small>
                         `;
-                        errorDiv.style.display = 'block';
+                errorDiv.style.display = 'block';
                     }
                 }
             }, 2000);
