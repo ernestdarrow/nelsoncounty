@@ -2676,7 +2676,7 @@
                         
                         // Preserve existing filterOptions when loading from Sheets
                         // Ensure data is initialized before accessing it
-                        if (!data) {
+                        if (typeof data === 'undefined' || !data) {
                             data = JSON.parse(JSON.stringify(initialData));
                         }
                         const existingFilterOptions = data.filterOptions || initialData.filterOptions;
@@ -2798,7 +2798,7 @@
                         // Extract filter options from listings
                         // Preserve existing filterOptions when loading from CSV
                         // Ensure data is initialized before accessing it
-                        if (!data) {
+                        if (typeof data === 'undefined' || !data) {
                             data = JSON.parse(JSON.stringify(initialData));
                         }
                         const existingFilterOptions = data.filterOptions || initialData.filterOptions;
@@ -3188,7 +3188,7 @@
             if (!container) return;
             
             // Ensure data is initialized
-            if (!data || !data.filterOptions || !data.filterOptions.amenities) {
+            if (typeof data === 'undefined' || !data || !data.filterOptions || !data.filterOptions.amenities) {
                 console.warn('Data not initialized yet, skipping renderAmenitiesCheckboxes');
                 return;
             }
@@ -3621,7 +3621,7 @@
             if (!select) return;
             
             // Ensure data is initialized
-            if (!data || !data.filterOptions || !data.filterOptions.types) {
+            if (typeof data === 'undefined' || !data || !data.filterOptions || !data.filterOptions.types) {
                 console.warn('Data not initialized yet, skipping updateTypeDropdown');
                 return;
             }
@@ -3639,7 +3639,7 @@
             if (!select) return;
             
             // Ensure data is initialized
-            if (!data || !data.filterOptions || !data.filterOptions.areas) {
+            if (typeof data === 'undefined' || !data || !data.filterOptions || !data.filterOptions.areas) {
                 console.warn('Data not initialized yet, skipping updateAreaDropdown');
                 return;
             }
