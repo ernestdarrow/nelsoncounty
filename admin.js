@@ -2337,7 +2337,7 @@ const initialData =
         // ===========================================
         // 🔧 TESTING: Set to false to disable Google OAuth temporarily
         // Set to true to re-enable authentication
-        const ENABLE_GOOGLE_AUTH = true; // 👈 Change to false to skip login
+        const ENABLE_GOOGLE_AUTH = false; // 👈 Change to false to skip login
         
         // 🔐 CONFIGURATION: Google OAuth Client ID
         // Get this from: https://console.cloud.google.com/apis/credentials
