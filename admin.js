@@ -502,12 +502,17 @@ const initialData =
                         const areas = [...new Set(listings.map(l => l.area).filter(Boolean))].sort();
                         const amenities = [...new Set(listings.flatMap(l => l.amenities || []).filter(Boolean))].sort();
                         
+                        // Merge saved options with extracted ones (preserve all, remove duplicates)
+                        const mergedTypes = [...new Set([...(existingFilterOptions.types || []), ...types])].sort();
+                        const mergedAreas = [...new Set([...(existingFilterOptions.areas || []), ...areas])].sort();
+                        const mergedAmenities = [...new Set([...(existingFilterOptions.amenities || []), ...amenities])].sort();
+                        
                         data = {
                             listings: listings,
                             filterOptions: {
-                                types: existingFilterOptions.types || types,
-                                areas: existingFilterOptions.areas || areas,
-                                amenities: existingFilterOptions.amenities || amenities
+                                types: mergedTypes,
+                                areas: mergedAreas,
+                                amenities: mergedAmenities
                             }
                         };
                         // Save filterOptions to localStorage
@@ -631,12 +636,17 @@ const initialData =
                         const areas = [...new Set(listings.map(l => l.area).filter(Boolean))].sort();
                         const amenities = [...new Set(listings.flatMap(l => l.amenities || []).filter(Boolean))].sort();
                         
+                        // Merge saved options with extracted ones (preserve all, remove duplicates)
+                        const mergedTypes = [...new Set([...(existingFilterOptions.types || []), ...types])].sort();
+                        const mergedAreas = [...new Set([...(existingFilterOptions.areas || []), ...areas])].sort();
+                        const mergedAmenities = [...new Set([...(existingFilterOptions.amenities || []), ...amenities])].sort();
+                        
                         data = {
                             listings: listings,
                             filterOptions: {
-                                types: existingFilterOptions.types || types,
-                                areas: existingFilterOptions.areas || areas,
-                                amenities: existingFilterOptions.amenities || amenities
+                                types: mergedTypes,
+                                areas: mergedAreas,
+                                amenities: mergedAmenities
                             }
                         };
                         // Save filterOptions to localStorage
