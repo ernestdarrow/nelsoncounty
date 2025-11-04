@@ -1100,7 +1100,7 @@ const initialData =
             document.getElementById('listingModal').classList.add('active');
         }
         
-        function deleteListing(id) {
+        async function deleteListing(id) {
             const listing = data.listings.find(function(l) { return l.id === id; });
             
             if (!listing) {
