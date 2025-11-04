@@ -5338,15 +5338,17 @@ loadListings();</pre>
         // 2. Application type: Web application
         // 3. Authorized JavaScript origins: Add your domain (e.g., https://yourdomain.com)
         // 4. Authorized redirect URIs: Add your domain
-        const GOOGLE_OAUTH_CLIENT_ID = 'YOUR_CLIENT_ID.apps.googleusercontent.com';
+        const GOOGLE_OAUTH_CLIENT_ID = '1087570888908-4g9jboc2hoi1dl9t9qs5hmnak6ct1t24.apps.googleusercontent.com';
         
         // 🔐 AUTHORIZED EMAILS: List of Google email addresses that can access the admin panel
         // SECURITY NOTE: For better security, move this list to your Google Apps Script
         // and fetch it via an API call instead of storing it in the client code.
         const AUTHORIZED_EMAILS = [
             'ernest@oddplusevenstudio.com',
-            // Add more authorized emails here
+            // Add more authorized emails here (one per line, comma-separated)
             // Example: 'admin@example.com',
+            // Example: 'user@example.com',
+            // Example: 'team-member@example.com',
         ];
         
         // Parse JWT token to get user info
