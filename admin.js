@@ -427,18 +427,22 @@ const initialData =
                             response = await fetch(url, {
                                 method: 'GET',
                                 mode: 'cors',
-                                cache: 'no-cache'
-                            }).catch(corsError => {
-                                // CORS error - throw to be caught by outer catch
-                                throw new Error('CORS_ERROR: ' + corsError.message);
+                                cache: 'no-cache',
+                                credentials: 'omit'
                             });
                             
                             if (!response || !response.ok) {
-                        throw new Error('Failed to fetch from Apps Script');
+                                throw new Error('Failed to fetch from Apps Script');
                             }
                         } catch (fetchError) {
-                            // If CORS fails, try alternative proxy
-                            if (fetchError.message.includes('CORS_ERROR') || fetchError.message.includes('access control')) {
+                            // Check if it's a CORS error or network error
+                            const isCorsError = fetchError.message.includes('CORS') || 
+                                              fetchError.message.includes('access control') ||
+                                              fetchError.message.includes('Failed to fetch') ||
+                                              fetchError.name === 'TypeError';
+                            
+                            if (isCorsError) {
+                                // Try proxy as fallback
                                 try {
                                     const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
                                     response = await fetch(proxyUrl, {
@@ -2167,6 +2171,8 @@ const initialData =
         }
         
         window.addEventListener("DOMContentLoaded", async function() {
+            // Small delay to ensure everything is ready (especially important when script is external)
+            await new Promise(resolve => setTimeout(resolve, 100));
             await loadDataFromGoogleSheets();
             
             // Initialize form dropdowns with dynamic options
