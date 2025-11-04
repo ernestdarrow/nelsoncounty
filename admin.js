@@ -1186,10 +1186,6 @@ const initialData =
                 
                 renderListings();
                 
-                const previewTab = document.getElementById('previewTab');
-                if (previewTab && previewTab.classList.contains('active')) {
-                    renderPreview();
-                }
             } else {
                 // First click - set confirmation needed
                 deleteConfirmId = id;
@@ -1344,11 +1340,6 @@ const initialData =
                 document.getElementById('codeTab').classList.add('active');
                 header.style.display = 'block';
                 generateCode();
-            } else if (tab === 'preview') {
-                document.querySelectorAll('.tab-btn')[4].classList.add('active');
-                document.getElementById('previewTab').classList.add('active');
-                header.style.display = 'none';
-                renderPreview();
             } else if (tab === 'learn') {
                 document.querySelectorAll('.tab-btn')[5].classList.add('active');
                 document.getElementById('learnTab').classList.add('active');
@@ -1949,10 +1940,6 @@ const initialData =
             
             // Update all views
             renderListings();
-            const previewTab = document.getElementById('previewTab');
-            if (previewTab.classList.contains('active')) {
-                renderPreview();
-            }
             
             // Changes saved locally only - user must click "Save All to Google Sheets" to sync
             if (changeCount > 0) {
@@ -1974,11 +1961,6 @@ const initialData =
                 
                 renderDataTable();
                 renderListings();
-                
-                const previewTab = document.getElementById('previewTab');
-                if (previewTab.classList.contains('active')) {
-                    renderPreview();
-                }
                 
                 alert('Deleted: ' + listing.name);
             } else {
@@ -2130,12 +2112,6 @@ const initialData =
                             data.listings = newListings;
                             renderDataTable();
                             renderListings();
-                            
-                            // Update preview if active
-                            const previewTab = document.getElementById('previewTab');
-                            if (previewTab.classList.contains('active')) {
-                                renderPreview();
-                            }
                             
                             // CSV imported locally only - user must click "Save All to Google Sheets" to sync
                             alert('CSV uploaded successfully! ' + newListings.length + ' listings imported locally.\n\n💾 Click "Save All to Google Sheets" to sync changes.');

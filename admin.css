@@ -170,8 +170,6 @@
         /* Card info icons */
         
         .header { background: #ffffff; color: #212529; padding-bottom: 0; border-bottom: 3px solid #4E6B52; transition: all 0.3s; width: 100%; }
-        #previewTab.active ~ .header,
-        body.preview-mode .header { display: none; }
         .main-container { max-width: 1600px; margin: 0 auto; width: 100%; }
         .header-content { max-width: 1600px; margin: 0 auto; padding: 30px 20px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
         .header h1 { font-size: 28px; margin-bottom: 10px; }
@@ -353,85 +351,6 @@
         .tab-content { display: none; width: 100%; padding: 0 20px; }
         .tab-content.active { display: block; }
         
-        .preview-container { width: 100%; margin: 0; padding: 0; transition: background-color 0.3s, color 0.3s; }
-        
-        .preview-controls {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            display: none;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        #previewTab.active .preview-controls {
-            display: flex;
-        }
-        
-        .back-to-admin {
-            background: #4E6B52;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transition: all 0.3s;
-        }
-        
-        .back-to-admin:hover {
-            background: #3d5440;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-        }
-        
-        .preview-dark-toggle {
-            background: #6b7280;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transition: all 0.3s;
-            width: 44px;
-            height: 44px;
-        }
-        
-        .preview-dark-toggle:hover {
-            background: #4b5563;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-        }
-        
-        .preview-dark-toggle svg {
-            width: 18px;
-            height: 18px;
-        }
-        .back-to-admin svg {
-            width: 18px;
-            height: 18px;
-        }
-        
-        .preview-header { text-align: left; margin-bottom: 40px; padding: 30px 30px 0 0; transition: color 0.3s; }
-        .preview-header h1 { font-size: 32px; color: var(--text-primary); margin-bottom: 10px; transition: color 0.3s; }
-        .preview-header p { font-size: 18px; color: var(--text-secondary); transition: color 0.3s; }
-        
-        
-        /* Dark mode adjustments for toggle */
-        
-        
-        
-        
         .badge-type::before {
             content: '';
             width: 14px;
@@ -510,47 +429,11 @@
             padding-top: 6px;
         }
         
-        
-        .preview-content-wrapper { display: flex; gap: 0; align-items: stretch; min-height: 100vh; }
-        
-        .preview-sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh; left: 0; align-self: flex-start; }
-        
-        .preview-filters { background: var(--bg-secondary); padding: 0; border-radius: 0; box-shadow: none; border-right: 1px solid var(--border-color); height: 100%; display: flex; flex-direction: column; }
-        .preview-filters h3 { font-size: 18px; color: var(--text-primary); margin-bottom: 0; padding: 20px 20px 15px; border-bottom: 1px solid var(--border-color); background: var(--card-bg); flex-shrink: 0; }
-        
         .filter-content { flex: 1; overflow-y: auto; padding: 0; min-height: 0; }
         .filter-content::-webkit-scrollbar { width: 6px; }
         .filter-content::-webkit-scrollbar-track { background: transparent; }
         .filter-content::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
         .filter-content::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
-        
-        
-        .preview-search { margin-bottom: 0; }
-        .preview-search label { 
-            display: block; 
-            font-size: 13px; 
-            font-weight: 600; 
-            color: var(--text-primary); 
-            margin-bottom: 8px; 
-        }
-        .preview-search input { 
-            width: 100%; 
-            padding: 12px 16px; 
-            border: 2px solid var(--border-color); 
-            border-radius: 10px; 
-            font-size: 14px; 
-            transition: all 0.2s; 
-            background: var(--bg-hover); 
-        }
-        .preview-search input:focus { 
-            outline: none; 
-            border-color: #4E6B52; 
-            background: var(--card-bg); 
-            box-shadow: 0 0 0 3px rgba(78, 107, 82, 0.1);
-        }
-        .preview-search input::placeholder {
-            color: #9ca3af;
-        }
         
         .type-quick-filters { display: flex; flex-direction: column; gap: 6px; margin-bottom: 0; }
         .type-filter-btn { 
@@ -593,29 +476,6 @@
             color: white; 
         }
         
-        /* Dark mode icon filters */
-        
-        .preview-search { margin-bottom: 20px; }
-        .preview-search label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
-        .preview-search input { width: 100%; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; transition: border-color 0.2s; background: var(--bg-hover); }
-        .preview-search input:focus { outline: none; border-color: #4E6B52; background: var(--card-bg); }
-        
-        .preview-filter-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-        .preview-filter-group label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
-        .preview-filter-group select { width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; background: var(--bg-hover); cursor: pointer; transition: all 0.2s; color: var(--text-primary); appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
-        .preview-filter-group select:hover { border-color: #cbd5e1; background: var(--card-bg); }
-        .preview-filter-group select:focus { outline: none; border-color: #4E6B52; background: var(--card-bg); }
-        
-        .preview-filters .btn { width: 100%; padding: 9px 16px; whitespace: nowrap; font-size: 13px; margin-top: 8px; }
-        
-        .preview-main { flex: 1; min-width: 0; padding: 0 30px 30px 30px; }
-        .preview-results { margin-bottom: 20px; font-size: 14px; color: var(--text-secondary); font-weight: 500; }
-        
-        @media (max-width: 968px) {
-            .preview-content-wrapper { flex-direction: column; }
-            .preview-sidebar { width: 100%; position: static; }
-        }
-        
         .data-container { width: 100%; margin: 0; padding: 30px 20px; }
         .data-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
         .data-header h2 { font-size: 24px; color: var(--text-primary); }
@@ -648,84 +508,6 @@
         .data-table .btn-table-delete { background: #E3795C; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; }
         .data-table .btn-table-delete:hover { background: #D65052; }
         
-        .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        
-        .flip-card { perspective: 1000px; height: 400px; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease, z-index 0s, position 0s, top 0s, left 0s, width 0s, height 0s; position: relative; }
-        .flip-card:hover { transform: translateY(-8px); }
-        .flip-card.flipped { 
-            position: fixed;
-            top: 5vh;
-            left: 5vw;
-            width: 90vw;
-            height: 90vh;
-            z-index: 1000;
-            transform: none;
-            transition: all 0.3s ease;
-        }
-        .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
-        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
-        .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: box-shadow 0.3s ease; }
-        .flip-card:hover .flip-card-front, .flip-card:hover .flip-card-back { box-shadow: 0 12px 24px rgba(0,0,0,0.15); }
-        .flip-card.flipped .flip-card-front, .flip-card.flipped .flip-card-back { box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-        .flip-card-front { background: var(--card-bg); }
-        .flip-card-back { background: var(--card-bg); transform: rotateY(180deg); padding: 30px; display: flex; flex-direction: column; overflow-y: auto; }
-        
-        /* Overlay behind flipped card */
-        .flip-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 999;
-            backdrop-filter: blur(4px);
-        }
-        .flip-overlay.active {
-            display: block;
-        }
-        
-        /* Back side image gallery */
-        .flip-back-images {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .flip-back-image {
-            flex: 1;
-            height: 250px;
-            border-radius: 8px;
-            object-fit: cover;
-        }
-        
-        /* Tags container on flip side */
-        .flip-tags-container { margin: 15px 0; padding: 15px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
-        .flip-tags-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .flip-tags-list { display: flex; flex-wrap: wrap; gap: 6px; }
-        
-        /* Close button for flipped card */
-        .flip-close-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            background: rgba(0, 0, 0, 0.5);
-            border: none;
-            border-radius: 50%;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-            transition: background 0.3s;
-        }
-        .flip-close-btn:hover {
-            background: rgba(0, 0, 0, 0.8);
-        }
         
         .code-container { width: 100%; margin: 0; padding: 30px 20px; }
         .code-section { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
