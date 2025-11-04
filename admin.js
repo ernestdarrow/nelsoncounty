@@ -2235,7 +2235,7 @@ const initialData =
                 console.log('Reading file:', file.name);
                 const reader = new FileReader();
                 
-                reader.onerror = function(error) {
+                reader.onerror = async function(error) {
                     console.error('File read error:', error);
                     await showAlert('Error reading file: ' + error, 'Error', {
                         okText: 'OK',
@@ -2243,7 +2243,7 @@ const initialData =
                     });
                 };
                 
-                reader.onload = function(e) {
+                reader.onload = async function(e) {
                     try {
                         console.log('File loaded, parsing CSV...');
                         const text = e.target.result;
@@ -2942,7 +2942,7 @@ const initialData =
                 try {
                     google.accounts.id.initialize({
                         client_id: clientId,
-                        callback: function(response) {
+                        callback: async function(response) {
                             console.log('✅ Test successful! Got credential response');
                             await showAlert('✅ Test successful! Google Sign-In is working.\n\nIf you see this, your configuration is correct!', 'Test Successful');
                         },
