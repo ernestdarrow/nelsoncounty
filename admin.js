@@ -691,6 +691,7 @@ const initialData =
         }
         
         // Reload data from Google Sheets (manual refresh)
+<<<<<<< HEAD
         window.reloadFromSheets = async function reloadFromSheets() {
             const confirmed = confirm('⚠️ Warning: Reloading from Google Sheets will override all changes you\'ve made in this admin panel.\n\n' +
                                     'Any unsaved changes will be lost.\n\n' +
@@ -699,6 +700,10 @@ const initialData =
                 return;
             }
             // Status will be updated by loadDataFromGoogleSheets()
+=======
+        async function reloadFromSheets() {
+            updateSyncStatus(true, '🔄 Reloading...');
+>>>>>>> parent of 91e29d2 (141)
             await loadDataFromGoogleSheets();
         }
         
@@ -785,6 +790,7 @@ const initialData =
                 return;
             }
             
+<<<<<<< HEAD
             // Show confirmation dialog asking if they want to download CSV backup first
             const wantBackup = confirm('⚠️ You are about to replace ALL data in Google Sheets.\n\n' +
                                  'Would you like to download a CSV backup first?\n\n' +
@@ -802,6 +808,10 @@ const initialData =
                                     `You are about to replace all data in Google Sheets with ${data.listings.length} listing(s).\n\n` +
                                     'This action cannot be undone.\n\n' +
                                     'Do you want to proceed?');
+=======
+            // Show confirmation dialog with backup recommendation
+            const confirmed = await showBackupConfirmation(data.listings.length);
+>>>>>>> parent of 91e29d2 (141)
             if (!confirmed) {
                 return; // User cancelled
             }
