@@ -2487,7 +2487,7 @@ const initialData =
                         {
                             theme: 'filled_blue',
                             size: 'large',
-                            width: '100%',
+                            width: 300,
                             text: 'signin_with',
                             type: 'standard'
                         }

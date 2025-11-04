@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Google Sheets</title>
     <!-- Google Identity Services -->
+    <script>
+        // Prevent Google's auto-initialization before our code runs
+        window.g_id_onload = function() {
+            // Do nothing - we'll initialize manually
+        };
+    </script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <!-- External Stylesheet for Admin Panel -->
     <link rel="stylesheet" href="https://ernestdarrow.github.io/nelsoncounty/admin.css">
@@ -149,7 +155,7 @@
                 <p>Sign in with your Google account to access the admin panel</p>
             </div>
             
-            <div id="g_id_onload"></div>
+            <div id="g_id_onload" data-auto_select="false"></div>
             
             <!-- Fallback manual button if Google's button doesn't load -->
             <div id="fallbackButtonContainer">
