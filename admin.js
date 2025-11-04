@@ -698,7 +698,7 @@ const initialData =
             if (!confirmed) {
                 return;
             }
-            updateSyncStatus(true, '🔄 Reloading...');
+            // Status will be updated by loadDataFromGoogleSheets()
             await loadDataFromGoogleSheets();
         }
         
@@ -806,7 +806,8 @@ const initialData =
                 return; // User cancelled
             }
             
-            updateSyncStatus(true, `💾 Saving ${data.listings.length} listings to Google Sheets (replacing all existing data)...`);
+            // Show "in progress" status
+            updateSyncStatus(true, `💾 Saving ${data.listings.length} listings...`);
             
             try {
                 // Send all listings at once with a "replaceAll" action
@@ -1300,9 +1301,14 @@ const initialData =
             const link = document.createElement('a');
             link.href = url;
             link.download = 'nelson-county-listings-' + new Date().toISOString().split('T')[0] + '.json';
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
             URL.revokeObjectURL(url);
-            updateSyncStatus(true, '💾 JSON backup downloaded');
+            // Update status AFTER download completes
+            setTimeout(() => {
+                updateSyncStatus(true, '💾 JSON backup downloaded');
+            }, 100);
         }
         
         document.getElementById('listingModal').addEventListener('click', function(e) {
@@ -1979,7 +1985,6 @@ const initialData =
         
         function downloadCSV() {
             try {
-                console.log('Downloading CSV...');
                 const headers = ['ID', 'Name', 'Type', 'Area', 'Description', 'Image1', 'Image2', 'Website', 'Phone', 'Address', 'Amenities', 'Featured'];
                 const rows = data.listings.map(function(listing) {
                     return [
@@ -1999,7 +2004,6 @@ const initialData =
                 });
                 
                 const csv = [headers.join(',')].concat(rows).join('\n');
-                console.log('CSV generated, length:', csv.length);
                 
                 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
@@ -2011,10 +2015,14 @@ const initialData =
                 document.body.removeChild(link);
                 URL.revokeObjectURL(url);
                 
-                console.log('CSV download triggered');
-                alert('CSV downloaded!');
+                // Update status AFTER download completes
+                // Use setTimeout to ensure download has started
+                setTimeout(() => {
+                    updateSyncStatus(true, '✅ CSV backup downloaded');
+                }, 100);
             } catch (error) {
                 console.error('Error downloading CSV:', error);
+                updateSyncStatus(false, '❌ CSV download failed');
                 alert('Error downloading CSV: ' + error.message);
             }
         }
