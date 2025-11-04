@@ -312,7 +312,8 @@ const fallbackData = {
       "Nellysford",
       "Montebello",
       "Arrington",
-      "Roseland"
+      "Roseland",
+      "Seymour"
     ],
     "amenities": [
       "Kid-Friendly",
@@ -337,18 +338,196 @@ const fallbackData = {
   }
 };
 
-// Fetch adventure data from GitHub
+// Google Sheets Configuration
+// Using the published CSV URL from "Publish to web" feature
+const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTjIYDylHAm_j9b4rwGOjfPe0aoPRA1rcqsZ8NZg8ugT97pkM83n87NrDVhx7NU63-whpia-hRscywD/pub?gid=0&single=true&output=csv';
+
+// Fetch adventure data from Google Sheets (or GitHub as fallback)
 const GITHUB_JSON_URL = 'https://raw.githubusercontent.com/ernestdarrow/nelsoncounty/main/data/config.json';
 
 console.log('🔍 Adventure Directory Loading...');
-console.log('📍 GitHub URL:', GITHUB_JSON_URL);
+console.log('📍 Google Sheet URL:', GOOGLE_SHEET_CSV_URL);
+console.log('📍 GitHub URL (fallback):', GITHUB_JSON_URL);
 console.log('💾 Fallback data available:', fallbackData ? 'YES' : 'NO');
 console.log('📦 Fallback listings count:', fallbackData?.listings?.length || 0);
 
 // Global data variable
 let data = null;
-let currentTypeFilter = '';
+let currentTypeFilter = []; // Changed to array to support multiple selections
 let currentFeaturedOnly = false;
+
+// Helper function to parse CSV text into array of objects
+function parseCSV(csvText) {
+    // Parse CSV row by row, handling quoted fields that may contain newlines
+    const rows = [];
+    let currentRow = '';
+    let inQuotes = false;
+    
+    // Process character by character to properly handle quoted fields
+    for (let i = 0; i < csvText.length; i++) {
+        const char = csvText[i];
+        const nextChar = csvText[i + 1];
+        
+        if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+                // Escaped quote (double quote)
+                currentRow += '"';
+                i++; // Skip next quote
+            } else {
+                // Toggle quote state
+                inQuotes = !inQuotes;
+                currentRow += char; // Keep quote for parsing
+            }
+        } else if (char === '\n' || char === '\r') {
+            if (inQuotes) {
+                // Newline inside quoted field - keep it as part of the field
+                currentRow += char;
+            } else {
+                // End of row
+                if (char === '\r' && nextChar === '\n') {
+                    i++; // Skip \n after \r
+                }
+                if (currentRow.trim()) {
+                    rows.push(currentRow.trim());
+                }
+                currentRow = '';
+            }
+        } else {
+            currentRow += char;
+        }
+    }
+    
+    // Add final row if there's content
+    if (currentRow.trim()) {
+        rows.push(currentRow.trim());
+    }
+    
+    // Filter out completely empty lines
+    const filteredRows = rows.filter(row => row.trim());
+    
+    console.log('📋 Total rows found (including header):', filteredRows.length);
+    
+    if (filteredRows.length === 0) return [];
+    
+    // Parse header row
+    const headers = parseCSVLine(filteredRows[0]).map(h => h.trim()).filter(h => h); // Remove empty headers
+    console.log('📋 CSV Headers found:', headers);
+    
+    const dataRows = [];
+    
+    // Parse data rows
+    for (let i = 1; i < filteredRows.length; i++) {
+        const values = parseCSVLine(filteredRows[i]);
+        // Check if row has any meaningful data (at least Title/Name field should exist)
+        if (values.length === 0) {
+            console.log(`⚠️ Skipping row ${i + 1}: empty values array`);
+            continue;
+        }
+        // Check if Title field (first column) exists and has content
+        const titleField = values[0] ? values[0].trim() : '';
+        if (!titleField) {
+            console.log(`⚠️ Skipping row ${i + 1}: empty title field`);
+            continue;
+        }
+        
+        const row = {};
+        headers.forEach((header, index) => {
+            row[header] = (values[index] || '').trim();
+        });
+        dataRows.push(row);
+        
+        // Log progress for debugging (first few and last few)
+        if (i <= 5 || i > filteredRows.length - 5) {
+            console.log(`✅ Parsed row ${i + 1}/${filteredRows.length - 1}:`, titleField.substring(0, 50));
+        }
+    }
+    
+    console.log('📋 Total data rows parsed:', dataRows.length);
+    console.log('📋 Expected data rows (excluding header):', filteredRows.length - 1);
+    return dataRows;
+}
+
+// Helper function to parse a single CSV line (handles quoted fields with commas)
+function parseCSVLine(line) {
+    const values = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+                // Escaped quote
+                current += '"';
+                i++; // Skip next quote
+            } else {
+                // Toggle quote state
+                inQuotes = !inQuotes;
+                // Don't include the quote characters in the value
+                continue;
+            }
+        } else if (char === ',' && !inQuotes) {
+            // Field separator
+            values.push(current);
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    
+    // Add last field
+    values.push(current);
+    
+    return values;
+}
+
+// Helper function to convert CSV row to listing object
+function mapCSVRowToListing(row, index) {
+    // Handle various column name variations
+    const getField = (fieldName, altNames = []) => {
+        const names = [fieldName, ...altNames];
+        for (const name of names) {
+            if (row[name]) return row[name].trim();
+        }
+        return '';
+    };
+    
+    // Parse amenities (can be comma or semicolon separated)
+    const amenitiesStr = getField('Amenities', ['amenities', 'Amenity']);
+    const amenities = amenitiesStr 
+        ? amenitiesStr.split(/[,;]/).map(a => a.trim()).filter(a => a)
+        : [];
+    
+    // Parse featured (handle various formats)
+    const featuredStr = getField('Featured', ['featured']);
+    const featured = featuredStr === 'TRUE' || featuredStr === 'true' || featuredStr === '1' || featuredStr === 'Yes' || featuredStr === 'yes';
+    
+    return {
+        id: getField('ID', ['id', 'Id']) || String(index + 1),
+        name: getField('Title', ['Name', 'name', 'title']) || 'Unnamed',
+        type: getField('Type', ['type']) || '',
+        area: getField('Area', ['area']) || '',
+        description: getField('Description', ['description', 'Desc', 'desc']) || '',
+        image1: getField('Photo', ['photo', 'Image', 'image', 'Image1', 'image1', 'Image 1']) || '',
+        // Support multiple second-image header variants from the sheet
+        image2: getField('Image2', ['image2', 'Image 2', 'Photo 2', 'photo2', 'Photo2', 'Second Photo', 'Secondary Photo']) || '',
+        website: getField('External Website', ['Website', 'website', 'URL', 'url']) || '',
+        phone: getField('Phone', ['phone']) || '',
+        address: getField('Address', ['address']) || '',
+        amenities: amenities,
+        featured: featured
+    };
+}
+
+// Helper function to extract filter options from listings
+function extractFilterOptions(listings) {
+    const types = [...new Set(listings.map(l => l.type).filter(Boolean))].sort();
+    const areas = [...new Set(listings.map(l => l.area).filter(Boolean))].sort();
+    const amenities = [...new Set(listings.flatMap(l => l.amenities || []).filter(Boolean))].sort();
+    
+    return { types, areas, amenities };
+}
 
 // Get URL parameters helper
 function getUrlParameter(name) {
@@ -481,20 +660,222 @@ function handleUrlParameters() {
 }
 
 // Fetch data from GitHub and initialize
-fetch(GITHUB_JSON_URL)
-    .then(response => {
-        console.log('📡 GitHub Response Status:', response.status, response.statusText);
-        if (!response.ok) {
-            console.warn('⚠️ Could not fetch from GitHub (status ' + response.status + '), using embedded fallback data');
-            return fallbackData;
+// Function to load data from Google Sheets
+function loadDataFromGoogleSheets() {
+    // Check if Google Sheet CSV URL is configured
+    if (!GOOGLE_SHEET_CSV_URL || GOOGLE_SHEET_CSV_URL.includes('YOUR_SHEET_ID')) {
+        console.log('⚠️ Google Sheet URL not configured, trying GitHub...');
+        return loadDataFromGitHub();
+    }
+    
+    console.log('📊 Attempting to load from Google Sheets...');
+    const cacheBustUrl = GOOGLE_SHEET_CSV_URL + (GOOGLE_SHEET_CSV_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+    console.log('🔗 URL:', cacheBustUrl);
+
+    // For file:// origins, use a proxy immediately (CORS doesn't work with file://)
+    // Check if we're running from file:// protocol
+    const isFileProtocol = window.location.protocol === 'file:';
+    
+    let fetchPromise;
+    
+    if (isFileProtocol) {
+        console.log('📁 Detected file:// protocol - using CORS proxy');
+        // Try multiple CORS proxy options
+        function buildProxyUrl(base, url) {
+            if (base.includes('corsproxy.io')) {
+                return base + encodeURIComponent(url);
+            } else if (base.includes('allorigins')) {
+                return base + encodeURIComponent(url);
+            } else {
+                return base + encodeURIComponent(url);
+            }
         }
-        console.log('✅ Successfully fetched from GitHub');
-        return response.json();
-    })
+        
+        const proxies = [
+            'https://corsproxy.io/?',
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.herokuapp.com/'
+        ];
+        
+        let proxyIndex = 0;
+        function tryProxy() {
+            const proxyUrl = buildProxyUrl(proxies[proxyIndex], cacheBustUrl);
+            console.log('🔁 Trying proxy', proxyIndex + 1, ':', proxyUrl.substring(0, 100) + '...');
+            
+            return fetch(proxyUrl, { 
+                method: 'GET', 
+                mode: 'cors', 
+                cache: 'no-cache', 
+                credentials: 'omit' 
+            })
+            .catch(function(err) {
+                console.warn('⚠️ Proxy', proxyIndex + 1, 'failed:', err && err.message);
+                proxyIndex++;
+                if (proxyIndex < proxies.length) {
+                    return tryProxy();
+                } else {
+                    throw new Error('All CORS proxies failed. Try running from a web server instead of file://');
+                }
+            });
+        }
+        
+        fetchPromise = tryProxy();
+    } else {
+        // For http/https, try direct first, fallback to proxy if needed
+        fetchPromise = fetch(cacheBustUrl, { 
+            method: 'GET', 
+            mode: 'cors', 
+            cache: 'no-cache', 
+            credentials: 'omit' 
+        })
+        .catch(function(err) {
+            console.warn('⚠️ Direct CSV fetch failed, retrying via CORS proxy:', err && err.message);
+            const proxied = 'https://corsproxy.io/?' + encodeURIComponent(cacheBustUrl);
+            console.log('🔁 Proxy URL:', proxied);
+            return fetch(proxied, { 
+                method: 'GET', 
+                mode: 'cors', 
+                cache: 'no-cache', 
+                credentials: 'omit' 
+            });
+        });
+    }
+    
+    return fetchPromise
+        .then(response => {
+            console.log('📡 Response status:', response.status, response.statusText);
+            console.log('📡 Response headers:', response.headers.get('content-type'));
+            if (!response.ok) {
+                throw new Error(`Google Sheets fetch failed: ${response.status} ${response.statusText}`);
+            }
+            console.log('✅ Successfully fetched CSV from Google Sheets');
+            return response.text();
+        })
+        .then(csvText => {
+            console.log('📄 CSV Text received, length:', csvText.length);
+            console.log('📄 First 500 chars:', csvText.substring(0, 500));
+            
+            // Parse CSV
+            const rows = parseCSV(csvText);
+            console.log('📋 Parsed CSV rows:', rows.length);
+            
+            if (rows.length === 0) {
+                throw new Error('No data rows found in Google Sheet');
+            }
+            
+            // Log first row to verify structure
+            if (rows.length > 0) {
+                console.log('📋 First row keys:', Object.keys(rows[0]));
+                console.log('📋 First row sample:', JSON.stringify(rows[0]).substring(0, 200));
+            }
+            
+            // Convert CSV rows to listings
+            const listings = rows.map((row, index) => mapCSVRowToListing(row, index));
+            console.log('✅ Converted to listings:', listings.length);
+            console.log('📊 Listing names (first 5):', listings.slice(0, 5).map(l => l.name || 'NO NAME'));
+            console.log('📊 Listing names (last 5):', listings.slice(-5).map(l => l.name || 'NO NAME'));
+            console.log('📊 Listing count breakdown:', {
+                total: listings.length,
+                withNames: listings.filter(l => l.name && l.name.trim()).length,
+                withoutNames: listings.filter(l => !l.name || !l.name.trim()).length
+            });
+            
+            if (listings.length > 0) {
+                console.log('📋 First listing:', JSON.stringify(listings[0]).substring(0, 300));
+                console.log('📋 Last listing:', JSON.stringify(listings[listings.length - 1]).substring(0, 300));
+            }
+            
+            // Extract filter options
+            const filterOptions = extractFilterOptions(listings);
+            console.log('📊 Filter options - Types:', filterOptions.types.length, 'Areas:', filterOptions.areas.length, 'Amenities:', filterOptions.amenities.length);
+            
+            return {
+                listings: listings,
+                filterOptions: filterOptions
+            };
+        })
+        .catch(error => {
+            console.error('❌ Google Sheets fetch failed:', error);
+            console.error('❌ Error message:', error.message);
+            console.error('❌ Error stack:', error.stack);
+            console.log('📡 Falling back to GitHub...');
+            return loadDataFromGitHub();
+        });
+}
+
+// Function to load data from GitHub (fallback)
+function loadDataFromGitHub() {
+    console.log('📡 Attempting to load from GitHub...');
+    return fetch(GITHUB_JSON_URL)
+        .then(response => {
+            console.log('📡 GitHub Response Status:', response.status, response.statusText);
+            if (!response.ok) {
+                console.warn('⚠️ Could not fetch from GitHub (status ' + response.status + '), using embedded fallback data');
+                return fallbackData;
+            }
+            console.log('✅ Successfully fetched from GitHub');
+            // Ensure UTF-8 encoding is handled properly
+            return response.text().then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('Error parsing JSON:', e);
+                    // Try to fix common encoding issues
+                    const fixedText = text
+                        .replace(/\u00C3\u00A9/g, '\u00E9') // Fix é if double-encoded
+                        .replace(/\u00C3\u00A1/g, '\u00E1') // Fix á
+                        .replace(/\u00C3\u00AD/g, '\u00ED') // Fix í
+                        .replace(/\u00C3\u00B3/g, '\u00F3') // Fix ó
+                        .replace(/\u00C3\u00BA/g, '\u00FA') // Fix ú
+                        .replace(/\u00C3\u00B1/g, '\u00F1') // Fix ñ
+                        .replace(/\u00C3\u00BC/g, '\u00FC') // Fix ü
+                        .replace(/\u00C3\u00B6/g, '\u00F6'); // Fix ö
+                    return JSON.parse(fixedText);
+                }
+            });
+        })
+        .catch(error => {
+            console.warn('⚠️ GitHub fetch failed:', error);
+            console.log('💾 Using embedded fallback data');
+            return fallbackData;
+        });
+}
+
+// Load data: Try Google Sheets first, then GitHub, then fallback
+loadDataFromGoogleSheets()
     .then(loadedData => {
+        if (!loadedData || !loadedData.listings) {
+            throw new Error('Loaded data is empty or missing listings');
+        }
+        
         data = loadedData;
-        console.log('✅ Adventure data loaded:', data);
-        console.log('📊 Listings count:', data?.listings?.length || 0);
+        console.log('✅ Adventure data loaded successfully');
+        console.log('📊 Source: Google Sheets');
+        console.log('📊 Listings count:', data.listings.length);
+        console.log('📊 First listing name:', data.listings[0]?.name || 'N/A');
+        console.log('📊 Last listing name:', data.listings[data.listings.length - 1]?.name || 'N/A');
+        
+        // Ensure filterOptions exist (if loaded from CSV, they're already there)
+        if (!data.filterOptions && data.listings) {
+            data.filterOptions = extractFilterOptions(data.listings);
+        }
+        
+        // Verify we're NOT using fallback data
+        if (data.listings.length === 20 && data.listings[0]?.name === 'Devil\'s Backbone Brewing Company') {
+            console.warn('⚠️ WARNING: This looks like fallback data! Something went wrong with Google Sheets fetch.');
+        }
+        
+        // Update head meta from fresh data
+        updateHeadFromData(data);
+        
+        // Force clear any cached/stale grid content
+        const grid = document.getElementById('previewGrid');
+        if (grid) {
+            grid.innerHTML = '';
+            console.log('🧹 Cleared previewGrid innerHTML');
+        }
+        
+        console.log('🎯 About to render', data.listings.length, 'listings');
         renderPreview();
         
         // Handle URL parameters after data is loaded and rendered
@@ -503,10 +884,18 @@ fetch(GITHUB_JSON_URL)
         }, 100);
     })
     .catch(error => {
-        console.error('❌ Error loading from GitHub:', error);
+        console.error('❌ Error loading data:', error);
+        console.error('❌ Error details:', error.message, error.stack);
         console.warn('🔄 Falling back to embedded data');
         data = fallbackData;
+        // Ensure filterOptions exist for fallback data
+        if (!data.filterOptions && data.listings) {
+            data.filterOptions = extractFilterOptions(data.listings);
+        }
         console.log('💾 Using fallback data with', data?.listings?.length || 0, 'listings');
+        console.warn('⚠️ NOTE: You are seeing FALLBACK DATA (20 items). Google Sheets fetch failed!');
+        // Update head meta from fallback so head isn't stale
+        updateHeadFromData(data);
         renderPreview();
         
         // Handle URL parameters after fallback data is loaded
@@ -514,6 +903,196 @@ fetch(GITHUB_JSON_URL)
             handleUrlParameters();
         }, 100);
     });
+
+// Function to escape HTML special characters
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Function to fix character encoding issues
+function fixEncoding(text) {
+    if (!text) return text;
+    return String(text)
+        .replace(/\u00C3\u00A9/g, '\u00E9') // Fix é if double-encoded
+        .replace(/\u00C3\u00A1/g, '\u00E1') // Fix á
+        .replace(/\u00C3\u00AD/g, '\u00ED') // Fix í
+        .replace(/\u00C3\u00B3/g, '\u00F3') // Fix ó
+        .replace(/\u00C3\u00BA/g, '\u00FA') // Fix ú
+        .replace(/\u00C3\u00B1/g, '\u00F1') // Fix ñ
+        .replace(/\u00C3\u00BC/g, '\u00FC') // Fix ü
+        .replace(/\u00C3\u00B6/g, '\u00F6') // Fix ö
+        .replace(/\u00C3\u00A0/g, '\u00E0') // Fix à
+        .replace(/\u00C3\u00A8/g, '\u00E8') // Fix è
+        .replace(/\u00C3\u00AC/g, '\u00EC') // Fix ì
+        .replace(/\u00C3\u00B2/g, '\u00F2') // Fix ò
+        .replace(/\u00C3\u00B9/g, '\u00F9') // Fix ù
+        .replace(/\u00C3\u00A7/g, '\u00E7') // Fix ç
+        .replace(/Caf[^\u00E9]|Cafe[^s]/g, 'Café') // Fix "Cafe" without accent (but not "Cafes")
+        .replace(/caf[^\u00E9]|cafe[^s]/g, 'café'); // Fix "cafe" without accent (but not "cafes")
+}
+
+// Update head <title> and meta tags from loaded data
+function updateHeadFromData(loadedData) {
+    try {
+        if (!loadedData || !loadedData.listings || loadedData.listings.length === 0) return;
+        var listings = loadedData.listings;
+        // Collect unique areas and types
+        var areaSet = {};
+        var typeSet = {};
+        for (var i = 0; i < listings.length; i++) {
+            var l = listings[i] || {};
+            if (l.area) areaSet[l.area] = true;
+            if (l.type) typeSet[l.type] = true;
+        }
+        var areas = Object.keys(areaSet);
+        var types = Object.keys(typeSet);
+
+        // Compose title and description
+        var titleBase = 'Nelson County Adventures';
+        var title = titleBase + ' - ' + listings.length + ' listings across ' + (areas.length || 1) + ' areas';
+        var typePreview = types.slice(0, 3).join(', ');
+        var areaPreview = areas.slice(0, 3).join(', ');
+        var description = 'Explore ' + listings.length + ' adventures in Nelson County, VA — including ' + (typePreview || 'local attractions') + (areaPreview ? (' — in ' + areaPreview) : '') + '. Find your perfect brewery, winery, hike, and more.';
+
+        // Helpers to set or create meta tags
+        function setMetaByName(name, content) {
+            if (!content) return;
+            var el = document.querySelector('meta[name="' + name + '"]');
+            if (!el) {
+                el = document.createElement('meta');
+                el.setAttribute('name', name);
+                document.head.appendChild(el);
+            }
+            el.setAttribute('content', content);
+        }
+        function setMetaByProperty(prop, content) {
+            if (!content) return;
+            var el = document.querySelector('meta[property="' + prop + '"]');
+            if (!el) {
+                el = document.createElement('meta');
+                el.setAttribute('property', prop);
+                document.head.appendChild(el);
+            }
+            el.setAttribute('content', content);
+        }
+
+        // Apply updates
+        if (document && document.title) { document.title = title; }
+        setMetaByName('title', title);
+        setMetaByName('description', description);
+        setMetaByProperty('og:title', title);
+        setMetaByProperty('og:description', description);
+        setMetaByProperty('twitter:title', title);
+        setMetaByProperty('twitter:description', description);
+        
+        // Update structured data (JSON-LD)
+        updateStructuredData(listings);
+    } catch (e) {
+        console.warn('⚠️ Failed to update head metadata from data:', e);
+    }
+}
+
+// Update structured data (Schema.org JSON-LD) from loaded listings
+function updateStructuredData(listings) {
+    try {
+        if (!listings || listings.length === 0) return;
+        
+        // Map types to Schema.org types
+        function getSchemaType(listing) {
+            var type = (listing.type || '').toLowerCase();
+            if (type.includes('brewery') || type === 'beer') return 'Brewery';
+            if (type.includes('winery') || type === 'wine') return 'Winery';
+            if (type.includes('distillery') || type === 'spirits') return 'Distillery';
+            if (type.includes('hiking') || type.includes('trail') || type.includes('outdoor')) return 'TouristAttraction';
+            if (type.includes('restaurant') || type.includes('dining')) return 'Restaurant';
+            if (type.includes('resort') || type.includes('lodging')) return 'Resort';
+            if (type.includes('spa')) return 'Spa';
+            if (type.includes('market')) return 'LocalBusiness';
+            return 'TouristAttraction';
+        }
+        
+        // Parse address components
+        function parseAddress(addressStr) {
+            if (!addressStr) return null;
+            var parts = addressStr.split(',');
+            var streetAddress = parts[0] ? parts[0].trim() : '';
+            var locality = parts.length > 1 ? parts[parts.length - 2].trim() : '';
+            var stateZip = parts.length > 0 ? parts[parts.length - 1].trim() : '';
+            var stateMatch = stateZip.match(/([A-Z]{2})\s*(\d{5})/);
+            var state = stateMatch ? stateMatch[1] : 'VA';
+            var postalCode = stateMatch ? stateMatch[2] : '';
+            
+            return {
+                '@type': 'PostalAddress',
+                streetAddress: streetAddress,
+                addressLocality: locality || '',
+                addressRegion: state,
+                postalCode: postalCode
+            };
+        }
+        
+        // Build containsPlace array (limit to first 50 for performance)
+        var containsPlace = listings.slice(0, 50).map(function(listing) {
+            var place = {
+                '@type': getSchemaType(listing),
+                name: listing.name || 'Unnamed'
+            };
+            
+            if (listing.description) {
+                place.description = listing.description;
+            }
+            
+            var addr = parseAddress(listing.address);
+            if (addr && addr.streetAddress) {
+                place.address = addr;
+            }
+            
+            if (listing.phone) {
+                place.telephone = listing.phone;
+            }
+            
+            if (listing.website) {
+                place.url = listing.website;
+            }
+            
+            return place;
+        });
+        
+        // Build the full structured data object
+        var structuredData = {
+            '@context': 'https://schema.org',
+            '@type': 'TouristDestination',
+            name: 'Nelson County',
+            description: 'Explore ' + listings.length + ' adventures in Nelson County, Virginia including breweries, wineries, hiking trails, and outdoor activities in the Blue Ridge Mountains.',
+            url: 'https://nelsoncounty-va.gov/',
+            geo: {
+                '@type': 'GeoCoordinates',
+                latitude: '37.8',
+                longitude: '-79.0'
+            },
+            containsPlace: containsPlace
+        };
+        
+        // Update or create the script tag
+        var scriptEl = document.getElementById('schemaOrgData');
+        if (scriptEl) {
+            scriptEl.textContent = JSON.stringify(structuredData, null, 2);
+        } else {
+            scriptEl = document.createElement('script');
+            scriptEl.type = 'application/ld+json';
+            scriptEl.id = 'schemaOrgData';
+            scriptEl.textContent = JSON.stringify(structuredData, null, 2);
+            document.head.appendChild(scriptEl);
+        }
+        
+        console.log('📊 Updated structured data with', containsPlace.length, 'places');
+    } catch (e) {
+        console.warn('⚠️ Failed to update structured data:', e);
+    }
+}
 
 // Icon mapping function
 function getIconClass(type) {
@@ -536,7 +1115,11 @@ function getIconClass(type) {
         'Theater': 'icon-theater', 'Theatre': 'icon-theater', 'Cinema': 'icon-cinema',
         'Movie': 'icon-cinema', 'Film': 'icon-cinema', 'Lodging': 'icon-lodging',
         'Hotel': 'icon-lodging', 'Inn': 'icon-lodging', 'BnB': 'icon-lodging',
-        'Cabin': 'icon-cabin', 'Camping': 'icon-camping', 'Park': 'icon-park'
+        'Cabin': 'icon-cabin', 'Camping': 'icon-camping', 'Park': 'icon-park',
+        'Cidery': 'icon-cidery', 'Cider': 'icon-cidery',
+        'Indoor Activity': 'icon-indoor', 'Indoor': 'icon-indoor',
+        'Attraction': 'icon-attraction', 'Attractions': 'icon-attraction',
+        'Farm & Orchard': 'icon-farm', 'Farm': 'icon-farm', 'Orchard': 'icon-farm'
     };
     return typeMap[type] || 'icon-default';
 }
@@ -612,7 +1195,10 @@ function filterByBadge(event, filterType, value) {
     closeAllFlippedCards();
     
     if (filterType === 'type') {
-        currentTypeFilter = value;
+        // For badge clicks, set single type (replaces current selection)
+        currentTypeFilter = [value];
+        const mobileTypeFilter = document.getElementById('mobileTypeFilter');
+        if (mobileTypeFilter) mobileTypeFilter.value = value;
         document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
             btn.classList.remove('active');
             if (btn.dataset.type === value) {
@@ -621,7 +1207,9 @@ function filterByBadge(event, filterType, value) {
         });
     } else if (filterType === 'area') {
         const areaFilter = document.getElementById('previewAreaFilter');
+        const mobileAreaFilter = document.getElementById('mobileAreaFilter');
         if (areaFilter) areaFilter.value = value;
+        if (mobileAreaFilter) mobileAreaFilter.value = value;
     } else if (filterType === 'featured') {
         currentFeaturedOnly = true;
     }
@@ -637,8 +1225,12 @@ function filterByAmenity(event, amenity) {
     closeAllFlippedCards();
     
     const amenityFilter = document.getElementById('previewAmenityFilter');
+    const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
     if (amenityFilter) {
         amenityFilter.value = amenity;
+    }
+    if (mobileAmenityFilter) {
+        mobileAmenityFilter.value = amenity;
     }
     
     filterPreview();
@@ -649,12 +1241,14 @@ function filterPreview() {
     if (!data) return;
     
     const searchInput = document.getElementById('previewSearchInput');
-    const areaFilter = document.getElementById('previewAreaFilter');
-    const amenityFilter = document.getElementById('previewAmenityFilter');
-    
-    const searchTerm = (searchInput ? searchInput.value : '').toLowerCase();
-    const selectedArea = areaFilter ? areaFilter.value : '';
-    const selectedAmenity = amenityFilter ? amenityFilter.value : '';
+        const areaFilter = document.getElementById('previewAreaFilter');
+        const amenityFilter = document.getElementById('previewAmenityFilter');
+        const mobileAreaFilter = document.getElementById('mobileAreaFilter');
+        const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
+        
+        const searchTerm = (searchInput ? searchInput.value : '').toLowerCase();
+        const selectedArea = (areaFilter ? areaFilter.value : '') || (mobileAreaFilter ? mobileAreaFilter.value : '');
+        const selectedAmenity = (amenityFilter ? amenityFilter.value : '') || (mobileAmenityFilter ? mobileAmenityFilter.value : '');
     
     const filtered = data.listings.filter(function(listing) {
         const amenitiesText = Array.isArray(listing.amenities) ? listing.amenities.join(' ').toLowerCase() : '';
@@ -671,7 +1265,16 @@ function filterPreview() {
             websiteText.includes(searchTerm) ||
             amenitiesText.includes(searchTerm);
         
-        const matchesType = !currentTypeFilter || listing.type === currentTypeFilter;
+        // Handle type matching - treat "Activity" and "Outdoor" as equivalent
+        const matchesType = currentTypeFilter.length === 0 || currentTypeFilter.some(function(filterType) {
+            if (filterType === listing.type) return true;
+            // Handle Activity/Outdoor equivalence
+            if ((filterType === 'Activity' || filterType === 'Outdoor') && 
+                (listing.type === 'Activity' || listing.type === 'Outdoor')) {
+                return true;
+            }
+            return false;
+        });
         const matchesArea = !selectedArea || listing.area === selectedArea;
         const matchesAmenity = !selectedAmenity || (listing.amenities && listing.amenities.includes(selectedAmenity));
         const matchesFeatured = !currentFeaturedOnly || !!listing.featured;
@@ -681,9 +1284,13 @@ function filterPreview() {
     
     // Show/hide clear button based on whether any filters are active
     const clearBtn = document.getElementById('clearFiltersBtn');
-    const hasActiveFilters = searchTerm || currentTypeFilter || selectedArea || selectedAmenity || currentFeaturedOnly;
+    const mobileClearBtn = document.getElementById('mobileClearFiltersBtn');
+    const hasActiveFilters = searchTerm || currentTypeFilter.length > 0 || selectedArea || selectedAmenity || currentFeaturedOnly;
     if (clearBtn) {
         clearBtn.style.display = hasActiveFilters ? 'block' : 'none';
+    }
+    if (mobileClearBtn) {
+        mobileClearBtn.style.display = hasActiveFilters ? 'block' : 'none';
     }
     
     renderPreview(filtered);
@@ -696,10 +1303,17 @@ function clearPreviewFilters() {
     const amenityFilter = document.getElementById('previewAmenityFilter');
     const clearBtn = document.getElementById('clearFiltersBtn');
     
+    const mobileTypeFilter = document.getElementById('mobileTypeFilter');
+    const mobileAreaFilter = document.getElementById('mobileAreaFilter');
+    const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
+    
     if (searchInput) searchInput.value = '';
     if (areaFilter) areaFilter.value = '';
     if (amenityFilter) amenityFilter.value = '';
-    currentTypeFilter = '';
+    if (mobileTypeFilter) mobileTypeFilter.value = '';
+    if (mobileAreaFilter) mobileAreaFilter.value = '';
+    if (mobileAmenityFilter) mobileAmenityFilter.value = '';
+    currentTypeFilter = [];
     currentFeaturedOnly = false;
     
     document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
@@ -727,7 +1341,7 @@ function filterByListingName(listingName) {
     if (searchInput) searchInput.value = '';
     if (areaFilter) areaFilter.value = '';
     if (amenityFilter) amenityFilter.value = '';
-    currentTypeFilter = '';
+    currentTypeFilter = [];
     
     // Reset type filter buttons
     document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
@@ -766,11 +1380,24 @@ function filterByListingName(listingName) {
 
 // Main render function
 function renderPreview(filteredListings) {
-    if (!data) return;
+    if (!data) {
+        console.error('❌ renderPreview called but data is null/undefined');
+        return;
+    }
     
     const listings = filteredListings || data.listings;
+    console.log('🎨 renderPreview called with', listings ? listings.length : 0, 'listings');
+    console.log('🎨 Data source check:', {
+        'data.listings.length': data.listings ? data.listings.length : 0,
+        'filteredListings': filteredListings ? filteredListings.length : 'none',
+        'using filteredListings': !!filteredListings
+    });
+    
     const grid = document.getElementById('previewGrid');
-    if (!grid) return;
+    if (!grid) {
+        console.error('❌ previewGrid element not found');
+        return;
+    }
     
     grid.innerHTML = '';
     
@@ -795,6 +1422,40 @@ function renderPreview(filteredListings) {
         });
     }
     
+    // Populate mobile filter dropdowns
+    const mobileTypeFilter = document.getElementById('mobileTypeFilter');
+    if (mobileTypeFilter && mobileTypeFilter.options.length === 1 && data.filterOptions) {
+        // Get all types from visible buttons plus expanded ones
+        const allTypes = ['Brewery', 'Winery', 'Hiking', 'Restaurant', 'Lodging', 'Outdoor', 
+                          'Cidery', 'Indoor Activity', 'Attraction', 'Farm & Orchard'];
+        allTypes.forEach(function(type) {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type;
+            mobileTypeFilter.appendChild(option);
+        });
+    }
+    
+    const mobileAreaFilter = document.getElementById('mobileAreaFilter');
+    if (mobileAreaFilter && mobileAreaFilter.options.length === 1 && data.filterOptions) {
+        data.filterOptions.areas.forEach(function(area) {
+            const option = document.createElement('option');
+            option.value = area;
+            option.textContent = area;
+            mobileAreaFilter.appendChild(option);
+        });
+    }
+    
+    const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
+    if (mobileAmenityFilter && mobileAmenityFilter.options.length === 1 && data.filterOptions) {
+        data.filterOptions.amenities.forEach(function(amenity) {
+            const option = document.createElement('option');
+            option.value = amenity;
+            option.textContent = amenity;
+            mobileAmenityFilter.appendChild(option);
+        });
+    }
+    
     // Update results count
     const countEl = document.getElementById('previewResultsCount');
     if (countEl) {
@@ -805,7 +1466,11 @@ function renderPreview(filteredListings) {
     updateMapMarkers(listings);
     
     // Render cards
-    listings.forEach(function(listing) {
+    console.log('🎨 About to render', listings.length, 'cards');
+    listings.forEach(function(listing, index) {
+        if (index < 3 || index >= listings.length - 3) {
+            console.log(`🎨 Rendering card ${index + 1}/${listings.length}:`, listing.name);
+        }
         const card = document.createElement('div');
         card.className = 'flip-card';
         
@@ -868,17 +1533,17 @@ function renderPreview(filteredListings) {
         // Create scrollable image container
         const imgContainer = document.createElement('div');
         imgContainer.className = 'card-front-image-scroll';
-        imgContainer.style.cssText = 'position: relative; width: 100%; height: 200px; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none;';
+        imgContainer.style.cssText = 'position: relative; width: 100%; height: 0; padding-bottom: 100%; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none;';
         imgContainer.style.setProperty('-ms-overflow-style', 'none');
         
         const imgWrapper = document.createElement('div');
-        imgWrapper.style.cssText = 'display: flex; width: auto; height: 100%;';
+        imgWrapper.style.cssText = 'position: absolute; top: 0; left: 0; width: auto; height: 100%; display: flex;';
         
         // Add image1 if it exists
         if (listing.image1) {
             const img1 = document.createElement('img');
             img1.src = listing.image1;
-            img1.style.cssText = 'min-width: 100%; width: 100%; height: 200px; object-fit: cover; flex-shrink: 0; scroll-snap-align: start; display: block;';
+            img1.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 24px; flex-shrink: 0; scroll-snap-align: start;';
             img1.onerror = function() {
                 this.src = FALLBACK_IMG;
             };
@@ -889,7 +1554,7 @@ function renderPreview(filteredListings) {
         if (listing.image2) {
             const img2 = document.createElement('img');
             img2.src = listing.image2;
-            img2.style.cssText = 'min-width: 100%; width: 100%; height: 200px; object-fit: cover; flex-shrink: 0; scroll-snap-align: start; display: block;';
+            img2.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 24px; flex-shrink: 0; scroll-snap-align: start;';
             img2.onerror = function() {
                 this.src = FALLBACK_IMG;
             };
@@ -900,15 +1565,33 @@ function renderPreview(filteredListings) {
         if (!listing.image1 && !listing.image2) {
             const img = document.createElement('img');
             img.src = FALLBACK_IMG;
-            img.style.cssText = 'min-width: 100%; width: 100%; height: 200px; object-fit: cover; flex-shrink: 0; scroll-snap-align: start; display: block;';
+            img.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 24px; flex-shrink: 0; scroll-snap-align: start;';
             imgWrapper.appendChild(img);
+        }
+        
+        // Set wrapper and image widths to accommodate all images side by side
+        const imageCount = (listing.image1 ? 1 : 0) + (listing.image2 ? 1 : 0);
+        if (imageCount > 1) {
+            // Wait for container to have dimensions, then set wrapper and image widths
+            setTimeout(function() {
+                const containerWidth = imgContainer.offsetWidth || imgContainer.clientWidth;
+                if (containerWidth > 0) {
+                    imgWrapper.style.width = (containerWidth * imageCount) + 'px';
+                    // Set each image to be exactly the container width
+                    const images = imgWrapper.querySelectorAll('img');
+                    images.forEach(function(img) {
+                        img.style.width = containerWidth + 'px';
+                        img.style.minWidth = containerWidth + 'px';
+                        img.style.maxWidth = containerWidth + 'px';
+                    });
+                }
+            }, 10);
         }
         
         imgContainer.appendChild(imgWrapper);
         front.appendChild(imgContainer);
         
-        // Add scroll arrow if there are multiple images (append to front, outside scroll container)
-        const imageCount = (listing.image1 ? 1 : 0) + (listing.image2 ? 1 : 0);
+        // Add scroll arrow if there are multiple images (append to front, position dynamically)
         if (imageCount > 1) {
             let currentIndex = 0;
             const totalImages = imageCount;
@@ -920,21 +1603,39 @@ function renderPreview(filteredListings) {
             rightArrow.addEventListener('click', function(e) {
                 e.stopPropagation();
                 currentIndex = (currentIndex + 1) % totalImages;
-                imgContainer.scrollTo({ left: currentIndex * imgContainer.offsetWidth, behavior: 'smooth' });
+                // Get the container width at click time
+                const containerWidth = imgContainer.offsetWidth || imgContainer.clientWidth;
+                imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
             });
+            
+            // Position arrow at center of image (which is square, so height = width)
+            setTimeout(function() {
+                const containerWidth = imgContainer.offsetWidth || imgContainer.clientWidth;
+                if (containerWidth > 0) {
+                    // Center vertically in the square image (half the width)
+                    rightArrow.style.top = (containerWidth / 2) + 'px';
+                    rightArrow.style.transform = 'translateY(-50%)';
+                }
+            }, 10);
             
             front.appendChild(rightArrow);
         }
         
         const contentDiv = document.createElement('div');
-        contentDiv.style.cssText = 'padding: 20px;';
+        contentDiv.style.cssText = 'padding: 20px 20px 20px 0; margin: 0;';
+        // Fix encoding issues before displaying
+        const fixedName = fixEncoding(listing.name);
+        const fixedType = fixEncoding(listing.type);
+        const fixedArea = fixEncoding(listing.area);
+        const fixedDescription = fixEncoding(listing.description);
+        
         contentDiv.innerHTML = 
-            '<h3 style="font-size: 20px; margin-bottom: 10px; color: var(--text-primary);">' + listing.name + '</h3>' +
+            '<h3 style="font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--text-primary); line-height: 1.2;">' + escapeHtml(fixedName) + '</h3>' +
             '<div style="display: flex; gap: 8px; margin-bottom: 10px;">' +
-            '<span class="badge-type ' + getIconClass(listing.type) + '" data-type="' + listing.type + '" onclick="filterByBadge(event, \'type\', \'' + listing.type + '\')">' + listing.type + '</span>' +
-            '<span class="badge-area" data-area="' + listing.area + '" onclick="filterByBadge(event, \'area\', \'' + listing.area + '\')">' + listing.area + '</span>' +
+            '<span class="badge-type ' + getIconClass(listing.type) + '" data-type="' + escapeHtml(listing.type) + '" onclick="filterByBadge(event, \'type\', \'' + escapeHtml(listing.type) + '\')">' + escapeHtml(fixedType) + '</span>' +
+            '<span class="badge-area" data-area="' + escapeHtml(listing.area) + '" onclick="filterByBadge(event, \'area\', \'' + escapeHtml(listing.area) + '\')">' + escapeHtml(fixedArea) + '</span>' +
             '</div>' +
-            '<p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5;">' + listing.description + '</p>';
+            '<p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5;">' + escapeHtml(fixedDescription) + '</p>';
         front.appendChild(contentDiv);
         
         const back = document.createElement('div');
@@ -956,7 +1657,7 @@ function renderPreview(filteredListings) {
         
         back.innerHTML = 
             '<div class="back-content" style="padding: 30px; height: 100%; display: flex; flex-direction: column; overflow-y: auto;">' +
-            '<h3 class="back-title" style="font-size: 26px; margin-bottom: 15px; color: var(--text-primary); font-weight: 700; line-height: 1.2;">' + listing.name + '</h3>' +
+            '<h3 class="back-title" style="font-size: 26px; margin-bottom: 15px; color: var(--text-primary); font-weight: 700; line-height: 1.2;">' + escapeHtml(fixEncoding(listing.name)) + '</h3>' +
             (listing.image1 || listing.image2 ? '<div class="two-up">' +
                 (listing.image1 ? '<img src="' + listing.image1 + '" onerror="this.onerror=null; this.src=FALLBACK_IMG;">' : '') +
                 (listing.image2 ? '<img src="' + listing.image2 + '" onerror="this.onerror=null; this.src=FALLBACK_IMG;">' : '') +
@@ -967,7 +1668,7 @@ function renderPreview(filteredListings) {
             '<span class="badge-area" onclick="filterByBadge(event, \'area\', \'' + listing.area + '\')">' + listing.area + '</span>' +
             (listing.featured ? '<span class="badge-featured" onclick="filterByBadge(event, \'featured\', \'true\')">Featured</span>' : '') +
             '</div>' +
-            '<p style="font-size: 13px; color: var(--text-primary); line-height: 1.4; margin-bottom: 15px;">' + listing.description + '</p>' +
+            '<p style="font-size: 13px; color: var(--text-primary); line-height: 1.4; margin-bottom: 15px;">' + escapeHtml(fixEncoding(listing.description)) + '</p>' +
             amenitiesHTML +
             '<div style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px;">' +
             '<div style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-secondary);">' +
@@ -975,7 +1676,7 @@ function renderPreview(filteredListings) {
             '<path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />' +
             '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />' +
             '</svg>' +
-            '<span style="line-height: 1.5;">' + listing.address + '</span>' +
+            '<span style="line-height: 1.5;">' + escapeHtml(fixEncoding(listing.address)) + '</span>' +
             '</div>' +
             (listing.phone ? 
             '<div style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-secondary);">' +
@@ -1006,11 +1707,177 @@ function renderPreview(filteredListings) {
         card.appendChild(inner);
         grid.appendChild(card);
     });
+    
+    // Adjust title sizes based on actual card width
+    function adjustTitleSizes() {
+        const cards = document.querySelectorAll('.flip-card');
+        cards.forEach(function(card) {
+            const title = card.querySelector('.flip-card-front h3');
+            if (title) {
+                const cardWidth = card.offsetWidth;
+                let fontSize = 16; // Base size for smallest cards
+                
+                if (cardWidth >= 350) {
+                    fontSize = 22;
+                } else if (cardWidth >= 300) {
+                    fontSize = 20;
+                } else if (cardWidth >= 260) {
+                    fontSize = 18;
+                } else if (cardWidth >= 220) {
+                    fontSize = 17;
+                }
+                
+                title.style.fontSize = fontSize + 'px';
+                
+                // Check if title is single line and add class for description line count
+                setTimeout(function() {
+                    const titleHeight = title.offsetHeight;
+                    const lineHeight = parseFloat(window.getComputedStyle(title).lineHeight) || 1.2 * fontSize;
+                    const isSingleLine = titleHeight <= lineHeight * 1.5; // Allow small margin for rounding
+                    
+                    if (isSingleLine) {
+                        card.classList.add('title-single-line');
+                    } else {
+                        card.classList.remove('title-single-line');
+                    }
+                }, 10);
+            }
+        });
+    }
+    
+    // Adjust sizes after render
+    setTimeout(adjustTitleSizes, 100);
+    
+    // Recalculate on window resize (debounced) - only trigger on actual resize, not scroll
+    if (!window.titleSizeResizeHandler) {
+        let resizeTimeout;
+        let lastWindowWidth = window.innerWidth;
+        let lastWindowHeight = window.innerHeight;
+        window.titleSizeResizeHandler = function() {
+            // Only recalculate if window dimensions actually changed
+            const currentWidth = window.innerWidth;
+            const currentHeight = window.innerHeight;
+            if (currentWidth === lastWindowWidth && currentHeight === lastWindowHeight) {
+                return; // No actual resize, skip recalculation
+            }
+            lastWindowWidth = currentWidth;
+            lastWindowHeight = currentHeight;
+            
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(function() {
+                adjustTitleSizes();
+                adjustImageWidths();
+            }, 200);
+        };
+        window.addEventListener('resize', window.titleSizeResizeHandler);
+    }
+}
+
+// Recalculate image widths for all cards with multiple images
+function adjustImageWidths() {
+    const allCards = document.querySelectorAll('.flip-card');
+    
+    allCards.forEach(function(card) {
+        const imgContainer = card.querySelector('.card-front-image-scroll');
+        if (!imgContainer) return;
+        
+        const imgWrapper = imgContainer.querySelector('div');
+        if (!imgWrapper) return;
+        
+        const images = imgWrapper.querySelectorAll('img');
+        const imageCount = images.length;
+        
+        if (imageCount > 1) {
+            const containerWidth = imgContainer.offsetWidth || imgContainer.clientWidth;
+            if (containerWidth > 0) {
+                const expectedWrapperWidth = containerWidth * imageCount;
+                const expectedImageWidth = containerWidth;
+                
+                // Only update if dimensions have actually changed
+                const currentWrapperWidth = parseFloat(imgWrapper.style.width) || 0;
+                const firstImg = images[0];
+                const currentImageWidth = parseFloat(firstImg.style.width) || 0;
+                
+                if (Math.abs(currentWrapperWidth - expectedWrapperWidth) > 1 || 
+                    Math.abs(currentImageWidth - expectedImageWidth) > 1) {
+                    // Update wrapper width
+                    imgWrapper.style.width = expectedWrapperWidth + 'px';
+                    
+                    // Update each image width
+                    images.forEach(function(img) {
+                        img.style.width = expectedImageWidth + 'px';
+                        img.style.minWidth = expectedImageWidth + 'px';
+                        img.style.maxWidth = expectedImageWidth + 'px';
+                    });
+                    
+                    // Update arrow position
+                    const arrow = card.querySelector('.scroll-arrow');
+                    if (arrow) {
+                        arrow.style.top = (containerWidth / 2) + 'px';
+                        arrow.style.transform = 'translateY(-50%)';
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Mobile filter handlers
+function handleMobileTypeFilter() {
+    const mobileTypeFilter = document.getElementById('mobileTypeFilter');
+    const value = mobileTypeFilter ? mobileTypeFilter.value : '';
+    // Mobile dropdown is single-select, so set as single-item array or empty
+    currentTypeFilter = value ? [value] : [];
+    
+    // Update sidebar buttons if visible
+    document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (currentTypeFilter.includes(btn.dataset.type)) {
+            btn.classList.add('active');
+        } else if (!value && btn.dataset.type === '') {
+            btn.classList.add('active');
+        }
+    });
+    
+    filterPreview();
+}
+
+function handleMobileAreaFilter() {
+    const mobileAreaFilter = document.getElementById('mobileAreaFilter');
+    const areaFilter = document.getElementById('previewAreaFilter');
+    const value = mobileAreaFilter ? mobileAreaFilter.value : '';
+    
+    if (areaFilter) areaFilter.value = value;
+    filterPreview();
+}
+
+function handleMobileAmenityFilter() {
+    const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
+    const amenityFilter = document.getElementById('previewAmenityFilter');
+    const value = mobileAmenityFilter ? mobileAmenityFilter.value : '';
+    
+    if (amenityFilter) amenityFilter.value = value;
+    filterPreview();
+}
+
+// Sync mobile filters when sidebar filters change
+function syncMobileFilters() {
+    const mobileTypeFilter = document.getElementById('mobileTypeFilter');
+    const mobileAreaFilter = document.getElementById('mobileAreaFilter');
+    const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
+    const areaFilter = document.getElementById('previewAreaFilter');
+    const amenityFilter = document.getElementById('previewAmenityFilter');
+    
+    // For mobile dropdown, show first selected type or empty
+    if (mobileTypeFilter) mobileTypeFilter.value = currentTypeFilter.length > 0 ? currentTypeFilter[0] : '';
+    if (mobileAreaFilter && areaFilter) mobileAreaFilter.value = areaFilter.value || '';
+    if (mobileAmenityFilter && amenityFilter) mobileAmenityFilter.value = amenityFilter.value || '';
 }
 
 // Map functionality
 let map = null;
 let markers = [];
+let markerCluster = null;
 let mapVisible = true;
 let infoWindow = null;
 
@@ -1020,18 +1887,17 @@ function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
             center: { lat: 37.8, lng: -79.0 },
             zoom: 10,
-            mapTypeControl: true,
-            mapTypeControlOptions: {
-                style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
-                position: google.maps.ControlPosition.TOP_RIGHT
-            },
+            mapTypeControl: false,
             zoomControl: true,
             zoomControlOptions: {
                 position: google.maps.ControlPosition.RIGHT_TOP
             },
             streetViewControl: false,
             fullscreenControl: false,
+            keyboardShortcuts: false,
+            gestureHandling: 'cooperative',
             styles: [
+                // Hide all points of interest
                 {
                     featureType: "poi",
                     elementType: "labels",
@@ -1042,12 +1908,27 @@ function initMap() {
                     stylers: [{ visibility: "off" }]
                 },
                 {
+                    featureType: "poi",
+                    stylers: [{ visibility: "off" }]
+                },
+                // Hide transit
+                {
                     featureType: "transit",
                     elementType: "labels",
                     stylers: [{ visibility: "off" }]
                 },
                 {
                     featureType: "transit.station",
+                    stylers: [{ visibility: "off" }]
+                },
+                {
+                    featureType: "transit.line",
+                    stylers: [{ visibility: "off" }]
+                },
+                // Simplify administrative boundaries - hide fine gray lines
+                {
+                    featureType: "administrative",
+                    elementType: "geometry.stroke",
                     stylers: [{ visibility: "off" }]
                 },
                 {
@@ -1061,10 +1942,36 @@ function initMap() {
                     stylers: [{ visibility: "off" }]
                 },
                 {
+                    featureType: "administrative.land_parcel",
+                    stylers: [{ visibility: "off" }]
+                },
+                // Hide minor/local roads and their labels
+                {
                     featureType: "road.local",
                     elementType: "labels",
                     stylers: [{ visibility: "off" }]
                 },
+                {
+                    featureType: "road.local",
+                    stylers: [{ visibility: "off" }]
+                },
+                {
+                    featureType: "road",
+                    elementType: "labels.text.fill",
+                    stylers: [{ visibility: "simplified" }]
+                },
+                // Hide water labels
+                {
+                    featureType: "water",
+                    elementType: "labels",
+                    stylers: [{ visibility: "off" }]
+                },
+                {
+                    featureType: "water",
+                    elementType: "labels.text",
+                    stylers: [{ visibility: "off" }]
+                },
+                // Natural features
                 {
                     featureType: "landscape.natural",
                     stylers: [
@@ -1080,6 +1987,53 @@ function initMap() {
             ]
         });
         
+        // Apply rounded corners to zoom controls after map loads
+        setTimeout(() => {
+            const mapContainer = document.getElementById('map');
+            if (mapContainer) {
+                // Find all buttons in the map (zoom controls)
+                const buttons = mapContainer.querySelectorAll('button');
+                buttons.forEach(button => {
+                    if (button.getAttribute('aria-label') && button.getAttribute('aria-label').includes('Zoom')) {
+                        button.style.borderRadius = '16px';
+                        button.style.borderTopLeftRadius = '16px';
+                        button.style.borderTopRightRadius = '16px';
+                        button.style.borderBottomLeftRadius = '16px';
+                        button.style.borderBottomRightRadius = '16px';
+                    }
+                });
+                
+                // Find the zoom control container and round it
+                const zoomControls = mapContainer.querySelectorAll('[aria-label*="Zoom"]');
+                zoomControls.forEach(control => {
+                    const parent = control.closest('div[style*="position"]');
+                    if (parent) {
+                        parent.style.borderRadius = '16px';
+                        parent.style.overflow = 'hidden';
+                    }
+                });
+            }
+        }, 500);
+        
+        // Also apply on map idle event (when map is fully loaded)
+        map.addListener('idle', () => {
+            const mapContainer = document.getElementById('map');
+            if (mapContainer) {
+                const buttons = mapContainer.querySelectorAll('button');
+                buttons.forEach(button => {
+                    if (button.getAttribute('aria-label') && button.getAttribute('aria-label').includes('Zoom')) {
+                        button.style.borderRadius = '16px';
+                    }
+                    // Round all map control buttons
+                    const parent = button.parentElement;
+                    if (parent && parent.style.position === 'absolute') {
+                        parent.style.borderRadius = '16px';
+                        parent.style.overflow = 'hidden';
+                    }
+                });
+            }
+        });
+        
         // Create single info window to reuse
         infoWindow = new google.maps.InfoWindow();
     }
@@ -1087,6 +2041,12 @@ function initMap() {
 
 function updateMapMarkers(listings) {
     if (!map) return;
+    
+    // Clear existing clusterer if it exists
+    if (markerCluster) {
+        markerCluster.clearMarkers();
+        markerCluster = null;
+    }
     
     // Clear existing markers
     markers.forEach(function(marker) {
@@ -1096,6 +2056,9 @@ function updateMapMarkers(listings) {
     
     // Create bounds
     var bounds = new google.maps.LatLngBounds();
+    var markersToAdd = [];
+    var geocodeCount = 0;
+    var totalListings = listings.length;
     
     // Add markers for each listing
     listings.forEach(function(listing) {
@@ -1114,12 +2077,11 @@ function updateMapMarkers(listings) {
                     anchor: new google.maps.Point(12, 22)
                 };
                 
-                // Create marker
+                // Create marker without adding to map (clusterer will handle that)
                 var marker = new google.maps.Marker({
                     position: position,
-                    map: map,
                     icon: markerIcon,
-                    title: listing.name,
+                    title: fixEncoding(listing.name),
                     animation: google.maps.Animation.DROP
                 });
                 
@@ -1130,14 +2092,14 @@ function updateMapMarkers(listings) {
                 
                 var popupContent = 
                     '<div style="padding: 20px 16px; margin: 0; line-height: normal;">' +
-                    '<div class="map-popup-title">' + listing.name + '</div>' +
+                    '<div class="map-popup-title">' + escapeHtml(fixEncoding(listing.name)) + '</div>' +
                     '<div class="map-popup-badges">' +
                     '<span class="badge badge-type ' + getIconClass(listing.type) + '" onclick="filterByBadge(event, \'type\', \'' + listing.type.replace(/'/g, "\\'") + '\'); google.maps.event.trigger(map, \'click\');">' + listing.type + '</span>' +
                     '<span class="badge badge-area" onclick="filterByBadge(event, \'area\', \'' + listing.area.replace(/'/g, "\\'") + '\'); google.maps.event.trigger(map, \'click\');">' + listing.area + '</span>' +
                     '</div>' +
                     imageHtml +
-                    '<div class="map-popup-desc" style="margin-top: 12px;">' + listing.description.substring(0, 100) + '...</div>' +
-                    '<button class="map-popup-btn" style="width: 100%; margin-top: 16px; background: #2d6a4f !important; color: white !important; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: visible; white-space: nowrap;" onclick="filterByListingName(\'' + listing.name.replace(/'/g, "\\'") + '\'); google.maps.event.trigger(map, \'click\');">View Details</button>' +
+                    '<div class="map-popup-desc" style="margin-top: 12px;">' + escapeHtml(fixEncoding(listing.description).substring(0, 100)) + '...</div>' +
+                    '<button class="map-popup-btn" style="width: 100%; margin-top: 16px; background: #2d6a4f !important; color: white !important; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: visible; white-space: nowrap;" onclick="filterByListingName(\'' + escapeHtml(fixEncoding(listing.name)).replace(/'/g, "\\'") + '\'); google.maps.event.trigger(map, \'click\');">View Details</button>' +
                     '</div>';
                 
                 // Add click listener to show info window
@@ -1147,25 +2109,42 @@ function updateMapMarkers(listings) {
                 });
                 
                 markers.push(marker);
+                markersToAdd.push(marker);
                 bounds.extend(position);
+            }
+            
+            geocodeCount++;
+            // When all geocoding is done, create the clusterer
+            if (geocodeCount === totalListings) {
+                // Check if MarkerClusterer library is available
+                if (typeof MarkerClusterer !== 'undefined') {
+                    // Create marker clusterer with the @googlemaps/js-marker-clusterer library
+                    markerCluster = new MarkerClusterer({ 
+                        map: map, 
+                        markers: markersToAdd 
+                    });
+                } else {
+                    // Fallback: add markers directly to map if clusterer not available
+                    markersToAdd.forEach(function(marker) {
+                        marker.setMap(map);
+                    });
+                }
+                
+                // Fit bounds with animation if there are markers
+                if (markers.length > 0) {
+                    setTimeout(function() {
+                        map.fitBounds(bounds);
+                        
+                        // Limit max zoom
+                        var listener = google.maps.event.addListener(map, "idle", function() {
+                            if (map.getZoom() > 13) map.setZoom(13);
+                            google.maps.event.removeListener(listener);
+                        });
+                    }, 500);
+                }
             }
         });
     });
-    
-    // Fit bounds with animation if there are markers
-    if (listings.length > 0) {
-        setTimeout(function() {
-            if (markers.length > 0) {
-                map.fitBounds(bounds);
-                
-                // Limit max zoom
-                var listener = google.maps.event.addListener(map, "idle", function() {
-                    if (map.getZoom() > 13) map.setZoom(13);
-                    google.maps.event.removeListener(listener);
-                });
-            }
-        }, 300);
-    }
 }
 
 // Simple geocoding function (uses approximate coordinates for demo)
@@ -1219,6 +2198,22 @@ function toggleMap() {
 
 var sidebarVisible = true;
 
+function toggleTypeFilters() {
+    const expanded = document.querySelector('.type-filters-expanded');
+    const seeMoreText = document.querySelector('.see-more-text');
+    const seeLessText = document.querySelector('.see-less-text');
+    
+    if (expanded.style.display === 'none' || !expanded.style.display) {
+        expanded.style.display = 'block';
+        seeMoreText.style.display = 'none';
+        seeLessText.style.display = 'inline';
+    } else {
+        expanded.style.display = 'none';
+        seeMoreText.style.display = 'inline';
+        seeLessText.style.display = 'none';
+    }
+}
+
 function toggleSidebar() {
     var sidebar = document.querySelector('.preview-sidebar');
     var toggleIcon = document.getElementById('sidebarToggleIcon');
@@ -1239,27 +2234,60 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize map
     initMap();
     
-    // Type filter buttons - allow toggling off by clicking same button
+    // Type filter buttons - allow multiple selections (toggle on/off)
     document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
+        // Add clicking class on mousedown for visual feedback
+        btn.addEventListener('mousedown', function() {
+            this.classList.add('clicking');
+        });
+        // Remove clicking class on mouseup or mouseleave
+        btn.addEventListener('mouseup', function() {
+            this.classList.remove('clicking');
+        });
+        btn.addEventListener('mouseleave', function() {
+            this.classList.remove('clicking');
+        });
         btn.addEventListener('click', function() {
-            const isCurrentlyActive = this.classList.contains('active');
+            // Remove clicking class after click
+            this.classList.remove('clicking');
             const filterValue = this.dataset.type;
             
-            document.querySelectorAll('.type-filter-btn').forEach(function(b) {
-                b.classList.remove('active');
-            });
-            
-            if (!isCurrentlyActive) {
-                this.classList.add('active');
-                currentTypeFilter = filterValue;
-            } else {
-                currentTypeFilter = '';
-                // Activate the "All" button
+            // Special handling for "All Types" button (empty data-type)
+            if (filterValue === '') {
+                // Clear all selections and activate only "All Types"
+                currentTypeFilter = [];
                 document.querySelectorAll('.type-filter-btn').forEach(function(b) {
-                    if (b.dataset.type === '') {
-                        b.classList.add('active');
-                    }
+                    b.classList.remove('active');
                 });
+                this.classList.add('active');
+            } else {
+                // Toggle this type in the array
+                const index = currentTypeFilter.indexOf(filterValue);
+                if (index > -1) {
+                    // Remove from array (deselect)
+                    currentTypeFilter.splice(index, 1);
+                    this.classList.remove('active');
+                } else {
+                    // Add to array (select)
+                    currentTypeFilter.push(filterValue);
+                    this.classList.add('active');
+                }
+                
+                // If no types selected, activate "All Types" button
+                if (currentTypeFilter.length === 0) {
+                    document.querySelectorAll('.type-filter-btn').forEach(function(b) {
+                        if (b.dataset.type === '') {
+                            b.classList.add('active');
+                        }
+                    });
+                } else {
+                    // Ensure "All Types" button is not active when specific types are selected
+                    document.querySelectorAll('.type-filter-btn').forEach(function(b) {
+                        if (b.dataset.type === '') {
+                            b.classList.remove('active');
+                        }
+                    });
+                }
             }
             
             filterPreview();

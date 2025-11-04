@@ -46,10 +46,10 @@
     --icon-hover-light: %23ffffff;
     
     /* Badge Colors */
-    --badge-type-bg: rgba(26, 26, 26, 0.1);
-    --badge-type-color: #1a1a1a;
-    --badge-area-bg: rgba(214, 80, 82, 0.1);
-    --badge-area-color: #D65052;
+    --badge-type-bg: #ffffff;
+    --badge-type-color: #212529;
+    --badge-area-bg: #ffffff;
+    --badge-area-color: #212529;
     --badge-featured-bg: rgba(59, 130, 246, 0.1);
     --badge-featured-color: #3b82f6;
             
@@ -97,17 +97,27 @@
             --icon-workshop: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'/%3E%3C/svg%3E");
             --icon-class: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20'/%3E%3C/svg%3E");
             --icon-food: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 8h1a4 4 0 0 1 0 8h-1'/%3E%3Cpath d='M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z'/%3E%3Cline x1='6' x2='6' y1='1' y2='4'/%3E%3Cline x1='10' x2='10' y1='1' y2='4'/%3E%3Cline x1='14' x2='14' y1='1' y2='4'/%3E%3C/svg%3E");
-            --icon-default: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4'/%3E%3Cpath d='M12 16h.01'/%3E%3C/svg%3E");
+            --icon-cidery: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2C8.134 2 5 5.134 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.866-3.134-7-7-7z'/%3E%3Cpath d='M12 9v6'/%3E%3Ccircle cx='12' cy='9' r='1.5'/%3E%3C/svg%3E");
+            --icon-indoor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/%3E%3Cpath d='M9 22V12h6v10'/%3E%3Ccircle cx='9' cy='9' r='1'/%3E%3Ccircle cx='15' cy='9' r='1'/%3E%3C/svg%3E");
+            --icon-attraction: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/%3E%3C/svg%3E");
+            --icon-farm: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2v20'/%3E%3Cpath d='M12 2c-3 0-5 2-5 5s2 5 5 5 5-2 5-5-2-5-5-5z'/%3E%3Cpath d='M12 12c-2 0-4 1.5-4 3.5s2 3.5 4 3.5 4-1.5 4-3.5-2-3.5-4-3.5z'/%3E%3Cpath d='M12 18c-1.5 0-2.5 1-2.5 2s1 2 2.5 2 2.5-1 2.5-2-1-2-2.5-2z'/%3E%3C/svg%3E");
+            --icon-default: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='12' y1='5' x2='12' y2='19'/%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E");
         }
         
         
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            max-width: 100vw;
+        }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
             background: var(--bg-primary); 
             color: var(--text-primary);
             transition: background-color 0.3s ease, color 0.3s ease;
+            width: 100%;
+            margin: 0;
+            padding: 0;
         }
         
         /* SVG Icon Library */
@@ -153,6 +163,10 @@
         .icon-tour { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20'/%3E%3Cpath d='M2 12h20'/%3E%3C/svg%3E"); }
         .icon-workshop { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'/%3E%3C/svg%3E"); }
         .icon-class { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20'/%3E%3Cpath d='M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z'/%3E%3C/svg%3E"); }
+        .icon-cidery { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2C8.134 2 5 5.134 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.866-3.134-7-7-7z'/%3E%3Cpath d='M12 9v6'/%3E%3Ccircle cx='12' cy='9' r='1.5'/%3E%3C/svg%3E"); }
+        .icon-indoor { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/%3E%3Cpath d='M9 22V12h6v10'/%3E%3Ccircle cx='9' cy='9' r='1'/%3E%3Ccircle cx='15' cy='9' r='1'/%3E%3C/svg%3E"); }
+        .icon-attraction { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/%3E%3C/svg%3E"); }
+        .icon-farm { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2L3 7l9 5 9-5-9-5z'/%3E%3Cpath d='M3 17l9 5 9-5'/%3E%3Cpath d='M3 12l9 5 9-5'/%3E%3Ccircle cx='12' cy='7' r='1.5'/%3E%3Cpath d='M6 20h12'/%3E%3C/svg%3E"); }
         .icon-default { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E"); }
 
         /* Badge Styles */
@@ -169,18 +183,224 @@
             filter: brightness(0) saturate(100%) invert(38%) sepia(15%) saturate(879%) hue-rotate(94deg) brightness(95%) contrast(89%);
         }
         
-        /* Light Mode - Filter buttons should also have green icons */
+        /* Light Mode - Filter buttons default to green icons */
         .type-filter-btn::before {
             filter: brightness(0) saturate(100%) invert(38%) sepia(15%) saturate(879%) hue-rotate(94deg) brightness(95%) contrast(89%);
         }
         
-        /* Light Mode - Hover state for badges keeps icons dark, active state turns white */
-        .badge-type:hover::before,
-        .type-filter-btn:hover::before {
-            filter: brightness(0) saturate(100%); /* Black icons on hover */
+        /* Type-specific icon colors - Icons only */
+        /* Hiking - Purple */
+        .badge-type.icon-hiking::before,
+        .type-filter-btn[data-type="Hiking"]::before {
+            filter: brightness(0) saturate(100%) invert(25%) sepia(95%) saturate(2000%) hue-rotate(260deg) brightness(70%) contrast(130%);
         }
-        .type-filter-btn.active::before {
-            filter: brightness(0) invert(1); /* White icons on colored background when active */
+        .type-filter-btn[data-type="Hiking"]:hover::before,
+        .type-filter-btn[data-type="Hiking"].active::before {
+            background-color: #9333ea !important; /* Purple */
+        }
+        .type-filter-btn[data-type="Hiking"]:hover::after,
+        .type-filter-btn[data-type="Hiking"].active::after {
+            background-image: var(--icon-hiking) !important;
+            opacity: 1 !important;
+            filter: brightness(0) invert(1) !important;
+        }
+        
+        /* Winery/Wine - Red/Burgundy */
+        .badge-type.icon-wine::before,
+        .type-filter-btn[data-type="Wine"]::before,
+        .type-filter-btn[data-type="Winery"]::before {
+            filter: brightness(0) saturate(100%) invert(15%) sepia(95%) saturate(5000%) hue-rotate(340deg) brightness(65%) contrast(130%);
+        }
+        .type-filter-btn[data-type="Wine"]:hover::before,
+        .type-filter-btn[data-type="Wine"].active::before,
+        .type-filter-btn[data-type="Winery"]:hover::before,
+        .type-filter-btn[data-type="Winery"].active::before {
+            background-color: #dc2626 !important; /* Red */
+        }
+        .type-filter-btn[data-type="Wine"]:hover::after,
+        .type-filter-btn[data-type="Wine"].active::after,
+        .type-filter-btn[data-type="Winery"]:hover::after,
+        .type-filter-btn[data-type="Winery"].active::after {
+            background-image: var(--icon-wine) !important;
+            opacity: 1 !important;
+            filter: brightness(0) invert(1) !important;
+        }
+        
+        /* Brewery/Beer - Amber/Brown */
+        .badge-type.icon-beer::before,
+        .type-filter-btn[data-type="Beer"]::before,
+        .type-filter-btn[data-type="Brewery"]::before {
+            filter: brightness(0) saturate(100%) invert(45%) sepia(95%) saturate(800%) hue-rotate(20deg) brightness(85%) contrast(120%);
+        }
+        .type-filter-btn[data-type="Beer"]:hover::before,
+        .type-filter-btn[data-type="Beer"].active::before,
+        .type-filter-btn[data-type="Brewery"]:hover::before,
+        .type-filter-btn[data-type="Brewery"].active::before {
+            background-color: #d97706 !important; /* Amber/Brown */
+        }
+        .type-filter-btn[data-type="Beer"]:hover::after,
+        .type-filter-btn[data-type="Beer"].active::after,
+        .type-filter-btn[data-type="Brewery"]:hover::after,
+        .type-filter-btn[data-type="Brewery"].active::after {
+            background-image: var(--icon-beer) !important;
+            opacity: 1 !important;
+            filter: brightness(0) invert(1) !important;
+        }
+        
+        /* Restaurant - Orange/Red */
+        .badge-type.icon-restaurant::before,
+        .type-filter-btn[data-type="Restaurant"]::before {
+            filter: brightness(0) saturate(100%) invert(40%) sepia(95%) saturate(2000%) hue-rotate(350deg) brightness(80%) contrast(120%);
+        }
+        .type-filter-btn[data-type="Restaurant"]:hover::before,
+        .type-filter-btn[data-type="Restaurant"].active::before {
+            background-color: #ea580c !important; /* Orange/Red */
+        }
+        .type-filter-btn[data-type="Restaurant"]:hover::after,
+        .type-filter-btn[data-type="Restaurant"].active::after {
+            background-image: var(--icon-restaurant) !important;
+            opacity: 1 !important;
+            filter: brightness(0) invert(1) !important;
+        }
+        
+        /* Lodging - Blue */
+        .badge-type.icon-lodging::before,
+        .badge-type.icon-hotel::before,
+        .type-filter-btn[data-type="Lodging"]::before,
+        .type-filter-btn[data-type="Hotel"]::before {
+            filter: brightness(0) saturate(100%) invert(30%) sepia(95%) saturate(2000%) hue-rotate(200deg) brightness(85%) contrast(120%);
+        }
+        .type-filter-btn[data-type="Lodging"]:hover::before,
+        .type-filter-btn[data-type="Lodging"].active::before {
+            background-color: #2563eb !important; /* Blue */
+        }
+        .type-filter-btn[data-type="Lodging"]:hover::after,
+        .type-filter-btn[data-type="Lodging"].active::after {
+            background-image: var(--icon-lodging) !important;
+            opacity: 1 !important;
+            filter: brightness(0) invert(1) !important;
+        }
+        .type-filter-btn[data-type="Hotel"]:hover::before,
+        .type-filter-btn[data-type="Hotel"].active::before {
+            background-color: #2563eb !important; /* Blue */
+        }
+        .type-filter-btn[data-type="Hotel"]:hover::after,
+        .type-filter-btn[data-type="Hotel"].active::after {
+            background-image: var(--icon-hotel) !important;
+            opacity: 1 !important;
+            filter: brightness(0) invert(1) !important;
+        }
+        
+        /* Outdoor/Activity - Green (default) */
+        .badge-type.icon-activity::before,
+        .badge-type.icon-outdoor::before,
+        .type-filter-btn[data-type="Outdoor"]::before,
+        .type-filter-btn[data-type="Activity"]::before,
+        .type-filter-btn[data-type="Activities"]::before {
+            filter: brightness(0) saturate(100%) invert(38%) sepia(15%) saturate(879%) hue-rotate(94deg) brightness(75%) contrast(100%);
+        }
+        .type-filter-btn[data-type="Outdoor"]:hover::before,
+        .type-filter-btn[data-type="Outdoor"].active::before,
+        .type-filter-btn[data-type="Activity"]:hover::before,
+        .type-filter-btn[data-type="Activity"].active::before,
+        .type-filter-btn[data-type="Activities"]:hover::before,
+        .type-filter-btn[data-type="Activities"].active::before {
+            background-color: #10b981 !important; /* Green */
+        }
+        .type-filter-btn[data-type="Outdoor"]:hover::after,
+        .type-filter-btn[data-type="Outdoor"].active::after,
+        .type-filter-btn[data-type="Activity"]:hover::after,
+        .type-filter-btn[data-type="Activity"].active::after,
+        .type-filter-btn[data-type="Activities"]:hover::after,
+        .type-filter-btn[data-type="Activities"].active::after {
+            background-image: var(--icon-activity) !important;
+            opacity: 1 !important;
+            filter: brightness(0) invert(1) !important;
+        }
+        
+        /* Coffee - Brown */
+        .badge-type.icon-coffee::before,
+        .type-filter-btn[data-type="Coffee"]::before {
+            filter: brightness(0) saturate(100%) invert(35%) sepia(95%) saturate(500%) hue-rotate(15deg) brightness(75%) contrast(120%);
+        }
+        .type-filter-btn[data-type="Coffee"]:hover::before,
+        .type-filter-btn[data-type="Coffee"].active::before {
+            background-color: #92400e !important; /* Brown */
+        }
+        .type-filter-btn[data-type="Coffee"]:hover::after,
+        .type-filter-btn[data-type="Coffee"].active::after {
+            background-image: var(--icon-coffee) !important;
+            opacity: 1 !important;
+            filter: brightness(0) invert(1) !important;
+        }
+        
+        /* Cidery - Amber */
+        .badge-type.icon-cidery::before,
+        .type-filter-btn[data-type="Cidery"]::before {
+            filter: brightness(0) saturate(100%) invert(50%) sepia(95%) saturate(800%) hue-rotate(25deg) brightness(85%) contrast(120%);
+        }
+        .type-filter-btn[data-type="Cidery"]:hover::before,
+        .type-filter-btn[data-type="Cidery"].active::before {
+            background-color: #f59e0b !important; /* Amber */
+        }
+        .type-filter-btn[data-type="Cidery"]:hover::after,
+        .type-filter-btn[data-type="Cidery"].active::after {
+            background-image: var(--icon-cidery) !important;
+            opacity: 1 !important;
+            filter: brightness(0) invert(1) !important;
+        }
+        
+        /* Indoor Activity - Gray/Blue */
+        .badge-type.icon-indoor::before,
+        .type-filter-btn[data-type="Indoor Activity"]::before {
+            filter: brightness(0) saturate(100%) invert(35%) sepia(10%) saturate(500%) hue-rotate(200deg) brightness(75%) contrast(110%);
+        }
+        .type-filter-btn[data-type="Indoor Activity"]:hover::before,
+        .type-filter-btn[data-type="Indoor Activity"].active::before {
+            background-color: #64748b !important; /* Gray/Blue */
+        }
+        .type-filter-btn[data-type="Indoor Activity"]:hover::after,
+        .type-filter-btn[data-type="Indoor Activity"].active::after {
+            background-image: var(--icon-indoor) !important;
+            opacity: 1 !important;
+            filter: brightness(0) invert(1) !important;
+        }
+        
+        /* Attraction - Orange/Yellow */
+        .badge-type.icon-attraction::before,
+        .type-filter-btn[data-type="Attraction"]::before {
+            filter: brightness(0) saturate(100%) invert(55%) sepia(95%) saturate(2000%) hue-rotate(10deg) brightness(85%) contrast(120%);
+        }
+        .type-filter-btn[data-type="Attraction"]:hover::before,
+        .type-filter-btn[data-type="Attraction"].active::before {
+            background-color: #f97316 !important; /* Orange/Yellow */
+        }
+        .type-filter-btn[data-type="Attraction"]:hover::after,
+        .type-filter-btn[data-type="Attraction"].active::after {
+            background-image: var(--icon-attraction) !important;
+            opacity: 1 !important;
+            filter: brightness(0) invert(1) !important;
+        }
+        
+        /* Farm & Orchard - Green/Brown */
+        .badge-type.icon-farm::before,
+        .type-filter-btn[data-type="Farm & Orchard"]::before {
+            filter: brightness(0) saturate(100%) invert(45%) sepia(50%) saturate(600%) hue-rotate(60deg) brightness(75%) contrast(110%);
+        }
+        .type-filter-btn[data-type="Farm & Orchard"]:hover::before,
+        .type-filter-btn[data-type="Farm & Orchard"].active::before {
+            background-color: #65a30d !important; /* Green/Brown */
+        }
+        .type-filter-btn[data-type="Farm & Orchard"]:hover::after,
+        .type-filter-btn[data-type="Farm & Orchard"].active::after {
+            background-image: var(--icon-farm) !important;
+            opacity: 1 !important;
+            filter: brightness(0) invert(1) !important;
+        }
+        
+        /* Light Mode - Hover state for badges keeps icons dark */
+        .badge-type:hover::before {
+            filter: brightness(0) saturate(100%); /* Black icons on hover */
         }
         
         /* Dark Mode - Make all SVG icons light gray */
@@ -189,10 +409,8 @@
             filter: brightness(0) invert(0.9); /* Light gray icons in dark mode */
         }
         
-        /* Dark Mode - Hover states turn white */
-        :root.dark-mode .badge-type:hover::before,
-        :root.dark-mode .type-filter-btn:hover::before,
-        :root.dark-mode .type-filter-btn.active::before {
+        /* Dark Mode - Hover states turn white, but colored backgrounds still apply */
+        :root.dark-mode .badge-type:hover::before {
             filter: brightness(0) invert(1); /* White on hover */
         }
         
@@ -254,8 +472,8 @@
         
         .listing-meta { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
         .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-        .badge-type { background: var(--badge-type-bg); color: var(--badge-type-color); }
-        .badge-area { background: var(--badge-area-bg); color: var(--badge-area-color); }
+        .badge-type { background: #ffffff !important; color: #212529 !important; box-shadow: none !important; }
+        .badge-area { background: #ffffff !important; color: #212529 !important; box-shadow: none !important; }
         .badge-featured { background: var(--badge-featured-bg); color: var(--badge-featured-color); }
         
         .listing-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px; }
@@ -295,7 +513,13 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
-        .preview-container { width: 100%; margin: 0; padding: 0; transition: background-color 0.3s, color 0.3s; }
+        .preview-container { 
+            width: 100%; 
+            max-width: 100vw; 
+            margin: 0; 
+            padding: 0; 
+            transition: background-color 0.3s, color 0.3s;
+        }
         
         .preview-controls {
             position: fixed;
@@ -595,6 +819,10 @@
         .badge-type.icon-workshop::before { background-image: var(--icon-workshop); }
         .badge-type.icon-class::before { background-image: var(--icon-class); }
         .badge-type.icon-food::before { background-image: var(--icon-food); }
+        .badge-type.icon-cidery::before { background-image: var(--icon-cidery); }
+        .badge-type.icon-indoor::before { background-image: var(--icon-indoor); }
+        .badge-type.icon-attraction::before { background-image: var(--icon-attraction); }
+        .badge-type.icon-farm::before { background-image: var(--icon-farm); }
         .badge-type.icon-default::before { background-image: var(--icon-default); }
         
         /* Filter buttons use same icons */
@@ -607,34 +835,38 @@
         .type-filter-btn[data-type="Cocktails"]::before { background-image: var(--icon-cocktail); }
         .type-filter-btn[data-type="Coffee"]::before { background-image: var(--icon-coffee); }
         .type-filter-btn[data-type="Restaurant"]::before { background-image: var(--icon-restaurant); }
-        .type-filter-btn[data-type="Bakery"]::before { background-image: var(--icon-bakery); }
-        .type-filter-btn[data-type="Museum"]::before { background-image: var(--icon-museum); }
         .type-filter-btn[data-type="Hiking"]::before { background-image: var(--icon-hiking); }
+        .type-filter-btn[data-type="Lodging"]::before { background-image: var(--icon-lodging); }
         .type-filter-btn[data-type="Outdoor"]::before,
         .type-filter-btn[data-type="Activity"]::before,
         .type-filter-btn[data-type="Activities"]::before { background-image: var(--icon-activity); }
+        .type-filter-btn[data-type="Cidery"]::before { background-image: var(--icon-cidery); }
+        .type-filter-btn[data-type="Indoor Activity"]::before { background-image: var(--icon-indoor); }
+        .type-filter-btn[data-type="Attraction"]::before { background-image: var(--icon-attraction); }
+        .type-filter-btn[data-type="Farm & Orchard"]::before { background-image: var(--icon-farm); }
         .type-filter-btn[data-type="Shopping"]::before { background-image: var(--icon-shopping); }
         .type-filter-btn[data-type="Hotel"]::before { background-image: var(--icon-hotel); }
-        .type-filter-btn[data-type="Lodging"]::before { background-image: var(--icon-lodging); }
+        .type-filter-btn[data-type=""]::before { background-image: var(--icon-default); }
         
         /* Dark mode - icons remain the same (currentColor adapts) */
         
         /* Hover states - icons turn white */
         .badge-type {
-            background: #f0f4f1;
-            color: var(--theme-primary);
-            padding: 4px 10px;
+            background: #ffffff !important;
+            color: #212529 !important;
+            padding: 0;
             border-radius: 6px;
             font-size: 11px;
             font-weight: 600;
             position: relative;
             cursor: pointer;
-            transition: background-color 0.2s, color 0.2s, letter-spacing 0.2s;
+            transition: background-color 0.2s, color 0.2s, letter-spacing 0.2s, box-shadow 0.2s;
             display: inline-flex;
             align-items: center;
             gap: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            box-shadow: none !important;
         }
         .badge-type::before {
             content: '';
@@ -647,40 +879,43 @@
             flex-shrink: 0;
         }
         .badge-type:hover {
-            background-color: var(--theme-primary);
-            color: white;
+            background-color: #ffffff !important;
+            color: #212529 !important;
             letter-spacing: 0.8px;
+            box-shadow: none !important;
         }
         .badge-type:hover::before {
-            filter: brightness(0) invert(1);
+            filter: brightness(0) invert(0);
         }
         .badge-area {
-            background: #fef5f3;
-            color: #D65052;
-            padding: 4px 10px 4px 24px;
+            background: #ffffff !important;
+            color: #212529 !important;
+            padding: 0 0 0 20px !important;
             border-radius: 6px;
             font-size: 11px;
             font-weight: 600;
             position: relative;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23D65052' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 10.5a3 3 0 11-6 0 3 3 0 016 0z' /%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z' /%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: 6px center;
-            background-size: 14px 14px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23D65052' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 10.5a3 3 0 11-6 0 3 3 0 016 0z' /%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z' /%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: 3px center !important;
+            background-size: 12px 12px !important;
             cursor: pointer;
-            transition: background-color 0.2s, color 0.2s, letter-spacing 0.2s;
+            transition: background-color 0.2s, color 0.2s, letter-spacing 0.2s, box-shadow 0.2s;
             display: inline-flex;
             align-items: center;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            box-shadow: none !important;
         }
         .badge-area:hover {
-            background-color: #D65052;
-            color: white;
+            background-color: #ffffff !important;
+            color: #212529 !important;
             letter-spacing: 0.8px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 10.5a3 3 0 11-6 0 3 3 0 016 0z' /%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z' /%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: 6px center;
-            background-size: 14px 14px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23D65052' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 10.5a3 3 0 11-6 0 3 3 0 016 0z' /%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z' /%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: 3px center !important;
+            background-size: 12px 12px !important;
+            box-shadow: none !important;
         }
         :root.dark-mode body .badge-type {
             background-color: var(--theme-primary-light);
@@ -759,7 +994,7 @@
         .card-info-icon svg {
             width: 18px;
             height: 18px;
-            stroke: #6b7280;
+            stroke: #D65052;
             transition: all 0.3s;
         }
         .card-info-text {
@@ -773,7 +1008,7 @@
             background: #404040;
         }
         :root.dark-mode body .card-info-icon svg {
-            stroke: #9ca3af;
+            stroke: #D65052;
         }
         :root.dark-mode body a.card-info-item:hover .card-info-icon {
             background: var(--theme-primary);
@@ -782,16 +1017,22 @@
             stroke: white;
         }
         
-        .preview-content-wrapper { display: flex; gap: 0; align-items: stretch; min-height: 100vh; }
+        .preview-content-wrapper { 
+            display: flex; 
+            gap: 0; 
+            align-items: flex-start; 
+            max-width: 100vw;
+            overflow-x: clip;
+        }
         
-        .preview-sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh; left: 0; align-self: flex-start; transition: all 0.3s; }
+        .preview-sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 0; max-height: 100vh; left: 0; align-self: flex-start; transition: all 0.3s; }
         .preview-sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; }
         
         .sidebar-header {
             padding: 15px 20px 20px 20px;
             display: flex;
             justify-content: flex-start;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: none;
             background: var(--card-bg);
         }
         .sidebar-toggle-btn {
@@ -849,7 +1090,7 @@
             display: flex;
         }
         
-        .preview-filters { background: var(--bg-secondary); padding: 0; border-radius: 0; box-shadow: 4px 0 12px rgba(0, 0, 0, 0.06); height: 100%; display: flex; flex-direction: column; }
+        .preview-filters { background: var(--bg-secondary); padding: 0; border-radius: 0; box-shadow: none; max-height: 100vh; display: flex; flex-direction: column; }
         .preview-filters h3 { font-size: 18px; color: var(--text-primary); margin-bottom: 0; padding: 20px 20px 15px; border-bottom: 1px solid var(--border-color); background: var(--card-bg); flex-shrink: 0; }
         
         .filter-content { flex: 1; overflow-y: auto; padding: 0; min-height: 0; }
@@ -861,23 +1102,23 @@
         :root.dark-mode .filter-content::-webkit-scrollbar-thumb { background: #4a4a4a; }
         :root.dark-mode .filter-content::-webkit-scrollbar-thumb:hover { background: #5a5a5a; }
         
-        .filter-section { padding: 15px 20px; }
+        .filter-section { padding: 15px 20px 15px 10px; }
         .filter-section.search-section { 
             background: var(--card-bg); 
             border-bottom: 2px solid var(--border-color); 
-            padding: 20px;
+            padding: 20px 20px 20px 10px;
         }
         
         
-        .type-quick-filters { display: flex; flex-direction: column; gap: 6px; margin-bottom: 0; }
+        .type-quick-filters { display: flex; flex-direction: column; gap: 0; margin-bottom: 0; margin-left: 0; }
         .type-filter-btn { 
             width: 100%;
-            padding: 10px 14px; 
-            border: 1px solid var(--border-color); 
-            border-radius: 8px; 
+            padding: 14px 18px 14px 10px; 
+            border: none; 
+            border-radius: 0; 
             background: var(--card-bg); 
             color: var(--text-secondary); 
-            font-size: 13px; 
+            font-size: 15px; 
             font-weight: 500;
             cursor: pointer; 
             transition: all 0.2s;
@@ -885,51 +1126,383 @@
             align-items: center;
             gap: 10px;
             text-align: left;
+            box-shadow: none;
+        }
+        .type-filter-btn:first-child {
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+        }
+        .type-filter-btn:last-child {
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+        }
+        .type-filters-expanded {
+            display: none;
+        }
+        .type-filters-expanded .type-filter-btn {
+            border-radius: 16px;
+        }
+        .type-filter-see-more-btn {
+            width: 100%;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 0;
+            background: var(--card-bg);
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-align: center;
+            box-shadow: none;
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+        }
+        .type-filter-see-more-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: scale(0.98);
+            border-radius: 16px;
         }
         .type-filter-btn svg {
             display: none; /* Hide inline SVGs, using ::before now */
         }
         .type-filter-btn::before {
             content: '';
-            width: 16px;
-            height: 16px;
-            background-size: contain;
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            min-height: 32px;
+            background-size: 16px 16px;
             background-repeat: no-repeat;
             background-position: center;
             display: inline-block;
             flex-shrink: 0;
+            border-radius: 50%;
+            transition: background-color 0.2s ease, background-image 0s linear 0.2s;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1;
+        }
+        /* Use ::after for the white icon overlay when hovered/active - positioned to match ::before */
+        .type-filter-btn::after {
+            content: '';
+            position: absolute;
+            left: 10px; /* Match padding-left of button */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            min-height: 32px;
+            background-size: 16px 16px;
+            background-repeat: no-repeat;
+            background-position: center;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            filter: brightness(0) invert(1) !important;
+            box-sizing: border-box;
+            z-index: 2;
+        }
+        .type-filter-btn {
+            position: relative;
         }
         .type-filter-btn:hover { 
-            background: var(--bg-hover); 
-            border-color: var(--theme-primary);
-            color: var(--text-primary);
+            background: var(--card-bg); 
+            color: var(--text-secondary);
+        }
+        .type-filter-btn:first-child:hover {
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+        }
+        .type-filter-btn:last-child:hover {
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+        }
+        .type-filters-expanded .type-filter-btn:last-child {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
         }
         .type-filter-btn.active { 
-            background: var(--theme-primary); 
-            border-color: var(--theme-primary); 
-            color: white; 
+            background: var(--card-bg); 
+            color: var(--text-secondary); 
+        }
+        /* Icon container styling - circular with colored fill on hover/active */
+        .type-filter-btn:hover::before,
+        .type-filter-btn.active::before {
+            background-color: #10b981 !important; /* Default green, will be overridden by type-specific colors */
+            background-image: none !important; /* Hide the colored icon, show white version via ::after */
+        }
+        .type-filter-btn:hover::after,
+        .type-filter-btn.active::after {
+            opacity: 1 !important;
+            background-image: inherit !important;
+        }
+        /* Click state - black background when physically clicking (using .clicking class from JS) */
+        .type-filter-btn.clicking::before,
+        .type-filter-btn[data-type="Hiking"].clicking::before,
+        .type-filter-btn[data-type="Hiking"]:active::before,
+        .type-filter-btn[data-type="Hiking"]:hover:active::before,
+        .type-filter-btn[data-type="Wine"].clicking::before,
+        .type-filter-btn[data-type="Wine"]:active::before,
+        .type-filter-btn[data-type="Wine"]:hover:active::before,
+        .type-filter-btn[data-type="Winery"].clicking::before,
+        .type-filter-btn[data-type="Winery"]:active::before,
+        .type-filter-btn[data-type="Winery"]:hover:active::before,
+        .type-filter-btn[data-type="Beer"].clicking::before,
+        .type-filter-btn[data-type="Beer"]:active::before,
+        .type-filter-btn[data-type="Beer"]:hover:active::before,
+        .type-filter-btn[data-type="Brewery"].clicking::before,
+        .type-filter-btn[data-type="Brewery"]:active::before,
+        .type-filter-btn[data-type="Brewery"]:hover:active::before,
+        .type-filter-btn[data-type="Restaurant"].clicking::before,
+        .type-filter-btn[data-type="Restaurant"]:active::before,
+        .type-filter-btn[data-type="Restaurant"]:hover:active::before,
+        .type-filter-btn[data-type="Lodging"].clicking::before,
+        .type-filter-btn[data-type="Lodging"]:active::before,
+        .type-filter-btn[data-type="Lodging"]:hover:active::before,
+        .type-filter-btn[data-type="Hotel"].clicking::before,
+        .type-filter-btn[data-type="Hotel"]:active::before,
+        .type-filter-btn[data-type="Hotel"]:hover:active::before,
+        .type-filter-btn[data-type="Outdoor"].clicking::before,
+        .type-filter-btn[data-type="Outdoor"]:active::before,
+        .type-filter-btn[data-type="Outdoor"]:hover:active::before,
+        .type-filter-btn[data-type="Activity"].clicking::before,
+        .type-filter-btn[data-type="Activity"]:active::before,
+        .type-filter-btn[data-type="Activity"]:hover:active::before,
+        .type-filter-btn[data-type="Activities"].clicking::before,
+        .type-filter-btn[data-type="Activities"]:active::before,
+        .type-filter-btn[data-type="Activities"]:hover:active::before,
+        .type-filter-btn[data-type="Coffee"].clicking::before,
+        .type-filter-btn[data-type="Coffee"]:active::before,
+        .type-filter-btn[data-type="Coffee"]:hover:active::before,
+        .type-filter-btn[data-type="Cidery"].clicking::before,
+        .type-filter-btn[data-type="Cidery"]:active::before,
+        .type-filter-btn[data-type="Cidery"]:hover:active::before,
+        .type-filter-btn[data-type="Indoor Activity"].clicking::before,
+        .type-filter-btn[data-type="Indoor Activity"]:active::before,
+        .type-filter-btn[data-type="Indoor Activity"]:hover:active::before,
+        .type-filter-btn[data-type="Attraction"].clicking::before,
+        .type-filter-btn[data-type="Attraction"]:active::before,
+        .type-filter-btn[data-type="Attraction"]:hover:active::before,
+        .type-filter-btn[data-type="Farm & Orchard"].clicking::before,
+        .type-filter-btn[data-type="Farm & Orchard"]:active::before,
+        .type-filter-btn[data-type="Farm & Orchard"]:hover:active::before,
+        .type-filter-btn[data-type=""].clicking::before,
+        .type-filter-btn[data-type=""]:active::before,
+        .type-filter-btn[data-type=""]:hover:active::before,
+        .type-filter-btn:active::before,
+        .type-filter-btn:hover:active::before {
+            background-color: #000000 !important;
+            background-image: none !important;
+            transition: none !important; /* Disable transition for immediate feedback */
+        }
+        .type-filter-btn.clicking::after,
+        .type-filter-btn[data-type="Hiking"].clicking::after,
+        .type-filter-btn[data-type="Hiking"]:active::after,
+        .type-filter-btn[data-type="Hiking"]:hover:active::after,
+        .type-filter-btn[data-type="Wine"].clicking::after,
+        .type-filter-btn[data-type="Wine"]:active::after,
+        .type-filter-btn[data-type="Wine"]:hover:active::after,
+        .type-filter-btn[data-type="Winery"].clicking::after,
+        .type-filter-btn[data-type="Winery"]:active::after,
+        .type-filter-btn[data-type="Winery"]:hover:active::after,
+        .type-filter-btn[data-type="Beer"].clicking::after,
+        .type-filter-btn[data-type="Beer"]:active::after,
+        .type-filter-btn[data-type="Beer"]:hover:active::after,
+        .type-filter-btn[data-type="Brewery"].clicking::after,
+        .type-filter-btn[data-type="Brewery"]:active::after,
+        .type-filter-btn[data-type="Brewery"]:hover:active::after,
+        .type-filter-btn[data-type="Restaurant"].clicking::after,
+        .type-filter-btn[data-type="Restaurant"]:active::after,
+        .type-filter-btn[data-type="Restaurant"]:hover:active::after,
+        .type-filter-btn[data-type="Lodging"].clicking::after,
+        .type-filter-btn[data-type="Lodging"]:active::after,
+        .type-filter-btn[data-type="Lodging"]:hover:active::after,
+        .type-filter-btn[data-type="Hotel"].clicking::after,
+        .type-filter-btn[data-type="Hotel"]:active::after,
+        .type-filter-btn[data-type="Hotel"]:hover:active::after,
+        .type-filter-btn[data-type="Outdoor"].clicking::after,
+        .type-filter-btn[data-type="Outdoor"]:active::after,
+        .type-filter-btn[data-type="Outdoor"]:hover:active::after,
+        .type-filter-btn[data-type="Activity"].clicking::after,
+        .type-filter-btn[data-type="Activity"]:active::after,
+        .type-filter-btn[data-type="Activity"]:hover:active::after,
+        .type-filter-btn[data-type="Activities"].clicking::after,
+        .type-filter-btn[data-type="Activities"]:active::after,
+        .type-filter-btn[data-type="Activities"]:hover:active::after,
+        .type-filter-btn[data-type="Coffee"].clicking::after,
+        .type-filter-btn[data-type="Coffee"]:active::after,
+        .type-filter-btn[data-type="Coffee"]:hover:active::after,
+        .type-filter-btn[data-type="Cidery"].clicking::after,
+        .type-filter-btn[data-type="Cidery"]:active::after,
+        .type-filter-btn[data-type="Cidery"]:hover:active::after,
+        .type-filter-btn[data-type="Indoor Activity"].clicking::after,
+        .type-filter-btn[data-type="Indoor Activity"]:active::after,
+        .type-filter-btn[data-type="Indoor Activity"]:hover:active::after,
+        .type-filter-btn[data-type="Attraction"].clicking::after,
+        .type-filter-btn[data-type="Attraction"]:active::after,
+        .type-filter-btn[data-type="Attraction"]:hover:active::after,
+        .type-filter-btn[data-type="Farm & Orchard"].clicking::after,
+        .type-filter-btn[data-type="Farm & Orchard"]:active::after,
+        .type-filter-btn[data-type="Farm & Orchard"]:hover:active::after,
+        .type-filter-btn[data-type=""].clicking::after,
+        .type-filter-btn[data-type=""]:active::after,
+        .type-filter-btn[data-type=""]:hover:active::after,
+        .type-filter-btn:active::after,
+        .type-filter-btn:hover:active::after {
+            opacity: 1 !important;
+            filter: brightness(0) invert(1) !important;
+            transition: none !important; /* Disable transition for immediate feedback */
+        }
+        /* Ensure icons show correctly when clicked */
+        .type-filter-btn[data-type="Hiking"].clicking::after,
+        .type-filter-btn[data-type="Hiking"]:active::after,
+        .type-filter-btn[data-type="Hiking"]:hover:active::after {
+            background-image: var(--icon-hiking) !important;
+        }
+        .type-filter-btn[data-type="Wine"].clicking::after,
+        .type-filter-btn[data-type="Wine"]:active::after,
+        .type-filter-btn[data-type="Wine"]:hover:active::after,
+        .type-filter-btn[data-type="Winery"].clicking::after,
+        .type-filter-btn[data-type="Winery"]:active::after,
+        .type-filter-btn[data-type="Winery"]:hover:active::after {
+            background-image: var(--icon-wine) !important;
+        }
+        .type-filter-btn[data-type="Beer"].clicking::after,
+        .type-filter-btn[data-type="Beer"]:active::after,
+        .type-filter-btn[data-type="Beer"]:hover:active::after,
+        .type-filter-btn[data-type="Brewery"].clicking::after,
+        .type-filter-btn[data-type="Brewery"]:active::after,
+        .type-filter-btn[data-type="Brewery"]:hover:active::after {
+            background-image: var(--icon-beer) !important;
+        }
+        .type-filter-btn[data-type="Restaurant"].clicking::after,
+        .type-filter-btn[data-type="Restaurant"]:active::after,
+        .type-filter-btn[data-type="Restaurant"]:hover:active::after {
+            background-image: var(--icon-restaurant) !important;
+        }
+        .type-filter-btn[data-type="Lodging"].clicking::after,
+        .type-filter-btn[data-type="Lodging"]:active::after,
+        .type-filter-btn[data-type="Lodging"]:hover:active::after {
+            background-image: var(--icon-lodging) !important;
+        }
+        .type-filter-btn[data-type="Hotel"].clicking::after,
+        .type-filter-btn[data-type="Hotel"]:active::after,
+        .type-filter-btn[data-type="Hotel"]:hover:active::after {
+            background-image: var(--icon-hotel) !important;
+        }
+        .type-filter-btn[data-type="Outdoor"].clicking::after,
+        .type-filter-btn[data-type="Outdoor"]:active::after,
+        .type-filter-btn[data-type="Outdoor"]:hover:active::after,
+        .type-filter-btn[data-type="Activity"].clicking::after,
+        .type-filter-btn[data-type="Activity"]:active::after,
+        .type-filter-btn[data-type="Activity"]:hover:active::after,
+        .type-filter-btn[data-type="Activities"].clicking::after,
+        .type-filter-btn[data-type="Activities"]:active::after,
+        .type-filter-btn[data-type="Activities"]:hover:active::after {
+            background-image: var(--icon-activity) !important;
+        }
+        .type-filter-btn[data-type="Coffee"].clicking::after,
+        .type-filter-btn[data-type="Coffee"]:active::after,
+        .type-filter-btn[data-type="Coffee"]:hover:active::after {
+            background-image: var(--icon-coffee) !important;
+        }
+        .type-filter-btn[data-type="Cidery"].clicking::after,
+        .type-filter-btn[data-type="Cidery"]:active::after,
+        .type-filter-btn[data-type="Cidery"]:hover:active::after {
+            background-image: var(--icon-cidery) !important;
+        }
+        .type-filter-btn[data-type="Indoor Activity"].clicking::after,
+        .type-filter-btn[data-type="Indoor Activity"]:active::after,
+        .type-filter-btn[data-type="Indoor Activity"]:hover:active::after {
+            background-image: var(--icon-indoor) !important;
+        }
+        .type-filter-btn[data-type="Attraction"].clicking::after,
+        .type-filter-btn[data-type="Attraction"]:active::after,
+        .type-filter-btn[data-type="Attraction"]:hover:active::after {
+            background-image: var(--icon-attraction) !important;
+        }
+        .type-filter-btn[data-type="Farm & Orchard"].clicking::after,
+        .type-filter-btn[data-type="Farm & Orchard"]:active::after,
+        .type-filter-btn[data-type="Farm & Orchard"]:hover:active::after {
+            background-image: var(--icon-farm) !important;
+        }
+        .type-filter-btn[data-type=""].clicking::after,
+        .type-filter-btn[data-type=""]:active::after,
+        .type-filter-btn[data-type=""]:hover:active::after {
+            background-image: var(--icon-default) !important;
+        }
+        /* Ensure default (All Types) button shows plus icon on hover/active */
+        .type-filter-btn[data-type=""]:hover::after,
+        .type-filter-btn[data-type=""].active::after {
+            background-image: var(--icon-default) !important;
         }
         
         /* Dark mode icon filters */
         :root.dark-mode body .type-filter-btn::before {
             filter: brightness(0) invert(1);
         }
-        :root.dark-mode body .type-filter-btn:hover::before {
-            filter: brightness(0) saturate(100%) invert(46%) sepia(14%) saturate(963%) hue-rotate(94deg) brightness(92%) contrast(88%);
-        }
+        /* In dark mode, still show colored backgrounds on hover/active */
+        :root.dark-mode body .type-filter-btn:hover::before,
         :root.dark-mode body .type-filter-btn.active::before {
-            filter: brightness(0) invert(1);
+            filter: brightness(0) invert(1); /* White icon */
         }
         
         .preview-filter-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
         .preview-filter-group label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
-        .preview-filter-group select { width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; background: var(--bg-hover); cursor: pointer; transition: all 0.2s; color: var(--text-primary); appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
-        .preview-filter-group select:hover { border-color: #cbd5e1; background: var(--card-bg); }
-        .preview-filter-group select:focus { outline: none; border-color: var(--theme-primary); background: var(--card-bg); }
+        .preview-filter-group select { width: 100%; padding: 13px 16px 13px 40px; border: none; border-radius: 16px; font-size: 15px; background: #ffffff; cursor: pointer; transition: all 0.2s; color: var(--text-primary); appearance: none; 
+            /* Left: pin icon, Right: caret */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23D65052' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 10.5a3 3 0 11-6 0 3 3 0 016 0z' /%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z' /%3E%3C/svg%3E"), 
+                              url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E"); 
+            background-repeat: no-repeat, no-repeat; 
+            background-position: 14px center, right 16px center; 
+            background-size: 16px 16px, 12px 12px; 
+            padding-right: 36px; 
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06); }
+
+        /* Ensure pin icon color stays consistent on hover/focus for Area dropdown */
+        #previewAreaFilter,
+        #previewAreaFilter:hover,
+        #previewAreaFilter:focus {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23D65052' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 10.5a3 3 0 11-6 0 3 3 0 016 0z' /%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z' /%3E%3C/svg%3E"),
+                              url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat, no-repeat;
+            background-position: 14px center, right 16px center;
+            background-size: 16px 16px, 12px 12px;
+            padding-left: 40px;
+            padding-right: 36px;
+        }
+
+        /* Override the right-side dropdown icon for Amenities: use a plus symbol */
+        #previewAmenityFilter {
+            /* Left: plus icon, Right: caret */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 5v14M5 12h14'/%3E%3C/svg%3E"),
+                              url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat, no-repeat;
+            background-position: 14px center, right 16px center;
+            background-size: 16px 16px, 12px 12px;
+            padding-left: 40px;
+            padding-right: 36px;
+        }
+        .preview-filter-group select:hover { border-radius: 16px; background: #ffffff; box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.04), 0 2px 12px rgba(0, 0, 0, 0.08); transform: scale(0.98); }
+        .preview-filter-group select:focus { outline: none; border-radius: 16px; background: #ffffff; box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.04), 0 2px 12px rgba(0, 0, 0, 0.08); }
         
-        .preview-filters .btn { width: 100%; padding: 9px 16px; whitespace: nowrap; font-size: 13px; margin-top: 8px; }
+        .preview-filters .btn { width: 100%; padding: 13px 20px; whitespace: nowrap; font-size: 15px; margin-top: 8px; border-radius: 16px; }
         
-        .preview-main { flex: 1; min-width: 0; padding: 0 30px 30px 30px; }
+        .preview-main { 
+            flex: 1; 
+            min-width: 0; 
+            max-width: 100%;
+            padding: 0 30px 30px 30px;
+        }
         .preview-results { margin-bottom: 20px; font-size: 14px; color: var(--text-secondary); font-weight: 500; }
         
         /* Top Search Bar */
@@ -950,26 +1523,26 @@
             mask-image: linear-gradient(
                 to bottom,
                 black 0%,
-                black 50%,
-                black 70%,
-                rgba(0, 0, 0, 0.8) 80%,
-                rgba(0, 0, 0, 0.5) 88%,
-                rgba(0, 0, 0, 0.2) 94%,
+                black 42%,
+                black 60%,
+                rgba(0, 0, 0, 0.8) 70%,
+                rgba(0, 0, 0, 0.5) 82%,
+                rgba(0, 0, 0, 0.2) 92%,
                 transparent 100%
             );
             -webkit-mask-image: linear-gradient(
                 to bottom,
                 black 0%,
-                black 50%,
-                black 70%,
-                rgba(0, 0, 0, 0.8) 80%,
-                rgba(0, 0, 0, 0.5) 88%,
-                rgba(0, 0, 0, 0.2) 94%,
+                black 42%,
+                black 60%,
+                rgba(0, 0, 0, 0.8) 70%,
+                rgba(0, 0, 0, 0.5) 82%,
+                rgba(0, 0, 0, 0.2) 92%,
                 transparent 100%
             );
             padding-top: 15px;
-            padding-bottom: 40px;
-            margin-bottom: -25px;
+            padding-bottom: 32px;
+            margin-bottom: -20px;
             /* Extend blur to edges */
             margin-left: -30px;
             margin-right: -30px;
@@ -980,14 +1553,30 @@
         .preview-sidebar.collapsed ~ .preview-main .top-search-container {
             padding-left: 100px;
         }
+        .search-input-wrapper {
+            position: relative;
+            width: 100%;
+            z-index: 1;
+        }
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            color: var(--text-secondary);
+            pointer-events: none;
+            z-index: 1;
+        }
         .top-search-container input {
             width: 100%;
-            padding: 14px 20px;
+            padding: 14px 20px 14px 55px;
             border: 1px solid #ffffff;
-            border-radius: 12px;
-            font-size: 15px;
+            border-radius: 24px;
+            font-size: 20px;
             transition: all 0.2s;
-            background: rgba(255, 255, 255, 0.8);
+            background: #ffffff;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
         .top-search-container input:focus {
@@ -1000,17 +1589,122 @@
         }
         
         @media (max-width: 968px) {
+            .preview-content-wrapper {
+                flex-direction: column;
+                overflow-x: visible !important;
+            }
             .preview-sidebar { 
-                width: 200px; 
-                min-width: 200px;
+                display: none !important;
             }
-            .type-filter-btn {
-                font-size: 11px;
-                padding: 6px 10px;
+            .preview-main {
+                order: 1;
+                overflow-x: visible !important;
             }
-            .type-filter-btn svg {
-                width: 14px;
-                height: 14px;
+            .top-search-container {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                padding-left: 30px !important;
+                padding-right: 30px !important;
+                background: linear-gradient(
+                    to bottom,
+                    var(--bg-primary) 0%,
+                    var(--bg-primary) 30%,
+                    rgba(255, 255, 255, 0.5) 50%,
+                    transparent 70%
+                ) !important;
+                backdrop-filter: blur(12px) !important;
+                -webkit-backdrop-filter: blur(12px) !important;
+                mask-image: linear-gradient(
+                    to bottom,
+                    black 0%,
+                    black 50%,
+                    black 65%,
+                    rgba(0, 0, 0, 0.8) 75%,
+                    rgba(0, 0, 0, 0.5) 85%,
+                    rgba(0, 0, 0, 0.2) 94%,
+                    transparent 100%
+                ) !important;
+                -webkit-mask-image: linear-gradient(
+                    to bottom,
+                    black 0%,
+                    black 50%,
+                    black 65%,
+                    rgba(0, 0, 0, 0.8) 75%,
+                    rgba(0, 0, 0, 0.5) 85%,
+                    rgba(0, 0, 0, 0.2) 94%,
+                    transparent 100%
+                ) !important;
+                padding-bottom: 110px !important;
+                margin-bottom: -110px !important;
+            }
+            .preview-sidebar.collapsed ~ .preview-main .top-search-container {
+                padding-left: 30px !important;
+            }
+            /* Mobile Filter Bar */
+            .mobile-filter-bar {
+                display: flex;
+                gap: 10px;
+                padding: 15px 30px;
+                background: transparent !important;
+                position: sticky !important;
+                top: 64px !important;
+                z-index: 101 !important;
+                margin-top: 0 !important;
+                box-shadow: none !important;
+            }
+            .mobile-filter-group {
+                flex: 1;
+            }
+            .mobile-filter-group select {
+                width: 100%;
+                padding: 12px 14px;
+                border: 1px solid var(--border-color);
+                border-radius: 16px;
+                font-size: 14px;
+                background: #ffffff;
+                color: var(--text-primary);
+                cursor: pointer;
+                transition: all 0.2s;
+                appearance: none;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 14px center;
+                padding-right: 36px;
+                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            }
+            .mobile-filter-group select:hover {
+                border-radius: 16px;
+                background: #ffffff;
+                box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.04), 0 2px 12px rgba(0, 0, 0, 0.08);
+            }
+            .mobile-filter-group select:focus {
+                outline: none;
+                border-radius: 16px;
+                background: #ffffff;
+                box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.04), 0 2px 12px rgba(0, 0, 0, 0.08);
+            }
+            .mobile-clear-btn {
+                padding: 12px 20px;
+                border: 1px solid var(--border-color);
+                border-radius: 16px;
+                font-size: 14px;
+                font-weight: 600;
+                background: var(--bg-hover);
+                color: var(--text-primary);
+                cursor: pointer;
+                transition: all 0.2s;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+            .mobile-clear-btn:hover {
+                background: var(--card-bg);
+                box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.1);
+                transform: scale(0.98);
+            }
+        }
+        @media (min-width: 969px) {
+            .mobile-filter-bar {
+                display: none !important;
             }
         }
         
@@ -1046,12 +1740,20 @@
         .data-table .btn-table-delete { background: linear-gradient(135deg, #E3795C 0%, #D65052 100%); color: white; padding: 6px 12px; border: none; border-radius: 8px; font-size: 12px; cursor: pointer; box-shadow: 0 2px 6px rgba(214, 80, 82, 0.2); transition: all 0.3s; }
         .data-table .btn-table-delete:hover { background: linear-gradient(135deg, #D65052 0%, #c44448 100%); box-shadow: 0 3px 10px rgba(214, 80, 82, 0.3); }
         
-        .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        
+        /* Wider cards on larger screens */
+        @media (min-width: 1400px) {
+            .preview-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+        }
+        @media (min-width: 1800px) {
+            .preview-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+        }
         
         /* Map Styles */
         .map-container {
             background: var(--card-bg);
-            border-radius: 16px;
+            border-radius: 24px;
             padding: 20px;
             margin-bottom: 30px;
             box-shadow: 0 2px 8px var(--shadow), 0 4px 16px var(--shadow);
@@ -1111,6 +1813,86 @@
         }
         .map-collapsed #map {
             display: none;
+        }
+        
+        /* Hide Google Maps attribution, copyright, and footer links at the bottom */
+        .gm-style-cc {
+            display: none !important;
+        }
+        .gm-style-cc a,
+        .gm-style-cc button,
+        .gm-style-cc span,
+        .gm-style-cc div {
+            display: none !important;
+        }
+        
+        /* Hide keyboard shortcuts notice (specific button) */
+        .gm-style button[title*="keyboard" i],
+        .gm-style button[title*="Keyboard" i],
+        .gm-style button[aria-label*="keyboard" i],
+        .gm-style button[aria-label*="Keyboard" i] {
+            display: none !important;
+        }
+        
+        /* Hide specific attribution links - be very specific */
+        .gm-style a[href*="terms"],
+        .gm-style a[href*="Report a map error"],
+        .gm-style a[href*="report"] {
+            display: none !important;
+        }
+        
+        /* Clean up map appearance - but don't hide the map itself */
+        .gm-style {
+            font-family: inherit !important;
+        }
+        
+        /* Ensure map controls are styled nicely */
+        .gm-style-iw-t::after {
+            background: transparent !important;
+        }
+        
+        /* Style Google Maps zoom controls with rounded corners */
+        /* Target all Google Maps control containers */
+        .gm-style > div > div > div[style*="right"] > div,
+        .gm-style > div > div > div[style*="right"],
+        div[style*="position: absolute"][style*="right"] > div > div,
+        /* Target zoom control buttons directly */
+        button[aria-label*="Zoom"],
+        button[title*="Zoom"],
+        /* Target the zoom control container classes */
+        .gm-style-ctrl,
+        .gm-style-ctrl-active,
+        .gm-control-active,
+        /* More specific zoom control targets */
+        .gm-style-ctrl-top-right,
+        .gm-style-ctrl-right,
+        /* Target all divs and buttons within zoom area */
+        div[id*="zoom"],
+        .gm-style button,
+        /* Direct descendant targeting */
+        .gm-style > div > div > div > div > button,
+        .gm-style > div > div > div > div > div > button {
+            border-radius: 16px !important;
+        }
+        
+        /* Ensure the zoom control wrapper is rounded */
+        .gm-style div[style*="position: absolute"] div[style*="position: absolute"]:has(button[aria-label*="Zoom"]) {
+            border-radius: 16px !important;
+            overflow: hidden !important;
+        }
+        
+        /* Round individual buttons more aggressively */
+        .gm-style button {
+            border-radius: 16px !important;
+            border-top-left-radius: 16px !important;
+            border-top-right-radius: 16px !important;
+            border-bottom-left-radius: 16px !important;
+            border-bottom-right-radius: 16px !important;
+        }
+        
+        /* Round the container holding zoom buttons */
+        .gm-style > div > div > div > div {
+            border-radius: 16px !important;
         }        
         /* Custom Google Maps Info Window Styles */
         /* Custom Google Maps Info Window Styles */
@@ -1308,41 +2090,126 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
         }
         
-        .flip-card { height: 400px; cursor: pointer; position: relative; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .flip-card:hover { transform: translateY(-8px); }
-        .flip-card-inner { position: relative; width: 100%; height: 100%; }
-        .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px var(--shadow), 0 8px 16px var(--shadow); transition: opacity 0.3s ease, transform 0.3s ease; background: var(--card-bg); }
-        .flip-card:hover .flip-card-front, .flip-card:hover .flip-card-back { box-shadow: 0 4px 16px var(--shadow-hover), 0 12px 32px var(--shadow-hover); }
-        .flip-card-front { background: var(--card-bg); opacity: 1; transform: scale(1); }
-        .flip-card-back { background: var(--card-bg); display: flex; flex-direction: column; opacity: 0; transform: scale(0.96); pointer-events: none; }
+        .flip-card { 
+            cursor: pointer; 
+            position: relative; 
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            container-type: inline-size;
+            container-name: card;
+            will-change: transform;
+            contain: layout style paint;
+        }
+        .flip-card-inner { position: relative; width: 100%; }
+        .flip-card-front, .flip-card-back { 
+            width: 100%; 
+            border-radius: 16px; 
+            transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease; 
+            background: var(--card-bg); 
+            transform-origin: center center;
+        }
+        .flip-card:hover .flip-card-front,
+        .flip-card:hover .flip-card-back {
+            transform: scale(0.98);
+        }
+        .flip-card-front { position: relative; opacity: 1; transform: scale(1); display: flex; flex-direction: column; overflow: hidden; }
+        .flip-card-back { position: absolute; top: 0; left: 0; display: flex; flex-direction: column; opacity: 0; transform: scale(0.96); pointer-events: none; overflow: hidden; }
         .flip-card.flipped .flip-card-front { opacity: 0; transform: scale(0.96); pointer-events: none; }
         .flip-card.flipped .flip-card-back { opacity: 1; transform: scale(1); pointer-events: auto; }
         
-        /* Card front description - limit to 3 lines */
+        /* Card front title - responsive to card width using container queries */
+        .flip-card-front h3 {
+            font-size: 16px !important;
+            font-weight: 700 !important;
+            margin-bottom: 10px !important;
+            color: var(--text-primary) !important;
+            line-height: 1.2 !important;
+            orphans: 3 !important;
+            widows: 3 !important;
+        }
+        
+        /* Scale title based on card width */
+        @container card (min-width: 220px) {
+            .flip-card-front h3 { font-size: 17px !important; }
+        }
+        @container card (min-width: 260px) {
+            .flip-card-front h3 { font-size: 18px !important; }
+        }
+        @container card (min-width: 300px) {
+            .flip-card-front h3 { font-size: 20px !important; }
+        }
+        @container card (min-width: 350px) {
+            .flip-card-front h3 { font-size: 22px !important; }
+        }
+        
+        /* Card front description - limit to 2 lines by default (when title is multi-line) */
         .flip-card-front p {
             display: -webkit-box;
-            -webkit-line-clamp: 3;
+            -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
+            line-clamp: 2;
+        }
+        /* Allow 3 lines of description when title is single line */
+        .flip-card.title-single-line .flip-card-front p {
+            -webkit-line-clamp: 3;
             line-clamp: 3;
         }
         
-        /* Scrollable images on card front */
+        /* Scrollable images on card front - always square regardless of content */
         .card-front-image-scroll {
             position: relative;
+            height: 0 !important;
+            padding-bottom: 100% !important;
+            width: 100%;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            flex-shrink: 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            border-radius: 24px;
+            clip-path: inset(0 round 24px);
+        }
+        .card-front-image-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .card-front-image-scroll > div {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            display: flex;
+            width: auto;
+        }
+        .card-front-image-scroll img {
+            position: relative;
+            border-radius: 24px !important;
+            width: 100%;
+            min-width: 100%;
+            height: 100% !important;
+            aspect-ratio: 1 / 1 !important;
+            object-fit: cover !important;
+            object-position: center !important;
+            display: block !important;
+            flex-shrink: 0;
+            scroll-snap-align: start;
         }
         .card-front-image-scroll::-webkit-scrollbar {
             display: none;
         }
         .scroll-arrow {
             position: absolute;
-            top: 100px;
-            width: 30px;
-            height: 30px;
+            width: 30px !important;
+            height: 30px !important;
+            min-width: 30px !important;
+            max-width: 30px !important;
+            min-height: 30px !important;
+            max-height: 30px !important;
             background: rgba(255, 255, 255, 0.7);
             border-radius: 50%;
-            background-size: 16px 16px;
+            background-size: 16px 16px !important;
             background-position: center;
             background-repeat: no-repeat;
             opacity: 0 !important;
@@ -1350,6 +2217,8 @@
             z-index: 10;
             cursor: pointer;
             pointer-events: auto !important;
+            flex-shrink: 0 !important;
+            box-sizing: border-box !important;
         }
         .scroll-arrow-right {
             right: 13px;
@@ -1368,7 +2237,10 @@
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23000' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9 5l7 7-7 7'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: center;
-            background-size: 16px 16px;
+            background-size: 16px 16px !important;
+            transform: translateY(-50%);
+            width: 30px !important;
+            height: 30px !important;
         }
         
         /* Overlay behind flipped card */
@@ -1458,12 +2330,15 @@
             .flip-card.expanded { width: 50vw; height: 80vh; max-width: 1100px; max-height: 85vh; }
         }
         
+        /* Ensure back fills the expanded card for proper inner 100% heights */
+        .flip-card.expanded .flip-card-back { height: 100%; inset: 0; }
+
         /* Back layout prioritizing imagery and title when expanded */
         .flip-card.expanded .flip-card-back .back-content { padding: 24px; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
         .flip-card.expanded .flip-card-back .back-hero { width: 100%; height: 40vh; border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
         .flip-card.expanded .flip-card-back .back-hero img { width: 100%; height: 100%; object-fit: cover; }
         .flip-card.expanded .flip-card-back .back-title { font-size: 28px; font-weight: 800; line-height: 1.2; color: var(--text-primary); margin-bottom: 12px; }
-        .flip-card.expanded .flip-card-back .back-body { flex: 1; overflow: auto; padding-right: 6px; }
+        .flip-card.expanded .flip-card-back .back-body { flex: 1; overflow: auto; padding-right: 6px; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
         .flip-card.expanded .flip-card-back .two-up { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
         .flip-card.expanded .flip-card-back .two-up img { width: 100%; height: 28vh; object-fit: cover; border-radius: 10px; }
         /* If there's only one image in the two-up container, make it span both columns */
@@ -1635,8 +2510,8 @@
         
         @media (max-width: 768px) {
             .preview-sidebar { 
-                width: 160px; 
-                min-width: 160px;
+                width: 100% !important;
+                min-width: 100% !important;
             }
             .type-filter-btn {
                 font-size: 10px;
