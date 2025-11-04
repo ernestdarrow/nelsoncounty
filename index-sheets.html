@@ -7,9 +7,9 @@
     <!-- Google Identity Services -->
     <script>
         // Prevent Google's auto-initialization before our code runs
-        window.g_id_onload = function() {
-            // Do nothing - we'll initialize manually
-        };
+        // Google's script looks for g_id_onload function or element
+        // We'll prevent it from auto-initializing by not providing either until ready
+        window.g_id_onload = null;
     </script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <!-- External Stylesheet for Admin Panel -->
@@ -155,7 +155,7 @@
                 <p>Sign in with your Google account to access the admin panel</p>
             </div>
             
-            <div id="g_id_onload" data-auto_select="false"></div>
+            <div id="googleSignInContainer"></div>
             
             <!-- Fallback manual button if Google's button doesn't load -->
             <div id="fallbackButtonContainer">

@@ -439,7 +439,6 @@ const initialData =
                         } catch (fetchError) {
                             // If CORS fails, try alternative proxy
                             if (fetchError.message.includes('CORS_ERROR') || fetchError.message.includes('access control')) {
-                                console.log('⚠️ CORS blocked direct fetch, trying proxy...');
                                 try {
                                     const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
                                     response = await fetch(proxyUrl, {
@@ -526,12 +525,19 @@ const initialData =
                         console.error('⚠️ Your Google Apps Script has an internal error. Check the Apps Script execution logs.');
                         console.error('   Error:', error.message);
                     } else if (error.message.includes('CORS') || error.message.includes('access control') || error.message.includes('Origin null')) {
-                        updateSyncStatus(false, '❌ CORS error - falling back to CSV');
-                        console.warn('⚠️ CORS Error: Your Google Apps Script needs CORS headers configured.\n' +
-                                    'Add this to your doGet function:\n' +
-                                    'return ContentService\n' +
-                                    '  .createTextOutput(JSON.stringify({success: true, listings: [...]}))\n' +
-                                    '  .setMimeType(ContentService.MimeType.JSON);');
+                        updateSyncStatus(false, '⚠️ CORS error - retrying...');
+                        // Only log CORS warning if it's a persistent issue
+                        // (Suppress on first attempt, will retry via CSV fallback)
+                        if (error.message.includes('Proxy also failed')) {
+                            console.warn('⚠️ CORS Error: Your Google Apps Script may need CORS headers configured.\n' +
+                                        'If this persists, add to your doGet function:\n' +
+                                        'return ContentService\n' +
+                                        '  .createTextOutput(JSON.stringify({success: true, listings: [...]}))\n' +
+                                        '  .setMimeType(ContentService.MimeType.JSON);');
+                        } else {
+                            // First CORS attempt - just log briefly, will retry
+                            console.log('⚠️ CORS blocked, trying proxy...');
+                        }
                     } else {
                         updateSyncStatus(false, '❌ Connection error - falling back to CSV');
                         console.error('   Error:', error.message);
@@ -2428,7 +2434,7 @@ const initialData =
             const loadingMessage = document.getElementById('loadingMessage');
             const errorDiv = document.getElementById('loginError');
             const errorText = document.getElementById('loginErrorText');
-            const buttonContainer = document.getElementById('g_id_onload');
+            const buttonContainer = document.getElementById('googleSignInContainer');
             const fallbackContainer = document.getElementById('fallbackButtonContainer');
             
             console.log('Initializing Google Sign-In, attempt:', initAttempts);
@@ -2606,7 +2612,7 @@ const initialData =
                         console.log('One Tap notification:', notification);
                         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
                             // One Tap failed, try popup using renderButton
-                            const buttonContainer = document.getElementById('g_id_onload');
+                            const buttonContainer = document.getElementById('googleSignInContainer');
                             if (buttonContainer) {
                                 buttonContainer.innerHTML = '';
                                 google.accounts.id.renderButton(
@@ -2764,7 +2770,7 @@ const initialData =
                 origin: origin,
                 clientId: clientId,
                 googleLoaded: typeof google !== 'undefined',
-                buttonContainer: document.getElementById('g_id_onload') ? 'exists' : 'missing',
+                buttonContainer: document.getElementById('googleSignInContainer') ? 'exists' : 'missing',
                 authorizedEmails: AUTHORIZED_EMAILS.length
             };
             
@@ -2796,9 +2802,9 @@ const initialData =
                 document.getElementById('diagOrigin').textContent = window.location.origin;
                 document.getElementById('diagClientId').textContent = GOOGLE_OAUTH_CLIENT_ID.substring(0, 30) + '...';
                 document.getElementById('diagGoogleLoaded').textContent = typeof google !== 'undefined' ? '✅ Yes' : '❌ No';
-                document.getElementById('diagContainer').textContent = document.getElementById('g_id_onload') ? '✅ Found' : '❌ Missing';
+                document.getElementById('diagContainer').textContent = document.getElementById('googleSignInContainer') ? '✅ Found' : '❌ Missing';
                 
-                const status = typeof google !== 'undefined' && document.getElementById('g_id_onload') ? '✅ Ready' : '⏳ Waiting...';
+                const status = typeof google !== 'undefined' && document.getElementById('googleSignInContainer') ? '✅ Ready' : '⏳ Waiting...';
                 document.getElementById('diagStatus').textContent = status;
                 
                 // Show diagnostic section
