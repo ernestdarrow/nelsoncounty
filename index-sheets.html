@@ -1090,7 +1090,34 @@
         </div>
     </div>
     
-    <script src="https://ernestdarrow.github.io/nelsoncounty/admin.js"></script>
+    <script src="https://ernestdarrow.github.io/nelsoncounty/admin.js" onerror="console.error('Failed to load admin.js'); document.getElementById('loginError').style.display='block'; document.getElementById('loginErrorText').textContent='Failed to load admin.js. Please check that the file exists on GitHub Pages.';"></script>
+    
+    <script>
+        // Fallback: If admin.js fails to load, show error after 2 seconds
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                // Check if critical functions exist
+                if (typeof initializeGoogleSignIn === 'undefined') {
+                    const errorDiv = document.getElementById('loginError');
+                    const errorText = document.getElementById('loginErrorText');
+                    const loadingMessage = document.getElementById('loadingMessage');
+                    
+                    if (loadingMessage) loadingMessage.style.display = 'none';
+                    if (errorDiv && errorText) {
+                        errorText.innerHTML = `
+                            <strong>⚠️ JavaScript Error:</strong><br>
+                            The admin.js file failed to load from GitHub Pages.<br>
+                            <small>Please ensure:<br>
+                            1. admin.js is committed and pushed to your GitHub repository<br>
+                            2. GitHub Pages is enabled for your repository<br>
+                            3. The file is accessible at: https://ernestdarrow.github.io/nelsoncounty/admin.js</small>
+                        `;
+                        errorDiv.style.display = 'block';
+                    }
+                }
+            }, 2000);
+        });
+    </script>
 
 </body>
 </html>
