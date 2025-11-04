@@ -7,31 +7,153 @@
     <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <!-- External Stylesheet for Admin Panel -->
-    <link rel="stylesheet" href="https://raw.githubusercontent.com/ernestdarrow/nelsoncounty/main/admin.css">
+    <link rel="stylesheet" href="https://ernestdarrow.github.io/nelsoncounty/admin.css">
+    
+    <!-- Critical CSS for login page and initial UI -->
+    <style>
+        /* Basic reset and body styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: #ffffff; 
+            color: #212529;
+        }
+        
+        /* Login Overlay - Critical for initial page load */
+        #loginOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #4E6B52 0%, #3a5240 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        
+        #loginOverlay .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        #loginOverlay h2 {
+            color: #4E6B52;
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        #loginOverlay p {
+            color: #6c757d;
+            margin: 0;
+            font-size: 14px;
+        }
+        
+        #loginOverlay .login-footer {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+        }
+        
+        #loginOverlay .login-footer p {
+            font-size: 12px;
+        }
+        
+        #g_id_onload {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            min-height: 50px;
+            align-items: center;
+        }
+        
+        #fallbackButtonContainer {
+            display: none;
+            margin-bottom: 20px;
+        }
+        
+        #fallbackButtonContainer button {
+            width: 100%;
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+        
+        #fallbackButtonContainer button:hover {
+            background: #357ae8;
+        }
+        
+        #loadingMessage {
+            color: #6c757d;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        #loginError {
+            display: none;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        /* Hide login overlay when logged in */
+        body.logged-in #loginOverlay {
+            display: none;
+        }
+        
+        /* Ensure content is hidden until logged in */
+        body:not(.logged-in) .header,
+        body:not(.logged-in) .tabs,
+        body:not(.logged-in) .tab-content {
+            display: none;
+        }
+    </style>
 
 </head>
 <body>
     <!-- Google OAuth Login Overlay -->
-    <div id="loginOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #4E6B52 0%, #3a5240 100%); display: flex; align-items: center; justify-content: center; z-index: 10000;">
-        <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); max-width: 400px; width: 90%;">
+    <div id="loginOverlay">
+        <div class="login-container">
             <div style="text-align: center; margin-bottom: 30px;">
-                <h2 style="color: #4E6B52; margin: 0 0 10px 0; font-size: 28px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <h2>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
                     Nelson County
                 </h2>
-                <p style="color: #6c757d; margin: 0; font-size: 14px;">Sign in with your Google account to access the admin panel</p>
+                <p>Sign in with your Google account to access the admin panel</p>
             </div>
             
-            <div id="g_id_onload" style="display: flex; justify-content: center; margin-bottom: 20px; min-height: 50px; align-items: center;"></div>
+            <div id="g_id_onload"></div>
             
             <!-- Fallback manual button if Google's button doesn't load -->
-            <div id="fallbackButtonContainer" style="display: none; margin-bottom: 20px;">
-                <button onclick="triggerGoogleSignIn()" 
-                        style="width: 100%; background: #4285f4; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: background 0.2s;"
-                        onmouseover="this.style.background='#357ae8'" onmouseout="this.style.background='#4285f4'">
+            <div id="fallbackButtonContainer">
+                <button onclick="triggerGoogleSignIn()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -40,20 +162,16 @@
                     </svg>
                     Sign in with Google
                 </button>
-                </div>
+            </div>
                 
-            <div id="loadingMessage" style="color: #6c757d; padding: 20px; text-align: center;">
-                Loading sign-in button...
-                </div>
+            <div id="loadingMessage">Loading sign-in button...</div>
                 
-            <div id="loginError" style="display: none; background: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; font-size: 14px; text-align: center; margin-bottom: 20px;">
+            <div id="loginError">
                 <span id="loginErrorText"></span>
             </div>
             
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #dee2e6; text-align: center;">
-                <p style="color: #6c757d; font-size: 12px; margin: 0;">
-                    Only authorized Google accounts can access this panel.
-                </p>
+            <div class="login-footer">
+                <p>Only authorized Google accounts can access this panel.</p>
             </div>
         </div>
     </div>
@@ -972,7 +1090,7 @@
         </div>
     </div>
     
-    <script src="https://raw.githubusercontent.com/ernestdarrow/nelsoncounty/main/admin.js"></script>
+    <script src="https://ernestdarrow.github.io/nelsoncounty/admin.js"></script>
 
 </body>
 </html>
