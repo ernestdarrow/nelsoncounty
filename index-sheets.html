@@ -219,7 +219,6 @@
         </div>
     </div>
     
-    <div class="main-container">
     <div class="header">
         <div class="header-content">
             <div>
@@ -239,6 +238,7 @@
             </div>
         </div>
         <div class="tabs">
+            <div class="tabs-wrapper">
             <button class="tab-btn active" onclick="switchTab('admin')">Admin</button>
             <button class="tab-btn" onclick="switchTab('data')">Data Table</button>
             <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
@@ -255,9 +255,11 @@
                 </svg>
                 Deploy
             </button>
+            </div>
         </div>
     </div>
     
+    <div class="main-container">
     <div id="adminTab" class="tab-content active">
         <div class="stats">
             <div class="stat-card">
