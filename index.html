@@ -2520,6 +2520,22 @@ loadListings();</pre>
         let deleteConfirmId = null;
         let deleteConfirmTimeout = null;
         
+        // Load data from config.json on page load
+        async function loadDataFromConfig() {
+            try {
+                const response = await fetch('data/config.json');
+                if (response.ok) {
+                    const configData = await response.json();
+                    if (configData.listings && configData.listings.length > 0) {
+                        data = configData;
+                        console.log('Loaded ' + configData.listings.length + ' listings from config.json');
+                    }
+                }
+            } catch (error) {
+                console.log('Using initialData');
+            }
+        }
+        
         function renderListings(listings) {
             if (!listings) listings = data.listings;
             const grid = document.getElementById('listingsGrid');
@@ -3572,7 +3588,9 @@ loadListings();</pre>
             }
         }
         
-        window.addEventListener("DOMContentLoaded", function() {
+        window.addEventListener("DOMContentLoaded", async function() {
+            await loadDataFromConfig();
+            
             renderAmenitiesCheckboxes();
             renderListings();
             updateStats();
@@ -3630,7 +3648,14 @@ loadListings();</pre>
                 const jsonData = data;
                 
                 // Convert to base64 (required by GitHub API)
-                const content = btoa(JSON.stringify(jsonData, null, 2));
+                let content;
+                try {
+                    content = btoa(JSON.stringify(jsonData, null, 2));
+                } catch (e) {
+                    // If btoa fails due to special characters, use UTF-8 encoding
+                    const jsonString = JSON.stringify(jsonData, null, 2);
+                    content = btoa(unescape(encodeURIComponent(jsonString)));
+                }
                 
                 // Check if file exists to get SHA (required for updates)
                 const getUrl = `https://api.github.com/repos/${username}/${repo}/contents/${path}`;
@@ -3728,7 +3753,7 @@ loadListings();</pre>
         
         // 🔐 CHANGE YOUR PASSWORD HERE
         // Replace 'admin123' with your desired password
-        const correctPassword = 'admin123';
+        const correctPassword = 'admin2';
         
         function checkPassword(event) {
             event.preventDefault();

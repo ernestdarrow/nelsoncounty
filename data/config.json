@@ -2,41 +2,28 @@
   "listings": [
     {
       "id": "16",
-      "name": "A Cardinal Point Vineyard & Winery",
+      "name": "Cardinal Point Vineyard & Winery",
       "type": "Winery",
       "area": "Afton",
       "description": "Family-owned boutique winery specializing in small-batch Virginia wines. Intimate tasting room with panoramic views of the Rockfish Valley. Known for their award-winning Viognier and Petit Verdot. Hosts wine and cheese pairings every Saturday afternoon.",
       "image1": "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=800",
-      "image2": "",
+      "image2": "https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?w=800",
       "website": "https://www.cardinalpointwinery.com",
       "phone": "(540) 456-8400",
       "address": "9423 Batesville Rd, Afton, VA 22920",
       "amenities": [
-        "Kid-Friendly",
         "Pet-Friendly",
-        "Wheelchair Accessible",
-        "Free",
-        "Seasonal",
         "Outdoor Seating",
-        "Food Available",
-        "Live Music",
         "Tours Available",
         "Events",
-        "Photography",
-        "Scenic Views",
-        "Biking",
-        "Appalachian Trail",
-        "Pro Shop",
-        "Lessons Available",
-        "Cart Rental",
-        "Lifeguards"
+        "Food Available"
       ],
       "featured": true
     },
     {
       "id": "17",
       "name": "Rockfish River Kayaking Adventures",
-      "type": "Outdoor",
+      "type": "Activity",
       "area": "Nellysford",
       "description": "Guided kayak tours and rentals on the scenic Rockfish River. Perfect for beginners with gentle Class I-II rapids. Half-day and full-day trips available. All equipment provided including life jackets and dry bags. Experienced guides share local history and wildlife knowledge.",
       "image1": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800",
@@ -47,15 +34,16 @@
       "amenities": [
         "Kid-Friendly",
         "Seasonal",
+        "Lessons Available",
         "Tours Available",
-        "Lessons Available"
+        "Reservations Required"
       ],
       "featured": false
     },
     {
       "id": "18",
       "name": "Mountain Rose Wellness Spa",
-      "type": "Indoor Activity",
+      "type": "Spa",
       "area": "Wintergreen",
       "description": "Luxury mountain spa offering massages, facials, body treatments, and yoga classes. Uses organic and locally-sourced products. Indoor saltwater pool and eucalyptus steam room. Couples' massage suites with private balconies overlooking the mountains.",
       "image1": "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800",
@@ -65,14 +53,16 @@
       "address": "14 Wellness Way, Wintergreen, VA 22958",
       "amenities": [
         "Wheelchair Accessible",
-        "Seasonal"
+        "Reservations Required",
+        "Seasonal",
+        "Packages Available"
       ],
       "featured": false
     },
     {
       "id": "19",
       "name": "The Copper Pot Restaurant",
-      "type": "Brewery",
+      "type": "Restaurant",
       "area": "Lovingston",
       "description": "Farm-to-table dining featuring seasonal menus with ingredients from local farms. Cozy atmosphere with exposed brick and wood beams. Specializes in Southern comfort food with modern twists. Famous for their fried green tomatoes and bourbon pecan pie.",
       "image1": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800",
@@ -91,7 +81,7 @@
     {
       "id": "20",
       "name": "Appalachian Horse Adventures",
-      "type": "Brewery",
+      "type": "Activity",
       "area": "Montebello",
       "description": "Guided horseback riding through scenic mountain trails. Rides range from 1-hour beginner trips to full-day advanced wilderness excursions. Well-trained horses suitable for all experience levels. Sunset rides include wine and cheese on the mountaintop.",
       "image1": "https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=800",
@@ -111,7 +101,7 @@
     {
       "id": "21",
       "name": "Nelson County Farmers Market",
-      "type": "Brewery",
+      "type": "Market",
       "area": "Lovingston",
       "description": "Year-round indoor farmers market featuring local produce, artisan breads, handmade crafts, and specialty foods. Saturday mornings from 8am-noon. Live music and cooking demonstrations. Support over 40 local vendors and makers.",
       "image1": "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=800",
@@ -169,7 +159,7 @@
     {
       "id": "24",
       "name": "Three Ridges Distillery",
-      "type": "Brewery",
+      "type": "Distillery",
       "area": "Nellysford",
       "description": "Small-batch craft distillery producing vodka, gin, whiskey, and moonshine using Virginia grains. Tours and tastings available Friday-Sunday. Beautiful mountain views from the tasting room patio. Try their signature apple pie moonshine.",
       "image1": "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=800",
@@ -208,7 +198,7 @@
     {
       "id": "26",
       "name": "Wintergreen Nature Foundation",
-      "type": "Hiking",
+      "type": "Attraction",
       "area": "Wintergreen",
       "description": "Environmental education center with 6,000 acres of protected forest. Guided nature walks, bird watching tours, and educational programs for all ages. Over 30 miles of hiking trails. Discovery Center features native wildlife exhibits and touch tanks.",
       "image1": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800",
@@ -218,16 +208,17 @@
       "address": "462 Wintergreen Dr, Wintergreen, VA 22958",
       "amenities": [
         "Kid-Friendly",
-        "Wheelchair Accessible",
         "Free",
-        "Tours Available"
+        "Tours Available",
+        "Wheelchair Accessible",
+        "Educational"
       ],
       "featured": false
     },
     {
       "id": "27",
       "name": "The Market at Grelen",
-      "type": "Brewery",
+      "type": "Market",
       "area": "Nellysford",
       "description": "Upscale country market and café featuring gourmet sandwiches, artisan cheeses, local wines, and specialty foods. Beautiful grounds with gardens and picnic areas. Shop for unique gifts, home goods, and Virginia-made products. Cooking classes offered monthly.",
       "image1": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800",
@@ -247,7 +238,7 @@
     {
       "id": "28",
       "name": "Virginia Artisan Cheese Trail Stop",
-      "type": "Brewery",
+      "type": "Cheese Shop",
       "area": "Lovingston",
       "description": "Specialty cheese shop featuring Virginia-made artisan cheeses. Knowledgeable staff help you create the perfect cheese board. Wine and beer pairings available. Take a cheese-making class or attend a tasting event. Ships nationwide.",
       "image1": "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=800",
@@ -284,7 +275,7 @@
     {
       "id": "30",
       "name": "Mountaintop Yoga Studio",
-      "type": "Attraction",
+      "type": "Wellness",
       "area": "Wintergreen",
       "description": "Boutique yoga studio offering daily classes in various styles including vinyasa, restorative, and hot yoga. Stunning floor-to-ceiling mountain views from the studio. Private sessions and retreats available. Also offers meditation, sound healing, and workshops.",
       "image1": "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800",
@@ -294,14 +285,16 @@
       "address": "88 Mountain Wellness Ln, Wintergreen, VA 22958",
       "amenities": [
         "Wheelchair Accessible",
-        "Seasonal"
+        "Reservations Recommended",
+        "Seasonal",
+        "Packages Available"
       ],
       "featured": false
     },
     {
       "id": "31",
       "name": "Brew Ridge Trail Guide Service",
-      "type": "Brewery",
+      "type": "Tour",
       "area": "Nellysford",
       "description": "Professional guided tours of Nelson County's craft beverage scene. Comfortable shuttle service visits 3-4 breweries, cideries, or wineries. Includes tastings, snacks, and local history. Book private tours or join a group. Designated driver provided.",
       "image1": "https://images.unsplash.com/photo-1532634922-8fe0b757fb13?w=800",
@@ -320,7 +313,7 @@
     {
       "id": "32",
       "name": "Cedar Creek Fly Fishing",
-      "type": "Outdoor",
+      "type": "Activity",
       "area": "Montebello",
       "description": "Guided fly fishing trips on pristine mountain streams. All skill levels welcome from beginners to experts. Equipment rental available or bring your own. Half-day, full-day, and weekend packages. Learn techniques for catching native brook trout.",
       "image1": "https://images.unsplash.com/photo-1532623744409-1b1a8215258c?w=800",
@@ -329,16 +322,17 @@
       "phone": "(540) 377-3600",
       "address": "2710 Cedar Creek Rd, Montebello, VA 24464",
       "amenities": [
-        "Seasonal",
+        "Lessons Available",
         "Tours Available",
-        "Lessons Available"
+        "Seasonal",
+        "Reservations Required"
       ],
       "featured": false
     },
     {
       "id": "33",
       "name": "The Vintage at Nellysford",
-      "type": "Brewery",
+      "type": "Lodging",
       "area": "Nellysford",
       "description": "Boutique bed and breakfast in a restored 1920s farmhouse. Five elegantly appointed rooms with private baths. Gourmet breakfast included. Wrap-around porch with mountain views. Walking distance to breweries and restaurants. Perfect romantic getaway.",
       "image1": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",
@@ -357,7 +351,7 @@
     {
       "id": "34",
       "name": "Shenandoah Chocolate Company",
-      "type": "Brewery",
+      "type": "Chocolate Shop",
       "area": "Lovingston",
       "description": "Artisan chocolate maker crafting small-batch truffles, bars, and confections. Watch chocolate being made through viewing windows. Tasting room offers samples and hot chocolate. Special seasonal flavors and custom gift boxes. Chocolate-making classes available.",
       "image1": "https://images.unsplash.com/photo-1511381939415-e44015466834?w=800",
@@ -392,25 +386,6 @@
         "Pet-Friendly"
       ],
       "featured": false
-    },
-    {
-      "id": "1761658144938",
-      "name": "The Big Test Feature",
-      "type": "Cidery",
-      "area": "Nellysford",
-      "description": "Yet there wasn't much to say",
-      "image1": "https://m.media-amazon.com/images/S/pv-target-images/b9f6a13282559e1245dd036c96e8f6854ab33c36100020602f61f125ea8861c0._SX1080_FMjpg_.jpg",
-      "image2": "",
-      "website": "https://www.test.com",
-      "phone": "",
-      "address": "123 test",
-      "amenities": [
-        "Food Available",
-        "Live Music",
-        "Scenic Views",
-        "Cart Rental"
-      ],
-      "featured": true
     }
   ],
   "filterOptions": {

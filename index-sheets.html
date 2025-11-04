@@ -1286,6 +1286,10 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('admin')">Admin</button>
             <button class="tab-btn" onclick="switchTab('data')">Data Table</button>
+<<<<<<< HEAD
+=======
+            <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
             <button class="tab-btn" onclick="switchTab('code')">Code</button>
             <button class="tab-btn" onclick="switchTab('preview')">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 6px;">
@@ -1293,11 +1297,19 @@
                 </svg>
                 Preview
             </button>
+<<<<<<< HEAD
             <button class="tab-btn" onclick="switchTab('deploy')">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 6px;">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
                 </svg>
                 Deploy
+=======
+            <button class="tab-btn" onclick="switchTab('learn')">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 6px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                </svg>
+                Learn
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
             </button>
         </div>
     </div>
@@ -1363,9 +1375,15 @@
                         style="background: #34a853; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                     <span>💾</span> Save All to Google Sheets
                 </button>
+<<<<<<< HEAD
                 <button onclick="downloadJSON()"
                         style="background: #4E6B52; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                     <span>📥</span> Download JSON Backup
+=======
+                <button onclick="downloadCSV()"
+                        style="background: #4E6B52; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                    <span>📥</span> Download CSV Backup
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
                 </button>
                 <div id="sheetsActionStatus" style="margin-left: auto; font-weight: 600; color: #34a853;"></div>
             </div>
@@ -1640,6 +1658,65 @@
         </div>
     </div>
     
+<<<<<<< HEAD
+=======
+    <div id="settingsTab" class="tab-content">
+        <div class="settings-container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+            <div style="margin-bottom: 30px;">
+                <h2 style="margin: 0 0 10px 0; color: #212529;">Field Configuration</h2>
+                <p style="color: #6c757d; margin: 0;">Manage the options available in the Add/Edit listing form. Changes are saved automatically.</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
+                <!-- Types Section -->
+                <div class="settings-card" style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;">
+                    <h3 style="margin: 0 0 15px 0; color: #212529; font-size: 18px;">Types</h3>
+                    <p style="color: #6c757d; font-size: 14px; margin: 0 0 15px 0;">Options for the "Type" dropdown in the listing form</p>
+                    <div id="typesList" style="margin-bottom: 15px; max-height: 300px; overflow-y: auto;">
+                        <!-- Types will be rendered here -->
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="newTypeInput" placeholder="Add new type..." style="flex: 1; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;" onkeypress="if(event.key==='Enter') addType()" />
+                        <button onclick="addType()" class="btn btn-success" style="padding: 8px 16px;">Add</button>
+                    </div>
+                </div>
+                
+                <!-- Areas Section -->
+                <div class="settings-card" style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;">
+                    <h3 style="margin: 0 0 15px 0; color: #212529; font-size: 18px;">Areas</h3>
+                    <p style="color: #6c757d; font-size: 14px; margin: 0 0 15px 0;">Options for the "Area" dropdown in the listing form</p>
+                    <div id="areasList" style="margin-bottom: 15px; max-height: 300px; overflow-y: auto;">
+                        <!-- Areas will be rendered here -->
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="newAreaInput" placeholder="Add new area..." style="flex: 1; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;" onkeypress="if(event.key==='Enter') addArea()" />
+                        <button onclick="addArea()" class="btn btn-success" style="padding: 8px 16px;">Add</button>
+                    </div>
+                </div>
+                
+                <!-- Amenities Section -->
+                <div class="settings-card" style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; grid-column: 1 / -1;">
+                    <h3 style="margin: 0 0 15px 0; color: #212529; font-size: 18px;">Amenities</h3>
+                    <p style="color: #6c757d; font-size: 14px; margin: 0 0 15px 0;">Options for the "Amenities" checkboxes in the listing form</p>
+                    <div id="amenitiesList" style="margin-bottom: 15px; max-height: 300px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                        <!-- Amenities will be rendered here -->
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="newAmenityInput" placeholder="Add new amenity..." style="flex: 1; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;" onkeypress="if(event.key==='Enter') addAmenity()" />
+                        <button onclick="addAmenity()" class="btn btn-success" style="padding: 8px 16px;">Add</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #4E6B52;">
+                <p style="margin: 0; color: #6c757d;">
+                    <strong>Note:</strong> Changes are saved automatically. The form dropdowns and checkboxes will update immediately after you add or remove items.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
     <div id="codeTab" class="tab-content">
         <div class="code-container">
             <div class="code-section">
@@ -1676,6 +1753,7 @@
         </div>
     </div>
     
+<<<<<<< HEAD
     <div id="deployTab" class="tab-content">
         <div class="data-container">
             <div class="deploy-header">
@@ -1694,10 +1772,45 @@
                             <li>Search for "Code" and select the <strong>Code</strong> block</li>
                             <li>This is where you'll paste your embed code</li>
                         </ul>
+=======
+    <div id="learnTab" class="tab-content">
+        <div class="data-container" style="max-width: 1000px; margin: 0 auto;">
+            <div class="deploy-header">
+                <h2>How the System Works</h2>
+                <p style="color: var(--text-secondary); margin-top: 10px;">Understanding the complete workflow from Admin Panel to Google Sheets to Framer CMS</p>
+            </div>
+            
+            <!-- System Overview -->
+            <div style="background: linear-gradient(135deg, #4E6B52 0%, #3d5540 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 40px;">
+                <h2 style="color: white; margin: 0 0 15px 0; font-size: 28px;">System Architecture Overview</h2>
+                <p style="color: rgba(255,255,255,0.9); margin: 0; line-height: 1.8; font-size: 16px;">
+                    This system connects <strong>4 main components</strong> to create a seamless content management workflow:
+                    <strong>Admin Panel</strong> → <strong>Google Sheets</strong> → <strong>Framer CMS</strong> → <strong>Live Website</strong>
+                </p>
+            </div>
+            
+            <!-- Workflow Diagram Section -->
+            <div class="deploy-steps">
+                <div class="deploy-step">
+                    <div class="deploy-step-number" style="background: linear-gradient(135deg, #4E6B52 0%, #3d5540 100%);">1</div>
+                    <div class="deploy-step-content">
+                        <h3>Admin Panel (This Interface)</h3>
+                        <p><strong>What it is:</strong> Your local content management system where you create and edit listings.</p>
+                        <ul>
+                            <li><strong>Add/Edit Listings:</strong> Use the Admin tab to create new listings or modify existing ones</li>
+                            <li><strong>Bulk Editing:</strong> Use the Data Table tab for spreadsheet-style editing</li>
+                            <li><strong>Field Configuration:</strong> Use the Settings tab to customize Types, Areas, and Amenities</li>
+                            <li><strong>Local Storage:</strong> Changes are saved in your browser's local storage (not synced yet)</li>
+                        </ul>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #4E6B52;">
+                            <strong>💡 Key Point:</strong> This is where you do all your content work. Changes here are local until you sync to Google Sheets.
+                        </div>
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
                     </div>
                 </div>
                 
                 <div class="deploy-step">
+<<<<<<< HEAD
                     <div class="deploy-step-number">2</div>
                     <div class="deploy-step-content">
                         <h3>Copy the Embed Code</h3>
@@ -1711,10 +1824,29 @@
                         <button class="btn btn-primary" onclick="switchTab('code')" style="margin-top: 12px;">
                             Go to Code Tab →
                         </button>
+=======
+                    <div class="deploy-step-number" style="background: linear-gradient(135deg, #34a853 0%, #2d8f47 100%);">2</div>
+                    <div class="deploy-step-content">
+                        <h3>Google Sheets (Data Storage)</h3>
+                        <p><strong>What it is:</strong> Your centralized database hosted in Google Sheets, accessible via Google Apps Script.</p>
+                        <ul>
+                            <li><strong>Sync Button:</strong> Click "Save All to Google Sheets" to upload your local changes</li>
+                            <li><strong>Auto-Sync:</strong> The system automatically loads data from Sheets when you open the admin panel</li>
+                            <li><strong>Google Apps Script:</strong> Acts as an API bridge between this admin panel and your Google Sheet</li>
+                            <li><strong>Backup:</strong> Always download a CSV backup before syncing to avoid data loss</li>
+                        </ul>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #34a853;">
+                            <strong>💡 Key Point:</strong> Google Sheets is your "source of truth" - it's where Framer CMS will pull data from.
+                        </div>
+                        <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-top: 12px; border-left: 4px solid #ffc107;">
+                            <strong>⚠️ Important:</strong> Make sure your Google Apps Script is deployed with "Anyone" access and reads from <code>e.postData.contents</code> for CORS to work properly.
+                        </div>
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
                     </div>
                 </div>
                 
                 <div class="deploy-step">
+<<<<<<< HEAD
                     <div class="deploy-step-number">3</div>
                     <div class="deploy-step-content">
                         <h3>Paste into Code Block</h3>
@@ -1725,10 +1857,36 @@
                             <li>Paste the entire embed code you copied</li>
                             <li>Click <strong>Apply</strong></li>
                         </ul>
+=======
+                    <div class="deploy-step-number" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">3</div>
+                    <div class="deploy-step-content">
+                        <h3>Framer CMS Integration</h3>
+                        <p><strong>What it is:</strong> Framer's CMS system that connects to your Google Sheet to display listings on your website.</p>
+                        <ul>
+                            <li><strong>CMS Collection:</strong> Set up a CMS collection in Framer that pulls from your Google Sheet</li>
+                            <li><strong>Auto-Refresh:</strong> Framer periodically checks your Google Sheet for updates</li>
+                            <li><strong>Real-time Updates:</strong> When you sync from Admin Panel → Google Sheets, Framer will see the changes</li>
+                            <li><strong>No Code Deployment:</strong> Unlike Squarespace, you don't need to replace code blocks</li>
+                        </ul>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #6366f1;">
+                            <strong>💡 Key Point:</strong> Once configured, Framer automatically displays whatever is in your Google Sheet - no manual code updates needed!
+                        </div>
+                        <div style="background: #e0e7ff; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                            <h4 style="margin: 0 0 10px 0; color: #4f46e5;">Setting Up Framer CMS:</h4>
+                            <ol style="margin: 0; padding-left: 20px;">
+                                <li>In Framer, go to <strong>CMS</strong> → <strong>Add Collection</strong></li>
+                                <li>Choose <strong>"Google Sheets"</strong> as your data source</li>
+                                <li>Connect to your Google Sheet (the same one connected to Apps Script)</li>
+                                <li>Map the columns to CMS fields (Name, Type, Area, Description, etc.)</li>
+                                <li>Design your listing cards using the CMS data</li>
+                            </ol>
+                        </div>
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
                     </div>
                 </div>
                 
                 <div class="deploy-step">
+<<<<<<< HEAD
                     <div class="deploy-step-number">4</div>
                     <div class="deploy-step-content">
                         <h3>Adjust Block Settings (Optional)</h3>
@@ -1780,10 +1938,199 @@
                 </div>
                 
                 <!-- Update Workflow Section -->
+=======
+                    <div class="deploy-step-number" style="background: linear-gradient(135deg, #D65052 0%, #b84446 100%);">4</div>
+                    <div class="deploy-step-content">
+                        <h3>Live Website</h3>
+                        <p><strong>What it is:</strong> Your published Framer site that visitors see.</p>
+                        <ul>
+                            <li><strong>Automatic Updates:</strong> When Framer CMS refreshes, your live site updates automatically</li>
+                            <li><strong>No Downtime:</strong> Changes appear seamlessly without site downtime</li>
+                            <li><strong>Preview Mode:</strong> Test changes in Framer's preview before publishing</li>
+                            <li><strong>Publishing:</strong> Once you publish in Framer, changes go live immediately</li>
+                        </ul>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #D65052;">
+                            <strong>💡 Key Point:</strong> The live site is the final destination - it automatically reflects what's in your Google Sheet via Framer CMS.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Complete Workflow Section -->
+            <div style="margin-top: 60px; padding-top: 40px; border-top: 2px solid var(--border-color);">
+                <div class="deploy-header" style="margin-bottom: 30px;">
+                    <h2 style="display: flex; align-items: center; gap: 12px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 32px; height: 32px; color: #4E6B52;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                        </svg>
+                        Complete Workflow: Making Changes
+                    </h2>
+                    <p style="color: var(--text-secondary); margin-top: 10px;">Follow these steps whenever you want to update your listings</p>
+                </div>
+                
+                <div class="deploy-steps">
+                    <div class="deploy-step">
+                        <div class="deploy-step-number" style="background: linear-gradient(135deg, #4E6B52 0%, #3d5540 100%);">1</div>
+                        <div class="deploy-step-content">
+                            <h3>Edit in Admin Panel</h3>
+                            <p>Make your changes here:</p>
+                            <ul>
+                                <li>Open this admin panel HTML file in your browser</li>
+                                <li>Go to <strong>Admin</strong> tab to add/edit individual listings</li>
+                                <li>Or use <strong>Data Table</strong> tab for bulk editing</li>
+                                <li>Use <strong>Settings</strong> tab to manage form fields (Types, Areas, Amenities)</li>
+                            </ul>
+                            <p style="margin-top: 12px; padding: 12px; background: #f0f9ff; border-left: 4px solid #0ea5e9; border-radius: 4px;">
+                                <strong>📝 Note:</strong> Changes are saved locally in your browser. They won't appear on your website until you sync to Google Sheets.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="deploy-step">
+                        <div class="deploy-step-number" style="background: linear-gradient(135deg, #34a853 0%, #2d8f47 100%);">2</div>
+                        <div class="deploy-step-content">
+                            <h3>Sync to Google Sheets</h3>
+                            <p>Push your changes to the cloud:</p>
+                            <ul>
+                                <li>Click <strong>"Save All to Google Sheets"</strong> button (top of Admin tab)</li>
+                                <li>You'll be prompted to download a CSV backup first (recommended!)</li>
+                                <li>Confirm the sync - this replaces all data in your Google Sheet</li>
+                                <li>Wait for the success message: "✅ Replaced all data in Google Sheets"</li>
+                            </ul>
+                            <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-top: 12px; border-left: 4px solid #ffc107;">
+                                <strong>⚠️ Important:</strong> This step overwrites your Google Sheet. Always download a backup first if you're unsure!
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="deploy-step">
+                        <div class="deploy-step-number" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">3</div>
+                        <div class="deploy-step-content">
+                            <h3>Framer CMS Auto-Refresh</h3>
+                            <p>Framer automatically picks up the changes:</p>
+                            <ul>
+                                <li>Framer CMS checks your Google Sheet periodically (usually every few minutes)</li>
+                                <li>When it detects changes, it automatically updates the CMS collection</li>
+                                <li>You can manually refresh in Framer: <strong>CMS</strong> → <strong>Refresh Collection</strong></li>
+                                <li>Preview your changes in Framer's preview mode</li>
+                            </ul>
+                            <div style="background: #e0e7ff; padding: 12px; border-radius: 8px; margin-top: 12px; border-left: 4px solid #6366f1;">
+                                <strong>💡 Tip:</strong> If changes don't appear immediately, try manually refreshing the CMS collection in Framer.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="deploy-step">
+                        <div class="deploy-step-number" style="background: linear-gradient(135deg, #D65052 0%, #b84446 100%);">4</div>
+                        <div class="deploy-step-content">
+                            <h3>Publish in Framer</h3>
+                            <p>Make changes live on your website:</p>
+                            <ul>
+                                <li>Review your changes in Framer's preview</li>
+                                <li>Click <strong>Publish</strong> in Framer</li>
+                                <li>Changes go live immediately on your website</li>
+                                <li>No code editing needed - it's all automatic!</li>
+                            </ul>
+                            <div style="background: #fee2e2; padding: 12px; border-radius: 8px; margin-top: 12px; border-left: 4px solid #D65052;">
+                                <strong>✅ That's it!</strong> Your workflow is complete: Admin Panel → Google Sheets → Framer CMS → Live Site
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Important Information Section -->
+            <div style="margin-top: 60px; padding-top: 40px; border-top: 2px solid var(--border-color);">
+                <div class="deploy-header" style="margin-bottom: 30px;">
+                    <h2 style="display: flex; align-items: center; gap: 12px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 32px; height: 32px; color: #4E6B52;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                        </svg>
+                        Important Things to Know
+                    </h2>
+                </div>
+                
+                <div class="deploy-steps">
+                    <div class="deploy-step">
+                        <div class="deploy-step-number" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">⚠️</div>
+                        <div class="deploy-step-content">
+                            <h3>Data Safety & Backups</h3>
+                            <ul>
+                                <li><strong>Always Backup First:</strong> Download CSV backup before syncing to Google Sheets</li>
+                                <li><strong>Local Storage:</strong> Your changes are saved locally in your browser - they persist between sessions on the same computer</li>
+                                <li><strong>Google Sheets is Source of Truth:</strong> Once synced, Google Sheets becomes the authoritative data source</li>
+                                <li><strong>Multiple Devices:</strong> If you use this admin panel on different computers, sync to Google Sheets to share data</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="deploy-step">
+                        <div class="deploy-step-number" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">🔧</div>
+                        <div class="deploy-step-content">
+                            <h3>Google Apps Script Configuration</h3>
+                            <p>Your Apps Script must be properly configured:</p>
+                            <ul>
+                                <li><strong>Deployment:</strong> Must be deployed as a "Web app" with "Anyone" access</li>
+                                <li><strong>CORS:</strong> Script must read from <code>e.postData.contents</code> (not <code>e.parameter.data</code>)</li>
+                                <li><strong>URL:</strong> Copy the deployment URL and paste it in the admin panel configuration</li>
+                                <li><strong>New Deployments:</strong> If you update the script, create a new deployment (don't just update)</li>
+                            </ul>
+                            <div style="background: #f3f4f6; padding: 12px; border-radius: 8px; margin-top: 12px;">
+                                <strong>Script File:</strong> See <code>nelson-county-apps-script.gs</code> for the complete, ready-to-use script.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="deploy-step">
+                        <div class="deploy-step-number" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">📊</div>
+                        <div class="deploy-step-content">
+                            <h3>Google Sheet Structure</h3>
+                            <p>Your Google Sheet should have these columns (in any order):</p>
+                            <ul>
+                                <li><strong>id</strong> - Unique identifier for each listing</li>
+                                <li><strong>name</strong> - Listing name/title</li>
+                                <li><strong>type</strong> - Category (Brewery, Winery, etc.)</li>
+                                <li><strong>area</strong> - Location area</li>
+                                <li><strong>description</strong> - Full description text</li>
+                                <li><strong>image1</strong> - Primary image URL</li>
+                                <li><strong>image2</strong> - Secondary image URL (optional)</li>
+                                <li><strong>website</strong> - External website URL</li>
+                                <li><strong>phone</strong> - Contact phone number</li>
+                                <li><strong>address</strong> - Physical address</li>
+                                <li><strong>amenities</strong> - Comma or semicolon-separated list</li>
+                                <li><strong>featured</strong> - TRUE or FALSE</li>
+                            </ul>
+                            <div style="background: #f0fdf4; padding: 12px; border-radius: 8px; margin-top: 12px; border-left: 4px solid #22c55e;">
+                                <strong>💡 Tip:</strong> The Apps Script automatically handles different column orders and missing fields.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="deploy-step">
+                        <div class="deploy-step-number" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">🎨</div>
+                        <div class="deploy-step-content">
+                            <h3>Framer CMS Setup Tips</h3>
+                            <ul>
+                                <li><strong>Sheet Sharing:</strong> Make sure your Google Sheet is shared (view access) or published</li>
+                                <li><strong>Column Names:</strong> Framer CMS will automatically detect column names from your sheet header row</li>
+                                <li><strong>Refresh Rate:</strong> Framer checks for updates every few minutes - you can manually refresh</li>
+                                <li><strong>Data Types:</strong> Framer will auto-detect data types (text, number, image URL, etc.)</li>
+                                <li><strong>Multiple Collections:</strong> You can create separate CMS collections for different views/filters</li>
+                            </ul>
+                            <div style="background: #fce7f3; padding: 12px; border-radius: 8px; margin-top: 12px; border-left: 4px solid #ec4899;">
+                                <strong>💡 Pro Tip:</strong> Use Framer's CMS filtering and sorting features to create dynamic, filtered views without additional code.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Troubleshooting Section -->
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
                 <div style="margin-top: 60px; padding-top: 40px; border-top: 2px solid var(--border-color);">
                     <div class="deploy-header" style="margin-bottom: 30px;">
                         <h2 style="display: flex; align-items: center; gap: 12px;">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 32px; height: 32px; color: #4E6B52;">
+<<<<<<< HEAD
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
                             </svg>
                             How to Update Your Listings
@@ -2166,11 +2513,18 @@ loadListings();</pre>
                                 </p>
                             </div>
                         </div>
+=======
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                            </svg>
+                            Troubleshooting
+                        </h2>
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
                     </div>
                     
                     <div class="deploy-tips" style="border-color: #f59e0b;">
                         <div class="deploy-tip-header" style="color: #f59e0b;">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px; margin-right: 12px;">
+<<<<<<< HEAD
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                             </svg>
                             <h3>Important Considerations</h3>
@@ -2190,6 +2544,72 @@ loadListings();</pre>
                         </svg>
                         <div>
                             <strong>Recommended Setup:</strong> Start with GitHub for hosting. It's free, reliable, has version control, and is easy to update through their web interface. For most use cases, this is the perfect balance of simplicity and functionality.
+=======
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.57.393A9.065 9.065 0 0021.75 12a9.065 9.065 0 00-6.23-.693m0 0l-1.57-.393M5 14.5l1.57-.393M5 14.5l-1.57.393M12 15.75l-1.57-.393M12 15.75l1.57-.393" />
+                            </svg>
+                            <h3>Common Issues & Solutions</h3>
+                        </div>
+                        <ul>
+                            <li><strong>CORS Errors:</strong> Make sure Apps Script is deployed with "Anyone" access and uses <code>e.postData.contents</code>. Try creating a new deployment if issues persist.</li>
+                            <li><strong>Data Not Syncing:</strong> Check that your Apps Script URL is correct in the admin panel. Verify the script is deployed and active.</li>
+                            <li><strong>Framer Not Updating:</strong> Manually refresh the CMS collection in Framer. Check that your Google Sheet is properly shared/published.</li>
+                            <li><strong>Missing Fields:</strong> Ensure your Google Sheet has the required columns (id, name, type, area, description, etc.)</li>
+                            <li><strong>Local Changes Lost:</strong> Always sync to Google Sheets before closing the admin panel if you want to keep changes across devices.</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Quick Reference -->
+                <div style="margin-top: 60px; padding-top: 40px; border-top: 2px solid var(--border-color);">
+                    <div class="deploy-header" style="margin-bottom: 30px;">
+                        <h2 style="display: flex; align-items: center; gap: 12px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 32px; height: 32px; color: #4E6B52;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                            </svg>
+                            Quick Reference
+                        </h2>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                        <div style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;">
+                            <h4 style="margin: 0 0 10px 0; color: #4E6B52;">📝 Admin Panel</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+                                <li>Edit listings locally</li>
+                                <li>Manage field options</li>
+                                <li>Download backups</li>
+                                <li>Sync to Sheets</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;">
+                            <h4 style="margin: 0 0 10px 0; color: #34a853;">📊 Google Sheets</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+                                <li>Central data storage</li>
+                                <li>Accessed via Apps Script</li>
+                                <li>Source for Framer CMS</li>
+                                <li>Always backup first!</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;">
+                            <h4 style="margin: 0 0 10px 0; color: #6366f1;">🎨 Framer CMS</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+                                <li>Auto-refreshes from Sheets</li>
+                                <li>No code deployment needed</li>
+                                <li>Design with CMS data</li>
+                                <li>Publish to go live</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;">
+                            <h4 style="margin: 0 0 10px 0; color: #D65052;">🌐 Live Site</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+                                <li>Automatic updates</li>
+                                <li>No downtime</li>
+                                <li>Reflects Sheet data</li>
+                                <li>Always current</li>
+                            </ul>
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
                         </div>
                     </div>
                 </div>
@@ -2217,6 +2637,7 @@ loadListings();</pre>
                         <label>Type *</label>
                         <select id="listingType" required>
                             <option value="">Select Type</option>
+<<<<<<< HEAD
                             <option value="Brewery">Brewery</option>
                             <option value="Winery">Winery</option>
                             <option value="Cidery">Cidery</option>
@@ -2225,6 +2646,9 @@ loadListings();</pre>
                             <option value="Indoor Activity">Indoor Activity</option>
                             <option value="Attraction">Attraction</option>
                             <option value="Farm & Orchard">Farm & Orchard</option>
+=======
+                            <!-- Options will be populated dynamically -->
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
                         </select>
                     </div>
                     
@@ -2232,6 +2656,7 @@ loadListings();</pre>
                         <label>Area *</label>
                         <select id="listingArea" required>
                             <option value="">Select Area</option>
+<<<<<<< HEAD
                             <option value="Afton">Afton</option>
                             <option value="Wintergreen">Wintergreen</option>
                             <option value="Lovingston">Lovingston</option>
@@ -2239,6 +2664,9 @@ loadListings();</pre>
                             <option value="Montebello">Montebello</option>
                             <option value="Arrington">Arrington</option>
                             <option value="Roseland">Roseland</option>
+=======
+                            <!-- Options will be populated dynamically -->
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
                         </select>
                     </div>
                 </div>
@@ -2534,6 +2962,20 @@ loadListings();</pre>
         // ========================================
         
         let data = JSON.parse(JSON.stringify(initialData));
+<<<<<<< HEAD
+=======
+        
+        // Load saved filterOptions from localStorage if available
+        const savedFilterOptions = localStorage.getItem('nelsonCounty_filterOptions');
+        if (savedFilterOptions) {
+            try {
+                data.filterOptions = JSON.parse(savedFilterOptions);
+            } catch (e) {
+                console.error('Error loading saved filterOptions:', e);
+            }
+        }
+        
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
         let deleteConfirmId = null;
         let deleteConfirmTimeout = null;
         
@@ -2778,7 +3220,13 @@ loadListings();</pre>
                     if (result.success && result.listings && result.listings.length > 0) {
                         const listings = result.listings;
                         
+<<<<<<< HEAD
                         // Extract filter options from listings
+=======
+                        // Preserve existing filterOptions when loading from Sheets
+                        const existingFilterOptions = data.filterOptions || initialData.filterOptions;
+                        // Extract filter options from listings (for merging)
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
                         const types = [...new Set(listings.map(l => l.type).filter(Boolean))].sort();
                         const areas = [...new Set(listings.map(l => l.area).filter(Boolean))].sort();
                         const amenities = [...new Set(listings.flatMap(l => l.amenities || []).filter(Boolean))].sort();
@@ -2786,11 +3234,21 @@ loadListings();</pre>
                         data = {
                             listings: listings,
                             filterOptions: {
+<<<<<<< HEAD
                                 types: types,
                                 areas: areas,
                                 amenities: amenities
                             }
                         };
+=======
+                                types: existingFilterOptions.types || types,
+                                areas: existingFilterOptions.areas || areas,
+                                amenities: existingFilterOptions.amenities || amenities
+                            }
+                        };
+                        // Save filterOptions to localStorage
+                        saveFilterOptions();
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
                         
                         console.log('✅ Loaded ' + listings.length + ' listings from Google Sheets (Apps Script)');
                         updateSyncStatus(true, `✅ Loaded ${listings.length} listings`);
@@ -2892,6 +3350,12 @@ loadListings();</pre>
                             .filter(listing => listing.name); // Only keep listings with names
                         
                         // Extract filter options from listings
+<<<<<<< HEAD
+=======
+                        // Preserve existing filterOptions when loading from CSV
+                        const existingFilterOptions = data.filterOptions || initialData.filterOptions;
+                        // Extract filter options from listings (for merging)
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
                         const types = [...new Set(listings.map(l => l.type).filter(Boolean))].sort();
                         const areas = [...new Set(listings.map(l => l.area).filter(Boolean))].sort();
                         const amenities = [...new Set(listings.flatMap(l => l.amenities || []).filter(Boolean))].sort();
@@ -2899,11 +3363,21 @@ loadListings();</pre>
                         data = {
                             listings: listings,
                             filterOptions: {
+<<<<<<< HEAD
                                 types: types,
                                 areas: areas,
                                 amenities: amenities
                             }
                         };
+=======
+                                types: existingFilterOptions.types || types,
+                                areas: existingFilterOptions.areas || areas,
+                                amenities: existingFilterOptions.amenities || amenities
+                            }
+                        };
+                        // Save filterOptions to localStorage
+                        saveFilterOptions();
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
                         
                         console.log('✅ Loaded ' + listings.length + ' listings from Google Sheets (CSV)');
                         updateSyncStatus(true, `✅ Loaded ${listings.length} listings (CSV)`);
@@ -2950,6 +3424,81 @@ loadListings();</pre>
             await loadDataFromGoogleSheets();
         }
         
+<<<<<<< HEAD
+=======
+        /**
+         * Shows a confirmation dialog recommending CSV backup before saving to Sheets
+         * @param {number} listingCount - Number of listings to be saved
+         * @returns {Promise<boolean>} - true if user confirmed, false if cancelled
+         */
+        function showBackupConfirmation(listingCount) {
+            return new Promise((resolve) => {
+                // Create modal overlay
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; display: flex; align-items: center; justify-content: center;';
+                
+                // Create modal dialog
+                const modal = document.createElement('div');
+                modal.style.cssText = 'background: white; padding: 30px; border-radius: 8px; max-width: 500px; width: 90%; box-shadow: 0 4px 20px rgba(0,0,0,0.3);';
+                
+                modal.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <h2 style="margin: 0 0 15px 0; color: #212529; font-size: 24px;">⚠️ Backup Recommended</h2>
+                        <p style="margin: 0 0 15px 0; color: #6c757d; line-height: 1.6;">
+                            You're about to replace <strong>all existing data</strong> in Google Sheets with ${listingCount} listing(s).
+                        </p>
+                        <p style="margin: 0 0 20px 0; color: #6c757d; line-height: 1.6;">
+                            <strong>We recommend downloading a CSV backup first</strong> in case you need to restore the previous data.
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
+                        <button id="backupCancelBtn" style="padding: 10px 20px; border: 1px solid #dee2e6; background: white; color: #212529; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                            Cancel
+                        </button>
+                        <button id="backupDownloadBtn" style="padding: 10px 20px; border: none; background: #4E6B52; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                            📥 Download CSV Backup First
+                        </button>
+                        <button id="backupProceedBtn" style="padding: 10px 20px; border: none; background: #34a853; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                            Proceed Without Backup
+                        </button>
+                    </div>
+                `;
+                
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
+                
+                // Button handlers
+                document.getElementById('backupCancelBtn').onclick = () => {
+                    document.body.removeChild(overlay);
+                    resolve(false);
+                };
+                
+                document.getElementById('backupDownloadBtn').onclick = () => {
+                    // Download CSV backup
+                    downloadCSV();
+                    // Wait a moment for download to start, then proceed
+                    setTimeout(() => {
+                        document.body.removeChild(overlay);
+                        resolve(true);
+                    }, 500);
+                };
+                
+                document.getElementById('backupProceedBtn').onclick = () => {
+                    document.body.removeChild(overlay);
+                    resolve(true);
+                };
+                
+                // Close on overlay click
+                overlay.onclick = (e) => {
+                    if (e.target === overlay) {
+                        document.body.removeChild(overlay);
+                        resolve(false);
+                    }
+                };
+            });
+        }
+        
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
         async function saveAllToSheets() {
             if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
                 alert('⚠️ Google Sheets not configured. Please set up your Apps Script URL.');
@@ -2961,6 +3510,15 @@ loadListings();</pre>
                 return;
             }
             
+<<<<<<< HEAD
+=======
+            // Show confirmation dialog with backup recommendation
+            const confirmed = await showBackupConfirmation(data.listings.length);
+            if (!confirmed) {
+                return; // User cancelled
+            }
+            
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
             updateSyncStatus(true, `💾 Saving ${data.listings.length} listings to Google Sheets (replacing all existing data)...`);
             
             try {
@@ -3209,6 +3767,13 @@ loadListings();</pre>
             document.getElementById('modalTitle').textContent = 'Add New Listing';
             document.getElementById('listingForm').reset();
             document.getElementById('editingId').value = '';
+<<<<<<< HEAD
+=======
+            // Ensure dropdowns are populated with current options
+            updateTypeDropdown();
+            updateAreaDropdown();
+            renderAmenitiesCheckboxes();
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
             document.getElementById('listingModal').classList.add('active');
         }
         
@@ -3216,6 +3781,14 @@ loadListings();</pre>
             const listing = data.listings.find(function(l) { return l.id === id; });
             if (!listing) return;
             
+<<<<<<< HEAD
+=======
+            // Ensure dropdowns are populated with current options
+            updateTypeDropdown();
+            updateAreaDropdown();
+            renderAmenitiesCheckboxes();
+            
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
             document.getElementById('modalTitle').textContent = 'Edit Listing';
             document.getElementById('editingId').value = id;
             document.getElementById('listingName').value = listing.name;
@@ -3368,6 +3941,7 @@ loadListings();</pre>
             const editingId = document.getElementById('editingId').value;
             const isUpdate = !!editingId;
             
+<<<<<<< HEAD
             // Save to Google Sheets if configured
             if (GOOGLE_APPS_SCRIPT_URL && !GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
                 try {
@@ -3472,6 +4046,24 @@ loadListings();</pre>
                 }
             }
             
+=======
+            // Save locally only - user must click "Save All to Google Sheets" to sync
+            if (isUpdate) {
+                const index = data.listings.findIndex(function(l) { return l.id === editingId; });
+                if (index >= 0) {
+                    data.listings[index] = listing;
+                    alert('"' + listing.name + '" has been updated locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.');
+                } else {
+                    data.listings.push(listing);
+                    alert('"' + listing.name + '" has been added locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.');
+                }
+            } else {
+                data.listings.push(listing);
+                alert('"' + listing.name + '" has been added locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.');
+            }
+            
+            // Update the display and close modal
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
             renderListings();
             closeModal();
         }
@@ -3550,12 +4142,23 @@ loadListings();</pre>
                 document.getElementById('dataTab').classList.add('active');
                 header.style.display = 'block';
                 renderDataTable();
+<<<<<<< HEAD
             } else if (tab === 'code') {
                 document.querySelectorAll('.tab-btn')[2].classList.add('active');
+=======
+            } else if (tab === 'settings') {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('settingsTab').classList.add('active');
+                header.style.display = 'block';
+                renderSettings();
+            } else if (tab === 'code') {
+                document.querySelectorAll('.tab-btn')[3].classList.add('active');
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
                 document.getElementById('codeTab').classList.add('active');
                 header.style.display = 'block';
                 generateCode();
             } else if (tab === 'preview') {
+<<<<<<< HEAD
                 document.querySelectorAll('.tab-btn')[3].classList.add('active');
                 document.getElementById('previewTab').classList.add('active');
                 header.style.display = 'none';
@@ -3563,10 +4166,176 @@ loadListings();</pre>
             } else if (tab === 'deploy') {
                 document.querySelectorAll('.tab-btn')[4].classList.add('active');
                 document.getElementById('deployTab').classList.add('active');
+=======
+                document.querySelectorAll('.tab-btn')[4].classList.add('active');
+                document.getElementById('previewTab').classList.add('active');
+                header.style.display = 'none';
+                renderPreview();
+            } else if (tab === 'learn') {
+                document.querySelectorAll('.tab-btn')[5].classList.add('active');
+                document.getElementById('learnTab').classList.add('active');
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
                 header.style.display = 'block';
             }
         }
         
+<<<<<<< HEAD
+=======
+        // ==================================================
+        // SETTINGS MANAGEMENT FUNCTIONS
+        // ==================================================
+        
+        function renderSettings() {
+            renderTypesList();
+            renderAreasList();
+            renderAmenitiesList();
+        }
+        
+        function renderTypesList() {
+            const container = document.getElementById('typesList');
+            if (!container) return;
+            
+            container.innerHTML = data.filterOptions.types.map(function(type, index) {
+                return '<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #f8f9fa; border-radius: 4px; margin-bottom: 8px;">' +
+                    '<span>' + type + '</span>' +
+                    '<button onclick="removeType(' + index + ')" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Remove</button>' +
+                    '</div>';
+            }).join('');
+        }
+        
+        function renderAreasList() {
+            const container = document.getElementById('areasList');
+            if (!container) return;
+            
+            container.innerHTML = data.filterOptions.areas.map(function(area, index) {
+                return '<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #f8f9fa; border-radius: 4px; margin-bottom: 8px;">' +
+                    '<span>' + area + '</span>' +
+                    '<button onclick="removeArea(' + index + ')" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Remove</button>' +
+                    '</div>';
+            }).join('');
+        }
+        
+        function renderAmenitiesList() {
+            const container = document.getElementById('amenitiesList');
+            if (!container) return;
+            
+            container.innerHTML = data.filterOptions.amenities.map(function(amenity, index) {
+                return '<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #f8f9fa; border-radius: 4px;">' +
+                    '<span>' + amenity + '</span>' +
+                    '<button onclick="removeAmenity(' + index + ')" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Remove</button>' +
+                    '</div>';
+            }).join('');
+        }
+        
+        function addType() {
+            const input = document.getElementById('newTypeInput');
+            const value = input.value.trim();
+            if (!value) return;
+            
+            if (data.filterOptions.types.indexOf(value) === -1) {
+                data.filterOptions.types.push(value);
+                saveFilterOptions();
+                renderTypesList();
+                updateTypeDropdown();
+                input.value = '';
+            } else {
+                alert('This type already exists.');
+            }
+        }
+        
+        function removeType(index) {
+            if (confirm('Are you sure you want to remove "' + data.filterOptions.types[index] + '"? This will not affect existing listings.')) {
+                data.filterOptions.types.splice(index, 1);
+                saveFilterOptions();
+                renderTypesList();
+                updateTypeDropdown();
+            }
+        }
+        
+        function addArea() {
+            const input = document.getElementById('newAreaInput');
+            const value = input.value.trim();
+            if (!value) return;
+            
+            if (data.filterOptions.areas.indexOf(value) === -1) {
+                data.filterOptions.areas.push(value);
+                saveFilterOptions();
+                renderAreasList();
+                updateAreaDropdown();
+                input.value = '';
+            } else {
+                alert('This area already exists.');
+            }
+        }
+        
+        function removeArea(index) {
+            if (confirm('Are you sure you want to remove "' + data.filterOptions.areas[index] + '"? This will not affect existing listings.')) {
+                data.filterOptions.areas.splice(index, 1);
+                saveFilterOptions();
+                renderAreasList();
+                updateAreaDropdown();
+            }
+        }
+        
+        function addAmenity() {
+            const input = document.getElementById('newAmenityInput');
+            const value = input.value.trim();
+            if (!value) return;
+            
+            if (data.filterOptions.amenities.indexOf(value) === -1) {
+                data.filterOptions.amenities.push(value);
+                saveFilterOptions();
+                renderAmenitiesList();
+                updateAmenitiesCheckboxes();
+                input.value = '';
+            } else {
+                alert('This amenity already exists.');
+            }
+        }
+        
+        function removeAmenity(index) {
+            if (confirm('Are you sure you want to remove "' + data.filterOptions.amenities[index] + '"? This will not affect existing listings.')) {
+                data.filterOptions.amenities.splice(index, 1);
+                saveFilterOptions();
+                renderAmenitiesList();
+                updateAmenitiesCheckboxes();
+            }
+        }
+        
+        function saveFilterOptions() {
+            // Save to localStorage
+            localStorage.setItem('nelsonCounty_filterOptions', JSON.stringify(data.filterOptions));
+        }
+        
+        function updateTypeDropdown() {
+            const select = document.getElementById('listingType');
+            if (!select) return;
+            
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">Select Type</option>' +
+                data.filterOptions.types.map(function(type) {
+                    return '<option value="' + type + '">' + type + '</option>';
+                }).join('');
+            select.value = currentValue;
+        }
+        
+        function updateAreaDropdown() {
+            const select = document.getElementById('listingArea');
+            if (!select) return;
+            
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">Select Area</option>' +
+                data.filterOptions.areas.map(function(area) {
+                    return '<option value="' + area + '">' + area + '</option>';
+                }).join('');
+            select.value = currentValue;
+        }
+        
+        function updateAmenitiesCheckboxes() {
+            renderAmenitiesCheckboxes();
+        }
+        
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
         // Icon mapping function - maps activity types to centralized icon library
         function getIconClass(type) {
             const typeMap = {
@@ -4059,6 +4828,7 @@ loadListings();</pre>
                 renderPreview();
             }
             
+<<<<<<< HEAD
             // Save to Google Sheets if configured
             if (changeCount > 0 && GOOGLE_APPS_SCRIPT_URL && !GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
                 updateSyncStatus(true, '💾 Saving to Google Sheets...');
@@ -4141,6 +4911,14 @@ loadListings();</pre>
             }
             
             alert('Table updated! ' + changeCount + ' field(s) changed.');
+=======
+            // Changes saved locally only - user must click "Save All to Google Sheets" to sync
+            if (changeCount > 0) {
+                alert('Table updated! ' + changeCount + ' field(s) changed locally.\n\n💾 Click "Save All to Google Sheets" to sync changes.');
+            } else {
+                alert('No changes detected.');
+            }
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
         }
         
         function deleteFromTable(index) {
@@ -4312,6 +5090,7 @@ loadListings();</pre>
                                 renderPreview();
                             }
                             
+<<<<<<< HEAD
                             // Save all listings to Google Sheets if configured
                             if (GOOGLE_APPS_SCRIPT_URL && !GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
                                 updateSyncStatus(true, '💾 Saving ' + newListings.length + ' listings to Google Sheets...');
@@ -4361,6 +5140,10 @@ loadListings();</pre>
                             } else {
                                 alert('CSV uploaded successfully! ' + newListings.length + ' listings imported. (Local only - configure Google Sheets to sync)');
                             }
+=======
+                            // CSV imported locally only - user must click "Save All to Google Sheets" to sync
+                            alert('CSV uploaded successfully! ' + newListings.length + ' listings imported locally.\n\n💾 Click "Save All to Google Sheets" to sync changes.');
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
                         }
                         
                         // Reset file input
@@ -4383,6 +5166,12 @@ loadListings();</pre>
         window.addEventListener("DOMContentLoaded", async function() {
             await loadDataFromGoogleSheets();
             
+<<<<<<< HEAD
+=======
+            // Initialize form dropdowns with dynamic options
+            updateTypeDropdown();
+            updateAreaDropdown();
+>>>>>>> a97840a205826fe60553800d5e750c1313343f6d
             renderAmenitiesCheckboxes();
             renderListings();
             updateStats();
