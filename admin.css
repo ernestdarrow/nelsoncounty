@@ -612,7 +612,7 @@
             .preview-sidebar { width: 100%; position: static; }
         }
         
-        .data-container { max-width: 1600px; margin: 0 auto; padding: 30px 20px; }
+        .data-container { max-width: 2000px; margin: 0 auto; padding: 30px 20px; }
         .data-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
         .data-header h2 { font-size: 24px; color: var(--text-primary); }
         .data-actions { display: flex; gap: 10px; }
@@ -723,7 +723,7 @@
             background: rgba(0, 0, 0, 0.8);
         }
         
-        .code-container { max-width: 1400px; margin: 0 auto; padding: 30px 20px; }
+        .code-container { max-width: 2000px; margin: 0 auto; padding: 30px 20px; }
         .code-section { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .code-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .code-header h3 { font-size: 18px; color: var(--text-primary); }
