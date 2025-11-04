@@ -93,129 +93,6 @@
             --icon-default: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4'/%3E%3Cpath d='M12 16h.01'/%3E%3C/svg%3E");
         }
         
-        :root.dark-mode {
-            /* ========================================
-               DARK MODE COLOR SYSTEM
-               All colors organized in one place
-            ======================================== */
-            
-            /* Background Colors */
-            --bg-primary: #1a1a1a;
-            --bg-secondary: #2d2d2d;
-            --bg-hover: #3a3a3a;
-            --card-bg: #2d2d2d;
-            
-            /* Text Colors */
-            --text-primary: #e9ecef;
-            --text-secondary: #adb5bd;
-            
-            /* Border & Shadow */
-            --border-color: #495057;
-            --shadow: rgba(0, 0, 0, 0.3);
-            
-            /* Icon Colors - DARK MODE */
-            --icon-primary: %23e9ecef;        /* Light gray for primary icons */
-            --icon-secondary: %23adb5bd;      /* Medium gray for secondary icons */
-            --icon-on-badge: %239fc5a3;       /* Type badge icon color (lighter green) */
-            --icon-location: %23f5a3a5;       /* Location/area icon color (lighter red) */
-            --icon-hover-light: %23ffffff;    /* White for hover states on colored backgrounds */
-            
-            /* Badge Colors */
-            --badge-type-bg: rgba(78, 107, 82, 0.2);
-            --badge-type-color: #9fc5a3;
-            --badge-area-bg: rgba(214, 80, 82, 0.2);
-            --badge-area-color: #f5a3a5;
-            --badge-featured-bg: rgba(214, 80, 82, 0.9);
-            --badge-featured-color: #ffffff;
-            
-            --icon-beer: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 11h1a3 3 0 0 1 0 6h-1'/%3E%3Cpath d='M9 12v6'/%3E%3Cpath d='M13 12v6'/%3E%3Cpath d='M14 7.5c-1 0-1.44.5-3 .5s-2-.5-3-.5-1.72.5-2.5.5a2.5 2.5 0 0 1 0-5c.78 0 1.5.5 2.5.5s2.22-.5 3.5-.5 2.5.5 3.5.5a2.5 2.5 0 0 1 0 5c-.78 0-1.5-.5-2.5-.5z'/%3E%3Cpath d='M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8'/%3E%3C/svg%3E");
-            
-            --icon-spirits: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2h8l.5 3h-9z'/%3E%3Cpath d='M7.5 5h9l1 12a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2z'/%3E%3Cpath d='M10 22v-3'/%3E%3Cpath d='M14 22v-3'/%3E%3C/svg%3E");
-            
-            --icon-cocktail: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 3l9 9v9'/%3E%3Cpath d='M21 3l-9 9'/%3E%3Cpath d='M3 3h18'/%3E%3Cpath d='M9 21h6'/%3E%3C/svg%3E");
-            
-            --icon-coffee: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 8h1a4 4 0 1 1 0 8h-1'/%3E%3Cpath d='M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z'/%3E%3Cpath d='M6 1v3'/%3E%3Cpath d='M10 1v3'/%3E%3Cpath d='M14 1v3'/%3E%3C/svg%3E");
-            
-            --icon-tea: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 8h1a4 4 0 1 1 0 8h-1'/%3E%3Cpath d='M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z'/%3E%3Cpath d='M6 1v2'/%3E%3Cpath d='M10 1v2'/%3E%3Cpath d='M14 1v2'/%3E%3Cpath d='M6 4v1'/%3E%3Cpath d='M10 4v1'/%3E%3Cpath d='M14 4v1'/%3E%3C/svg%3E");
-            
-            --icon-restaurant: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2'/%3E%3Cpath d='M7 2v20'/%3E%3Cpath d='M21 15V2a5 5 0 0 0-5 5v8'/%3E%3Cpath d='M21 15v7'/%3E%3C/svg%3E");
-            
-            --icon-bakery: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0-4.4-3.6-8-8-8s-8 3.6-8 8c0 .9.1 1.7.4 2.5L6 21h12l1.6-8.5c.3-.8.4-1.6.4-2.5z'/%3E%3Cpath d='M6 10h12'/%3E%3C/svg%3E");
-            
-            --icon-cheese: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m2 16 10 6V12L2 6z'/%3E%3Cpath d='m12 22 10-6V6l-10 6'/%3E%3Cpath d='M2 16V6l10-6 10 6v10'/%3E%3Ccircle cx='7' cy='13' r='1'/%3E%3Ccircle cx='17' cy='13' r='1'/%3E%3C/svg%3E");
-            
-            --icon-chocolate: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='3' rx='2'/%3E%3Cpath d='M3 9h18'/%3E%3Cpath d='M3 15h18'/%3E%3Cpath d='M9 3v18'/%3E%3Cpath d='M15 3v18'/%3E%3C/svg%3E");
-            
-            --icon-museum: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 21 18 0'/%3E%3Cpath d='M3 7v1a3 3 0 0 0 6 0V7'/%3E%3Cpath d='M9 21v-9'/%3E%3Cpath d='M15 7v1a3 3 0 0 0 6 0V7'/%3E%3Cpath d='M21 21v-9'/%3E%3Cpath d='M3 7h18L12 3z'/%3E%3C/svg%3E");
-            
-            --icon-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpolyline points='7 10 12 15 17 10'/%3E%3Cline x1='12' x2='12' y1='15' y2='3'/%3E%3C/svg%3E");
-            
-            --icon-gallery: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='3' rx='2' ry='2'/%3E%3Ccircle cx='9' cy='9' r='2'/%3E%3Cpath d='m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21'/%3E%3C/svg%3E");
-            
-            --icon-hiking: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='Ccircle cx='10' cy='4' r='2'/%3E%3Cpath d='M7 22V12l-2 3'/%3E%3Cpath d='M7 8v4l6 2 1 6'/%3E%3Cpath d='M14 22v-8'/%3E%3Cpath d='M19 12l-3-6'/%3E%3Cpath d='M19 22V9'/%3E%3C/svg%3E");
-
-
-            
-            --icon-cycling: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='5.5' cy='17.5' r='3.5'/%3E%3Ccircle cx='18.5' cy='17.5' r='3.5'/%3E%3Cpath d='M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2z'/%3E%3Cpath d='m12 17.5-3.5-5.5L15 6'/%3E%3Cpath d='m12 6 3 5.5'/%3E%3C/svg%3E");
-            
-            
-            --icon-activity: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='5.5' cy='17.5' r='3.5'/%3E%3Ccircle cx='18.5' cy='17.5' r='3.5'/%3E%3Cpath d='M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2z'/%3E%3Cpath d='m12 17.5-3.5-5.5L15 6'/%3E%3Cpath d='m12 6 3 5.5'/%3E%3C/svg%3E");
-            --icon-kayaking: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 19v-3'/%3E%3Cpath d='M10 19v-3'/%3E%3Cpath d='M14 19v-3'/%3E%3Cpath d='M18 19v-3'/%3E%3Cpath d='M8 11V9'/%3E%3Cpath d='M16 11V9'/%3E%3Cpath d='M12 11V9'/%3E%3Cpath d='M2 15h20'/%3E%3Cpath d='M2 7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v1.1c0 .2 0 .3-.1.5L20.4 13H3.6L2.1 8.6c-.1-.2-.1-.3-.1-.5z'/%3E%3C/svg%3E");
-            
-            --icon-spa: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a7 7 0 0 0-9 10h18a7 7 0 0 0-9-10z'/%3E%3Cpath d='M12 3v18'/%3E%3C/svg%3E");
-            
-            --icon-wellness: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7z'/%3E%3C/svg%3E");
-            
-            --icon-shopping: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z'/%3E%3Cline x1='3' x2='21' y1='6' y2='6'/%3E%3Cpath d='M16 10a4 4 0 0 1-8 0'/%3E%3C/svg%3E");
-            
-            --icon-market: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9 12 2l9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/%3E%3Cpolyline points='9 22 9 12 15 12 15 22'/%3E%3C/svg%3E");
-            
-            --icon-concert: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18V5l12-2v13'/%3E%3Ccircle cx='6' cy='18' r='3'/%3E%3Ccircle cx='18' cy='16' r='3'/%3E%3C/svg%3E");
-            
-            --icon-theater: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12a5 5 0 0 0 5 5 8 8 0 0 1 5 2 8 8 0 0 1 5-2 5 5 0 0 0 5-5V7h-5a8 8 0 0 0-5 2 8 8 0 0 0-5-2H2z'/%3E%3Cpath d='M6 11c1.5 0 3 .5 3 2-2 0-3 0-3-2z'/%3E%3Cpath d='M18 11c-1.5 0-3 .5-3 2 2 0 3 0 3-2z'/%3E%3C/svg%3E");
-            
-            --icon-cinema: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='3' rx='2'/%3E%3Cpath d='m16 10-4 4-4-4'/%3E%3C/svg%3E");
-            
-            --icon-festival: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 22h16'/%3E%3Cpath d='M6 18v-7'/%3E%3Cpath d='M10 18v-7'/%3E%3Cpath d='M14 18v-7'/%3E%3Cpath d='M18 18v-7'/%3E%3Cpath d='m4 11 2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2'/%3E%3Cpath d='M8 7V4c0-1.1.9-2 2-2h4a2 2 0 0 1 2 2v3'/%3E%3C/svg%3E");
-            
-            --icon-hotel: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 10h18V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z'/%3E%3Cpath d='M21 14v8'/%3E%3Cpath d='M3 14v8'/%3E%3Cpath d='M3 14h18'/%3E%3C/svg%3E");
-            
-            --icon-lodging: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/%3E%3Cpolyline points='9 22 9 12 15 12 15 22'/%3E%3C/svg%3E");
-            
-            --icon-transport: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 17h2l.64-2.54c.24-.959.24-1.962 0-2.92l-1.07-4.27A3 3 0 0 0 17.66 5H4a2 2 0 0 0-2 2v10h2'/%3E%3Ccircle cx='6.5' cy='17.5' r='2.5'/%3E%3Ccircle cx='16.5' cy='17.5' r='2.5'/%3E%3C/svg%3E");
-            
-            --icon-train: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='16' height='16' x='4' y='3' rx='2'/%3E%3Cpath d='M4 11h16'/%3E%3Cpath d='M12 3v8'/%3E%3Cpath d='m8 19-2 3'/%3E%3Cpath d='m16 19 2 3'/%3E%3C/svg%3E");
-            
-            --icon-boat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1'/%3E%3Cpolyline points='7 4 2 9 7 14'/%3E%3Cpath d='M22 9 7 9 7 2 12 2z'/%3E%3C/svg%3E");
-            
-            --icon-scenic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m8 2 1.88 1.88'/%3E%3Cpath d='M14.12 3.88 16 2'/%3E%3Cpath d='M9 7.13v-1a3.003 3.003 0 1 1 6 0v1'/%3E%3Cpath d='M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6'/%3E%3Cpath d='M12 20v-9'/%3E%3Cpath d='M6.53 9C4.6 8.8 3 7.1 3 5'/%3E%3Cpath d='M6 13H2'/%3E%3Cpath d='M3 21c0-2.1 1.7-3.9 3.8-4'/%3E%3Cpath d='M20.97 5c0 2.1-1.6 3.8-3.5 4'/%3E%3Cpath d='M22 13h-4'/%3E%3Cpath d='M17.2 17c2.1.1 3.8 1.9 3.8 4'/%3E%3C/svg%3E");
-            
-            --icon-viewpoint: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E");
-            
-            --icon-park: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22v-8.5'/%3E%3Cpath d='M7 12 3 8c-.6-.6-.9-1.3-.9-2 0-1.7 1.3-3 3-3 .7 0 1.4.3 2 .9l4 4 4-4c.6-.6 1.3-.9 2-.9 1.7 0 3 1.3 3 3 0 .7-.3 1.4-.9 2l-4 4'/%3E%3C/svg%3E");
-            
-            --icon-garden: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22c-4.97 0-9-4.03-9-9 0-2.5 1-4.75 2.63-6.41 1.32.87 3.14.7 4.24-.4a3 3 0 0 1 4.24 0c1.1 1.1 2.92 1.27 4.24.4C19.97 8.25 21 10.5 21 13c0 4.97-4.03 9-9 9z'/%3E%3Cpath d='M12 2v7'/%3E%3C/svg%3E");
-            
-            --icon-beach: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17.28 9.05a5.5 5.5 0 1 0-10.56 0A5.5 5.5 0 1 0 12 17.66a5.5 5.5 0 1 0 5.28-8.6z'/%3E%3Cpath d='M12 17.66 12 22'/%3E%3C/svg%3E");
-            
-            --icon-history: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E");
-            
-            --icon-culture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 20v-9H2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2z'/%3E%3Cpath d='M18 11V4H6v7'/%3E%3Cpath d='m9 9 1.5-1.5'/%3E%3Cpath d='m15 9-1.5-1.5'/%3E%3C/svg%3E");
-            
-            --icon-architecture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 21h18'/%3E%3Cpath d='M6 21V7'/%3E%3Cpath d='M10 21V7'/%3E%3Cpath d='M14 21V7'/%3E%3Cpath d='M18 21V7'/%3E%3Cpath d='M3 7h18L12 2 3 7z'/%3E%3C/svg%3E");
-            
-            --icon-local: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z'/%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3C/svg%3E");
-            
-            --icon-tour: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20'/%3E%3Cpath d='M2 12h20'/%3E%3C/svg%3E");
-            
-            --icon-workshop: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'/%3E%3C/svg%3E");
-            
-            --icon-class: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20'/%3E%3C/svg%3E");
-            
-            --icon-food: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 8h1a4 4 0 0 1 0 8h-1'/%3E%3Cpath d='M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z'/%3E%3Cline x1='6' x2='6' y1='1' y2='4'/%3E%3Cline x1='10' x2='10' y1='1' y2='4'/%3E%3Cline x1='14' x2='14' y1='1' y2='4'/%3E%3C/svg%3E");
-            
-            --icon-default: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4'/%3E%3Cpath d='M12 16h.01'/%3E%3C/svg%3E");
-        }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -296,28 +173,11 @@
             filter: brightness(0) invert(1); /* White icons on colored background */
         }
         
-        /* Dark Mode - Make all SVG icons light gray */
-        :root.dark-mode .badge-type::before,
-        :root.dark-mode .type-filter-btn::before {
-            filter: brightness(0) invert(0.9); /* Light gray icons in dark mode */
-        }
         
-        /* Dark Mode - Hover states turn white */
-        :root.dark-mode .badge-type:hover::before,
-        :root.dark-mode .type-filter-btn:hover::before,
-        :root.dark-mode .type-filter-btn.active::before {
-            filter: brightness(0) invert(1); /* White on hover */
-        }
         
         /* Nav items in dark mode */
-        :root.dark-mode .nav-item svg {
-            stroke: var(--text-primary);
-        }
         
         /* Card info icons */
-        :root.dark-mode .card-info-icon {
-            filter: brightness(0) invert(0.9);
-        }
         
         .header { background: #1a1a1a; color: white; padding-bottom: 0; border-bottom: 3px solid #4E6B52; transition: all 0.3s; }
         #previewTab.active ~ .header,
@@ -473,289 +333,17 @@
             width: 18px;
             height: 18px;
         }
-        :root.dark-mode body .back-to-admin {
-            background: #4E6B52;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-        :root.dark-mode body .back-to-admin:hover {
-            background: #5a7d5f;
-        }
         
         .preview-header { text-align: left; margin-bottom: 40px; padding: 30px 30px 0 0; transition: color 0.3s; }
         .preview-header h1 { font-size: 32px; color: var(--text-primary); margin-bottom: 10px; transition: color 0.3s; }
         .preview-header p { font-size: 18px; color: var(--text-secondary); transition: color 0.3s; }
         
-        /* Dark Mode Toggle Switch */
-        .theme-toggle-container {
-            padding: 15px 20px;
-            border-top: 1px solid var(--border-color);
-            background: var(--card-bg);
-            flex-shrink: 0;
-            margin-top: auto;
-        }
-        .theme-toggle-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-        .theme-toggle-label {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .theme-toggle-label svg {
-            width: 18px;
-            height: 18px;
-        }
-        .theme-switch {
-            position: relative;
-            display: inline-block;
-            width: 48px;
-            height: 26px;
-            flex-shrink: 0;
-        }
-        .theme-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .theme-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #e5e7eb;
-            transition: .3s;
-            border-radius: 26px;
-        }
-        .theme-slider:before {
-            position: absolute;
-            content: "";
-            height: 20px;
-            width: 20px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .3s;
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        input:checked + .theme-slider {
-            background-color: #4E6B52;
-        }
-        input:checked + .theme-slider:before {
-            transform: translateX(22px);
-        }
-        .theme-slider:hover {
-            background-color: #d1d5db;
-        }
-        input:checked + .theme-slider:hover {
-            background-color: #3d5441;
-        }
         
         /* Dark mode adjustments for toggle */
-        :root.dark-mode body .theme-toggle-container {
-            background: #242424;
-            border-top-color: #404040;
-        }
-        :root.dark-mode body .theme-toggle-label {
-            color: #ffffff;
-        }
-        :root.dark-mode body .theme-slider {
-            background-color: #404040;
-        }
-        :root.dark-mode body .theme-slider:hover {
-            background-color: #4a4a4a;
-        }
-        
-        /* Dark Mode Styles */
-        :root.dark-mode body .preview-container { background: #1a1a1a; }
-        :root.dark-mode body .preview-header h1 { color: #ffffff; }
-        :root.dark-mode body .preview-header p { color: #9ca3af; }
-        
-        :root.dark-mode body .preview-sidebar { border-right: 1px solid #404040; }
-        :root.dark-mode body .preview-filters { background: #2d2d2d; border-right: 1px solid #404040; }
-        :root.dark-mode body .preview-filters h3 { background: #242424; color: #ffffff; border-bottom: 1px solid #404040; }
-        
-        :root.dark-mode body .filter-section.search-section { background: #242424; border-bottom: 2px solid #404040; }
-        :root.dark-mode body .preview-search label { color: #ffffff; }
-        :root.dark-mode body .preview-search input { 
-            background: #1a1a1a; 
-            border-color: #404040; 
-            color: #ffffff;
-        }
-        :root.dark-mode body .preview-search input:focus { 
-            border-color: #4E6B52; 
-            background: #242424;
-            box-shadow: 0 0 0 3px rgba(78, 107, 82, 0.2);
-        }
-        :root.dark-mode body .preview-search input::placeholder { color: var(--text-secondary); }
-        
-        :root.dark-mode body .type-filter-btn {
-            background: #242424;
-            border-color: #404040;
-            color: #9ca3af;
-        }
-        :root.dark-mode body .type-filter-btn svg {
-            stroke: #9ca3af;
-        }
-        :root.dark-mode body .type-filter-btn:hover {
-            background: #2d2d2d;
-            border-color: #4E6B52;
-            color: #ffffff;
-        }
-        :root.dark-mode body .type-filter-btn:hover svg {
-            stroke: #4E6B52;
-        }
-        :root.dark-mode body .type-filter-btn.active {
-            background: #4E6B52;
-            border-color: #4E6B52;
-            color: white;
-        }
-        :root.dark-mode body .type-filter-btn.active svg {
-            stroke: white;
-        }
-        
-        :root.dark-mode body .preview-filter-group label { color: #9ca3af; }
-        :root.dark-mode body .preview-filter-group select {
-            background-color: #242424;
-            border-color: #404040;
-            color: #ffffff;
-        }
-        :root.dark-mode body .preview-filter-group select:hover,
-        :root.dark-mode body .preview-filter-group select:focus {
-            background-color: #2d2d2d;
-            border-color: #4E6B52;
-        }
-        
-        :root.dark-mode body .btn-secondary {
-            background: #404040;
-            color: #ffffff;
-            border-color: #404040;
-        }
-        :root.dark-mode body .btn-secondary:hover {
-            background: #4a4a4a;
-        }
-        
-        :root.dark-mode body .preview-results { color: #9ca3af; }
-        
-        :root.dark-mode body .flip-card-front {
-            background: #242424;
-            border: 1px solid #404040;
-        }
-        :root.dark-mode body .flip-card:hover .flip-card-front {
-            border-color: #4E6B52;
-            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
-        }
-        :root.dark-mode body .flip-card-front h3 { color: #ffffff !important; }
-        :root.dark-mode body .flip-card-front p { color: #9ca3af !important; }
-        
-        :root.dark-mode body .flip-card-back {
-            background: #2d2d2d;
-            border: 1px solid #404040;
-        }
-        :root.dark-mode body .flip-card:hover .flip-card-back {
-            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
-        }
-        :root.dark-mode body .flip-card-back h3 { color: #ffffff !important; }
-        :root.dark-mode body .flip-card-back p,
-        :root.dark-mode body .flip-card-back span { color: #9ca3af !important; }
-        :root.dark-mode body .flip-card-back strong { color: #ffffff !important; }
-        
-        :root.dark-mode body .filter-content::-webkit-scrollbar-thumb { background: #4a4a4a; }
-        :root.dark-mode body .filter-content::-webkit-scrollbar-thumb:hover { background: #4b5563; }
         
         
-        /* Apply icons from centralized library */
-        .badge-type.icon-wine::before { background-image: var(--icon-wine); }
-        .badge-type.icon-beer::before { background-image: var(--icon-beer); }
-        .badge-type.icon-spirits::before { background-image: var(--icon-spirits); }
-        .badge-type.icon-cocktail::before { background-image: var(--icon-cocktail); }
-        .badge-type.icon-coffee::before { background-image: var(--icon-coffee); }
-        .badge-type.icon-tea::before { background-image: var(--icon-tea); }
-        .badge-type.icon-restaurant::before { background-image: var(--icon-restaurant); }
-        .badge-type.icon-bakery::before { background-image: var(--icon-bakery); }
-        .badge-type.icon-cheese::before { background-image: var(--icon-cheese); }
-        .badge-type.icon-chocolate::before { background-image: var(--icon-chocolate); }
-        .badge-type.icon-museum::before { background-image: var(--icon-museum); }
-        .badge-type.icon-art::before { background-image: var(--icon-art); }
-        .badge-type.icon-gallery::before { background-image: var(--icon-gallery); }
-        .badge-type.icon-hiking::before { background-image: var(--icon-hiking); }
-        .badge-type.icon-cycling::before { background-image: var(--icon-cycling); }
-        .badge-type.icon-activity::before { background-image: var(--icon-activity); }
-        .badge-type.icon-kayaking::before { background-image: var(--icon-kayaking); }
-        .badge-type.icon-spa::before { background-image: var(--icon-spa); }
-        .badge-type.icon-wellness::before { background-image: var(--icon-wellness); }
-        .badge-type.icon-shopping::before { background-image: var(--icon-shopping); }
-        .badge-type.icon-market::before { background-image: var(--icon-market); }
-        .badge-type.icon-concert::before { background-image: var(--icon-concert); }
-        .badge-type.icon-theater::before { background-image: var(--icon-theater); }
-        .badge-type.icon-cinema::before { background-image: var(--icon-cinema); }
-        .badge-type.icon-festival::before { background-image: var(--icon-festival); }
-        .badge-type.icon-hotel::before { background-image: var(--icon-hotel); }
-        .badge-type.icon-lodging::before { background-image: var(--icon-lodging); }
-        .badge-type.icon-transport::before { background-image: var(--icon-transport); }
-        .badge-type.icon-train::before { background-image: var(--icon-train); }
-        .badge-type.icon-boat::before { background-image: var(--icon-boat); }
-        .badge-type.icon-scenic::before { background-image: var(--icon-scenic); }
-        .badge-type.icon-viewpoint::before { background-image: var(--icon-viewpoint); }
-        .badge-type.icon-park::before { background-image: var(--icon-park); }
-        .badge-type.icon-garden::before { background-image: var(--icon-garden); }
-        .badge-type.icon-beach::before { background-image: var(--icon-beach); }
-        .badge-type.icon-history::before { background-image: var(--icon-history); }
-        .badge-type.icon-culture::before { background-image: var(--icon-culture); }
-        .badge-type.icon-architecture::before { background-image: var(--icon-architecture); }
-        .badge-type.icon-local::before { background-image: var(--icon-local); }
-        .badge-type.icon-tour::before { background-image: var(--icon-tour); }
-        .badge-type.icon-workshop::before { background-image: var(--icon-workshop); }
-        .badge-type.icon-class::before { background-image: var(--icon-class); }
-        .badge-type.icon-food::before { background-image: var(--icon-food); }
-        .badge-type.icon-default::before { background-image: var(--icon-default); }
         
-        /* Filter buttons use same icons */
-        .type-filter-btn[data-type="Wine"]::before,
-        .type-filter-btn[data-type="Winery"]::before { background-image: var(--icon-wine); }
-        .type-filter-btn[data-type="Beer"]::before,
-        .type-filter-btn[data-type="Brewery"]::before { background-image: var(--icon-beer); }
-        .type-filter-btn[data-type="Spirits"]::before,
-        .type-filter-btn[data-type="Distillery"]::before { background-image: var(--icon-spirits); }
-        .type-filter-btn[data-type="Cocktails"]::before { background-image: var(--icon-cocktail); }
-        .type-filter-btn[data-type="Coffee"]::before { background-image: var(--icon-coffee); }
-        .type-filter-btn[data-type="Restaurant"]::before { background-image: var(--icon-restaurant); }
-        .type-filter-btn[data-type="Bakery"]::before { background-image: var(--icon-bakery); }
-        .type-filter-btn[data-type="Museum"]::before { background-image: var(--icon-museum); }
-        .type-filter-btn[data-type="Hiking"]::before { background-image: var(--icon-hiking); }
-        .type-filter-btn[data-type="Activity"]::before,
-        .type-filter-btn[data-type="Activities"]::before { background-image: var(--icon-activity); }
-        .type-filter-btn[data-type="Shopping"]::before { background-image: var(--icon-shopping); }
-        .type-filter-btn[data-type="Hotel"]::before { background-image: var(--icon-hotel); }
-        .type-filter-btn[data-type="Lodging"]::before { background-image: var(--icon-lodging); }
         
-        /* Dark mode - icons remain the same (currentColor adapts) */
-        
-        /* Hover states - icons turn white */
-        .badge-type {
-            background: #f0f4f1;
-            color: #4E6B52;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            position: relative;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
         .badge-type::before {
             content: '';
             width: 14px;
@@ -790,24 +378,6 @@
             background-color: #D65052;
             color: white;
             transform: scale(1.05);
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 10.5a3 3 0 11-6 0 3 3 0 016 0z' /%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z' /%3E%3C/svg%3E");
-        }
-        :root.dark-mode body .badge-type {
-            background-color: rgba(78, 107, 82, 0.2);
-            color: #82b894;
-        }
-        :root.dark-mode body .badge-type:hover {
-            background-color: #4E6B52;
-            color: white;
-        }
-        :root.dark-mode body .badge-area {
-            background-color: rgba(214, 80, 82, 0.2);
-            color: #f09090;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23f09090' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 10.5a3 3 0 11-6 0 3 3 0 016 0z' /%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z' /%3E%3C/svg%3E");
-        }
-        :root.dark-mode body .badge-area:hover {
-            background-color: #D65052;
-            color: white;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 10.5a3 3 0 11-6 0 3 3 0 016 0z' /%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z' /%3E%3C/svg%3E");
         }
         
@@ -852,18 +422,6 @@
             padding-top: 6px;
         }
         
-        :root.dark-mode body .card-info-icon {
-            background: #404040;
-        }
-        :root.dark-mode body .card-info-icon svg {
-            stroke: #9ca3af;
-        }
-        :root.dark-mode body a.card-info-item:hover .card-info-icon {
-            background: #4E6B52;
-        }
-        :root.dark-mode body a.card-info-item:hover .card-info-icon svg {
-            stroke: white;
-        }
         
         .preview-content-wrapper { display: flex; gap: 0; align-items: stretch; min-height: 100vh; }
         
@@ -878,15 +436,6 @@
         .filter-content::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
         .filter-content::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
         
-        :root.dark-mode .filter-content::-webkit-scrollbar-thumb { background: #4a4a4a; }
-        :root.dark-mode .filter-content::-webkit-scrollbar-thumb:hover { background: #5a5a5a; }
-        
-        .filter-section { padding: 15px 20px; }
-        .filter-section.search-section { 
-            background: var(--card-bg); 
-            border-bottom: 2px solid var(--border-color); 
-            padding: 20px;
-        }
         
         .preview-search { margin-bottom: 0; }
         .preview-search label { 
@@ -957,15 +506,6 @@
         }
         
         /* Dark mode icon filters */
-        :root.dark-mode body .type-filter-btn::before {
-            filter: brightness(0) invert(1);
-        }
-        :root.dark-mode body .type-filter-btn:hover::before {
-            filter: brightness(0) saturate(100%) invert(46%) sepia(14%) saturate(963%) hue-rotate(94deg) brightness(92%) contrast(88%);
-        }
-        :root.dark-mode body .type-filter-btn.active::before {
-            filter: brightness(0) invert(1);
-        }
         
         .preview-search { margin-bottom: 20px; }
         .preview-search label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
@@ -1198,20 +738,6 @@
             color: var(--text-primary);
         }
         
-        :root.dark-mode .deploy-step-number {
-            background: linear-gradient(135deg, #5a7d5f 0%, #4E6B52 100%);
-        }
-        :root.dark-mode .deploy-tips {
-            border-color: #5a7d5f;
-            background: #2a2a2a;
-        }
-        :root.dark-mode .deploy-tip-header {
-            color: #6b9270;
-        }
-        :root.dark-mode .deploy-note {
-            background: rgba(78, 107, 82, 0.15);
-            border-left-color: #5a7d5f;
-        }
         
         @media (max-width: 768px) {
             .form-row { grid-template-columns: 1fr; }
@@ -1273,12 +799,6 @@
                         <line x1="21" y1="12" x2="9" y2="12"></line>
                     </svg>
                     Logout
-                </button>
-                <button class="btn btn-secondary" onclick="toggleDarkMode()" id="darkModeToggle">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    Dark Mode
                 </button>
                 <button class="btn btn-success" onclick="openAddModal()">+ Add New Listing</button>
             </div>
@@ -1475,11 +995,6 @@
                 </svg>
                 Back to Admin
             </button>
-            <button class="preview-dark-toggle" onclick="toggleDarkMode()" id="previewDarkToggle">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-            </button>
         </div>
         <div class="preview-container">
             <div class="preview-content-wrapper">
@@ -1563,20 +1078,6 @@
                             </div>
                         </div>
                         
-                        <div class="theme-toggle-container">
-                            <div class="theme-toggle-wrapper">
-                                <label class="theme-toggle-label">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
-                                    </svg>
-                                    Dark Mode
-                                </label>
-                                <label class="theme-switch">
-                                    <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
-                                    <span class="theme-slider"></span>
-                                </label>
-                            </div>
-                        </div>
                     </div>
                 </aside>
                 
@@ -1759,7 +1260,6 @@
                     </div>
                     <ul>
                         <li><strong>Mobile Responsive:</strong> The directory automatically adapts to all screen sizes</li>
-                        <li><strong>Dark Mode:</strong> Visitors can toggle between light and dark themes using the switch in the sidebar</li>
                         <li><strong>Updates:</strong> To update your listings, edit the data in the Data Table tab, then copy the new embed code and replace it in Squarespace</li>
                         <li><strong>Multiple Pages:</strong> You can add the directory to multiple pages - just paste the code wherever needed</li>
                         <li><strong>Custom Styling:</strong> If you want to adjust colors or fonts, modify the CSS in the Code tab before copying</li>
@@ -3221,77 +2721,6 @@ loadListings();</pre>
             renderPreview();
         }
         
-        function toggleDarkMode() {
-            const root = document.documentElement;
-            const button = document.getElementById('darkModeToggle');
-            const previewButton = document.getElementById('previewDarkToggle');
-            
-            const moonIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-            </svg>`;
-            
-            const sunIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="5"></circle>
-                <line x1="12" y1="1" x2="12" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="23"></line>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                <line x1="1" y1="12" x2="3" y2="12"></line>
-                <line x1="21" y1="12" x2="23" y2="12"></line>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-            </svg>`;
-            
-            if (root.classList.contains('dark-mode')) {
-                root.classList.remove('dark-mode');
-                localStorage.setItem('darkMode', 'disabled');
-                if (button) {
-                    button.innerHTML = moonIcon + '<span style="margin-left: 6px;">Dark Mode</span>';
-                }
-                if (previewButton) {
-                    previewButton.innerHTML = moonIcon;
-                }
-            } else {
-                root.classList.add('dark-mode');
-                localStorage.setItem('darkMode', 'enabled');
-                if (button) {
-                    button.innerHTML = sunIcon + '<span style="margin-left: 6px;">Light Mode</span>';
-                }
-                if (previewButton) {
-                    previewButton.innerHTML = sunIcon;
-                }
-            }
-        }
-        
-        function loadDarkModePreference() {
-            const darkMode = localStorage.getItem('darkMode');
-            const root = document.documentElement;
-            const button = document.getElementById('darkModeToggle');
-            const previewButton = document.getElementById('previewDarkToggle');
-            
-            const sunIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="5"></circle>
-                <line x1="12" y1="1" x2="12" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="23"></line>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                <line x1="1" y1="12" x2="3" y2="12"></line>
-                <line x1="21" y1="12" x2="23" y2="12"></line>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-            </svg>`;
-            
-            if (darkMode === 'enabled') {
-                root.classList.add('dark-mode');
-                if (button) {
-                    button.innerHTML = sunIcon + '<span style="margin-left: 6px;">Light Mode</span>';
-                }
-                if (previewButton) {
-                    previewButton.innerHTML = sunIcon;
-                }
-            }
-        }
-        
         function generateCode() {
             const jsonData = JSON.stringify(data, null, 2);
             document.getElementById('jsonCode').value = jsonData;
@@ -3594,7 +3023,6 @@ loadListings();</pre>
             renderAmenitiesCheckboxes();
             renderListings();
             updateStats();
-            loadDarkModePreference();
             populateAdminFilters();
             
             // Add event listeners to quick filter buttons
