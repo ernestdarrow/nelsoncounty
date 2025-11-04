@@ -1112,6 +1112,23 @@
         </div>
     </div>
     
+    <script>
+        // Test if functions are available
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                console.log('Testing functions:', {
+                    reloadFromSheets: typeof window.reloadFromSheets,
+                    saveAllToSheets: typeof window.saveAllToSheets,
+                    downloadCSV: typeof window.downloadCSV,
+                    openAddModal: typeof window.openAddModal,
+                    logout: typeof window.logout,
+                    switchTab: typeof window.switchTab,
+                    filterAdminByType: typeof window.filterAdminByType,
+                    closeModal: typeof window.closeModal
+                });
+            }, 1000);
+        });
+    </script>
     <script src="https://ernestdarrow.github.io/nelsoncounty/admin.js" onerror="console.error('Failed to load admin.js'); document.getElementById('loginError').style.display='block'; document.getElementById('loginErrorText').textContent='Failed to load admin.js. Please check that the file exists on GitHub Pages.';"></script>
     
     <script>

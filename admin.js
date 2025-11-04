@@ -219,10 +219,10 @@ const initialData =
   }
 }
 ;
-        
-        // =================================
-        // GOOGLE SHEETS CONFIGURATION
-        // =================================
+
+// =================================
+// GOOGLE SHEETS CONFIGURATION
+// =================================
         // Step 1: Get your Google Sheet's published CSV URL (optional - used as fallback)
         // File → Share → Publish to web → CSV → Copy URL
         const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/YOUR_SHEET_ID/pub?gid=0&single=true&output=csv';
@@ -2824,3 +2824,16 @@ const initialData =
             // Reload page to show login screen
             location.reload();
         }
+        
+        // Ensure all functions are available immediately
+        console.log('✅ admin.js loaded successfully');
+        console.log('✅ Functions available:', {
+            reloadFromSheets: typeof window.reloadFromSheets,
+            saveAllToSheets: typeof window.saveAllToSheets,
+            downloadCSV: typeof window.downloadCSV,
+            openAddModal: typeof window.openAddModal,
+            logout: typeof window.logout,
+            switchTab: typeof window.switchTab,
+            filterAdminByType: typeof window.filterAdminByType,
+            closeModal: typeof window.closeModal
+        });
