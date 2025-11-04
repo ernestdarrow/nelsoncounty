@@ -2334,7 +2334,12 @@ const initialData =
         });
         
         // ===========================================        // GOOGLE OAUTH AUTHENTICATION
-        // ===========================================        // 🔐 CONFIGURATION: Google OAuth Client ID
+        // ===========================================
+        // 🔧 TESTING: Set to false to disable Google OAuth temporarily
+        // Set to true to re-enable authentication
+        const ENABLE_GOOGLE_AUTH = true; // 👈 Change to false to skip login
+        
+        // 🔐 CONFIGURATION: Google OAuth Client ID
         // Get this from: https://console.cloud.google.com/apis/credentials
         // 1. Create OAuth 2.0 Client ID
         // 2. Application type: Web application
@@ -2661,6 +2666,14 @@ const initialData =
         
         // Check if user is already logged in
         window.addEventListener('load', function() {
+            // 🔧 TESTING: Skip authentication if disabled
+            if (!ENABLE_GOOGLE_AUTH) {
+                console.log('⚠️ Google OAuth disabled for testing - skipping login');
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.body.classList.add('logged-in');
+                return; // Skip all auth checks
+            }
+            
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             const adminEmail = sessionStorage.getItem('adminEmail');
             
