@@ -252,6 +252,91 @@
         
         .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px; }
         
+        /* Dialog Modal for confirm/alert replacements */
+        .dialog-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .dialog-modal.active {
+            display: flex;
+        }
+        .dialog-modal-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 0;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: dialogSlideIn 0.2s ease-out;
+        }
+        @keyframes dialogSlideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .dialog-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .dialog-modal-header h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        .dialog-modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .dialog-modal-close:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        .dialog-modal-body {
+            padding: 24px;
+        }
+        .dialog-modal-body p {
+            margin: 0;
+            color: var(--text-primary);
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+        .dialog-modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+        }
+        .dialog-modal-footer .btn {
+            min-width: 100px;
+        }
+        
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
