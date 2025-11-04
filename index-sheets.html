@@ -1286,6 +1286,7 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('admin')">Admin</button>
             <button class="tab-btn" onclick="switchTab('data')">Data Table</button>
+            <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
             <button class="tab-btn" onclick="switchTab('code')">Code</button>
             <button class="tab-btn" onclick="switchTab('preview')">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 6px;">
@@ -1293,11 +1294,11 @@
                 </svg>
                 Preview
             </button>
-            <button class="tab-btn" onclick="switchTab('deploy')">
+            <button class="tab-btn" onclick="switchTab('learn')">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 6px;">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
                 </svg>
-                Deploy
+                Learn
             </button>
         </div>
     </div>
@@ -1363,9 +1364,9 @@
                         style="background: #34a853; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                     <span>💾</span> Save All to Google Sheets
                 </button>
-                <button onclick="downloadJSON()"
+                <button onclick="downloadCSV()"
                         style="background: #4E6B52; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                    <span>📥</span> Download JSON Backup
+                    <span>📥</span> Download CSV Backup
                 </button>
                 <div id="sheetsActionStatus" style="margin-left: auto; font-weight: 600; color: #34a853;"></div>
             </div>
@@ -1640,6 +1641,62 @@
         </div>
     </div>
     
+    <div id="settingsTab" class="tab-content">
+        <div class="settings-container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+            <div style="margin-bottom: 30px;">
+                <h2 style="margin: 0 0 10px 0; color: #212529;">Field Configuration</h2>
+                <p style="color: #6c757d; margin: 0;">Manage the options available in the Add/Edit listing form. Changes are saved automatically.</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
+                <!-- Types Section -->
+                <div class="settings-card" style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;">
+                    <h3 style="margin: 0 0 15px 0; color: #212529; font-size: 18px;">Types</h3>
+                    <p style="color: #6c757d; font-size: 14px; margin: 0 0 15px 0;">Options for the "Type" dropdown in the listing form</p>
+                    <div id="typesList" style="margin-bottom: 15px; max-height: 300px; overflow-y: auto;">
+                        <!-- Types will be rendered here -->
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="newTypeInput" placeholder="Add new type..." style="flex: 1; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;" onkeypress="if(event.key==='Enter') addType()" />
+                        <button onclick="addType()" class="btn btn-success" style="padding: 8px 16px;">Add</button>
+                    </div>
+                </div>
+                
+                <!-- Areas Section -->
+                <div class="settings-card" style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;">
+                    <h3 style="margin: 0 0 15px 0; color: #212529; font-size: 18px;">Areas</h3>
+                    <p style="color: #6c757d; font-size: 14px; margin: 0 0 15px 0;">Options for the "Area" dropdown in the listing form</p>
+                    <div id="areasList" style="margin-bottom: 15px; max-height: 300px; overflow-y: auto;">
+                        <!-- Areas will be rendered here -->
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="newAreaInput" placeholder="Add new area..." style="flex: 1; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;" onkeypress="if(event.key==='Enter') addArea()" />
+                        <button onclick="addArea()" class="btn btn-success" style="padding: 8px 16px;">Add</button>
+                    </div>
+                </div>
+                
+                <!-- Amenities Section -->
+                <div class="settings-card" style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; grid-column: 1 / -1;">
+                    <h3 style="margin: 0 0 15px 0; color: #212529; font-size: 18px;">Amenities</h3>
+                    <p style="color: #6c757d; font-size: 14px; margin: 0 0 15px 0;">Options for the "Amenities" checkboxes in the listing form</p>
+                    <div id="amenitiesList" style="margin-bottom: 15px; max-height: 300px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                        <!-- Amenities will be rendered here -->
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="newAmenityInput" placeholder="Add new amenity..." style="flex: 1; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;" onkeypress="if(event.key==='Enter') addAmenity()" />
+                        <button onclick="addAmenity()" class="btn btn-success" style="padding: 8px 16px;">Add</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #4E6B52;">
+                <p style="margin: 0; color: #6c757d;">
+                    <strong>Note:</strong> Changes are saved automatically. The form dropdowns and checkboxes will update immediately after you add or remove items.
+                </p>
+            </div>
+        </div>
+    </div>
+    
     <div id="codeTab" class="tab-content">
         <div class="code-container">
             <div class="code-section">
@@ -1676,520 +1733,352 @@
         </div>
     </div>
     
-    <div id="deployTab" class="tab-content">
-        <div class="data-container">
+    <div id="learnTab" class="tab-content">
+        <div class="data-container" style="max-width: 1000px; margin: 0 auto;">
             <div class="deploy-header">
-                <h2>Deploy to Squarespace</h2>
-                <p style="color: var(--text-secondary); margin-top: 10px;">Follow these simple steps to add your adventure directory to your Squarespace website</p>
+                <h2>How the System Works</h2>
+                <p style="color: var(--text-secondary); margin-top: 10px;">Understanding the complete workflow from Admin Panel to Google Sheets to Framer CMS</p>
             </div>
             
+            <!-- System Overview -->
+            <div style="background: linear-gradient(135deg, #4E6B52 0%, #3d5540 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 40px;">
+                <h2 style="color: white; margin: 0 0 15px 0; font-size: 28px;">System Architecture Overview</h2>
+                <p style="color: rgba(255,255,255,0.9); margin: 0; line-height: 1.8; font-size: 16px;">
+                    This system connects <strong>4 main components</strong> to create a seamless content management workflow:
+                    <strong>Admin Panel</strong> → <strong>Google Sheets</strong> → <strong>Framer CMS</strong> → <strong>Live Website</strong>
+                </p>
+            </div>
+            
+            <!-- Workflow Diagram Section -->
             <div class="deploy-steps">
                 <div class="deploy-step">
-                    <div class="deploy-step-number">1</div>
+                    <div class="deploy-step-number" style="background: linear-gradient(135deg, #4E6B52 0%, #3d5540 100%);">1</div>
                     <div class="deploy-step-content">
-                        <h3>Create a Code Block</h3>
-                        <p>In your Squarespace page editor, add a <strong>Code Block</strong> where you want the directory to appear:</p>
+                        <h3>Admin Panel (This Interface)</h3>
+                        <p><strong>What it is:</strong> Your local content management system where you create and edit listings.</p>
                         <ul>
-                            <li>Click the <strong>+</strong> button to add a new block</li>
-                            <li>Search for "Code" and select the <strong>Code</strong> block</li>
-                            <li>This is where you'll paste your embed code</li>
+                            <li><strong>Add/Edit Listings:</strong> Use the Admin tab to create new listings or modify existing ones</li>
+                            <li><strong>Bulk Editing:</strong> Use the Data Table tab for spreadsheet-style editing</li>
+                            <li><strong>Field Configuration:</strong> Use the Settings tab to customize Types, Areas, and Amenities</li>
+                            <li><strong>Local Storage:</strong> Changes are saved in your browser's local storage (not synced yet)</li>
                         </ul>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #4E6B52;">
+                            <strong>💡 Key Point:</strong> This is where you do all your content work. Changes here are local until you sync to Google Sheets.
+                        </div>
                     </div>
                 </div>
                 
                 <div class="deploy-step">
-                    <div class="deploy-step-number">2</div>
+                    <div class="deploy-step-number" style="background: linear-gradient(135deg, #34a853 0%, #2d8f47 100%);">2</div>
                     <div class="deploy-step-content">
-                        <h3>Copy the Embed Code</h3>
-                        <p>Go to the <strong>Code</strong> tab above and copy the full <strong>Embed Code</strong>. This includes:</p>
+                        <h3>Google Sheets (Data Storage)</h3>
+                        <p><strong>What it is:</strong> Your centralized database hosted in Google Sheets, accessible via Google Apps Script.</p>
                         <ul>
-                            <li>All HTML structure for your listings</li>
-                            <li>Complete CSS styling (light & dark mode)</li>
-                            <li>Interactive JavaScript functionality</li>
-                            <li>Your data embedded in JSON format</li>
+                            <li><strong>Sync Button:</strong> Click "Save All to Google Sheets" to upload your local changes</li>
+                            <li><strong>Auto-Sync:</strong> The system automatically loads data from Sheets when you open the admin panel</li>
+                            <li><strong>Google Apps Script:</strong> Acts as an API bridge between this admin panel and your Google Sheet</li>
+                            <li><strong>Backup:</strong> Always download a CSV backup before syncing to avoid data loss</li>
                         </ul>
-                        <button class="btn btn-primary" onclick="switchTab('code')" style="margin-top: 12px;">
-                            Go to Code Tab →
-                        </button>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #34a853;">
+                            <strong>💡 Key Point:</strong> Google Sheets is your "source of truth" - it's where Framer CMS will pull data from.
+                        </div>
+                        <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-top: 12px; border-left: 4px solid #ffc107;">
+                            <strong>⚠️ Important:</strong> Make sure your Google Apps Script is deployed with "Anyone" access and reads from <code>e.postData.contents</code> for CORS to work properly.
+                        </div>
                     </div>
                 </div>
                 
                 <div class="deploy-step">
-                    <div class="deploy-step-number">3</div>
+                    <div class="deploy-step-number" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">3</div>
                     <div class="deploy-step-content">
-                        <h3>Paste into Code Block</h3>
-                        <p>Back in Squarespace, paste the embed code into the Code Block:</p>
+                        <h3>Framer CMS Integration</h3>
+                        <p><strong>What it is:</strong> Framer's CMS system that connects to your Google Sheet to display listings on your website.</p>
                         <ul>
-                            <li>Click inside the Code Block</li>
-                            <li>Set the display mode to <strong>HTML</strong></li>
-                            <li>Paste the entire embed code you copied</li>
-                            <li>Click <strong>Apply</strong></li>
+                            <li><strong>CMS Collection:</strong> Set up a CMS collection in Framer that pulls from your Google Sheet</li>
+                            <li><strong>Auto-Refresh:</strong> Framer periodically checks your Google Sheet for updates</li>
+                            <li><strong>Real-time Updates:</strong> When you sync from Admin Panel → Google Sheets, Framer will see the changes</li>
+                            <li><strong>No Code Deployment:</strong> Unlike Squarespace, you don't need to replace code blocks</li>
                         </ul>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #6366f1;">
+                            <strong>💡 Key Point:</strong> Once configured, Framer automatically displays whatever is in your Google Sheet - no manual code updates needed!
+                        </div>
+                        <div style="background: #e0e7ff; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                            <h4 style="margin: 0 0 10px 0; color: #4f46e5;">Setting Up Framer CMS:</h4>
+                            <ol style="margin: 0; padding-left: 20px;">
+                                <li>In Framer, go to <strong>CMS</strong> → <strong>Add Collection</strong></li>
+                                <li>Choose <strong>"Google Sheets"</strong> as your data source</li>
+                                <li>Connect to your Google Sheet (the same one connected to Apps Script)</li>
+                                <li>Map the columns to CMS fields (Name, Type, Area, Description, etc.)</li>
+                                <li>Design your listing cards using the CMS data</li>
+                            </ol>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="deploy-step">
-                    <div class="deploy-step-number">4</div>
+                    <div class="deploy-step-number" style="background: linear-gradient(135deg, #D65052 0%, #b84446 100%);">4</div>
                     <div class="deploy-step-content">
-                        <h3>Adjust Block Settings (Optional)</h3>
-                        <p>Fine-tune the appearance in Squarespace:</p>
+                        <h3>Live Website</h3>
+                        <p><strong>What it is:</strong> Your published Framer site that visitors see.</p>
                         <ul>
-                            <li><strong>Width:</strong> Set to "Full" for best results</li>
-                            <li><strong>Spacing:</strong> Adjust top/bottom padding as needed</li>
-                            <li><strong>Background:</strong> The directory has its own styling, so keep the block background transparent</li>
+                            <li><strong>Automatic Updates:</strong> When Framer CMS refreshes, your live site updates automatically</li>
+                            <li><strong>No Downtime:</strong> Changes appear seamlessly without site downtime</li>
+                            <li><strong>Preview Mode:</strong> Test changes in Framer's preview before publishing</li>
+                            <li><strong>Publishing:</strong> Once you publish in Framer, changes go live immediately</li>
                         </ul>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #D65052;">
+                            <strong>💡 Key Point:</strong> The live site is the final destination - it automatically reflects what's in your Google Sheet via Framer CMS.
+                        </div>
                     </div>
                 </div>
-                
-                <div class="deploy-step">
-                    <div class="deploy-step-number">5</div>
-                    <div class="deploy-step-content">
-                        <h3>Save & Publish</h3>
-                        <p>Preview your page and publish when ready:</p>
-                        <ul>
-                            <li>Click <strong>Save</strong> at the top of the page editor</li>
-                            <li>Use the <strong>Preview</strong> button to see how it looks</li>
-                            <li>When satisfied, click <strong>Publish</strong></li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="deploy-tips">
-                    <div class="deploy-tip-header">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px; margin-right: 12px;">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+            </div>
+            
+            <!-- Complete Workflow Section -->
+            <div style="margin-top: 60px; padding-top: 40px; border-top: 2px solid var(--border-color);">
+                <div class="deploy-header" style="margin-bottom: 30px;">
+                    <h2 style="display: flex; align-items: center; gap: 12px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 32px; height: 32px; color: #4E6B52;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
                         </svg>
-                        <h3>Pro Tips</h3>
-                    </div>
-                    <ul>
-                        <li><strong>Mobile Responsive:</strong> The directory automatically adapts to all screen sizes</li>
-                        <li><strong>Dark Mode:</strong> Visitors can toggle between light and dark themes using the switch in the sidebar</li>
-                        <li><strong>Updates:</strong> To update your listings, edit the data in the Data Table tab, then copy the new embed code and replace it in Squarespace</li>
-                        <li><strong>Multiple Pages:</strong> You can add the directory to multiple pages - just paste the code wherever needed</li>
-                        <li><strong>Custom Styling:</strong> If you want to adjust colors or fonts, modify the CSS in the Code tab before copying</li>
-                    </ul>
+                        Complete Workflow: Making Changes
+                    </h2>
+                    <p style="color: var(--text-secondary); margin-top: 10px;">Follow these steps whenever you want to update your listings</p>
                 </div>
                 
-                <div class="deploy-note">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-right: 10px; flex-shrink: 0;">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-                    </svg>
-                    <div>
-                        <strong>Note:</strong> Squarespace Code Blocks require a Business plan or higher. If you don't see the Code block option, you may need to upgrade your plan.
+                <div class="deploy-steps">
+                    <div class="deploy-step">
+                        <div class="deploy-step-number" style="background: linear-gradient(135deg, #4E6B52 0%, #3d5540 100%);">1</div>
+                        <div class="deploy-step-content">
+                            <h3>Edit in Admin Panel</h3>
+                            <p>Make your changes here:</p>
+                            <ul>
+                                <li>Open this admin panel HTML file in your browser</li>
+                                <li>Go to <strong>Admin</strong> tab to add/edit individual listings</li>
+                                <li>Or use <strong>Data Table</strong> tab for bulk editing</li>
+                                <li>Use <strong>Settings</strong> tab to manage form fields (Types, Areas, Amenities)</li>
+                            </ul>
+                            <p style="margin-top: 12px; padding: 12px; background: #f0f9ff; border-left: 4px solid #0ea5e9; border-radius: 4px;">
+                                <strong>📝 Note:</strong> Changes are saved locally in your browser. They won't appear on your website until you sync to Google Sheets.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="deploy-step">
+                        <div class="deploy-step-number" style="background: linear-gradient(135deg, #34a853 0%, #2d8f47 100%);">2</div>
+                        <div class="deploy-step-content">
+                            <h3>Sync to Google Sheets</h3>
+                            <p>Push your changes to the cloud:</p>
+                            <ul>
+                                <li>Click <strong>"Save All to Google Sheets"</strong> button (top of Admin tab)</li>
+                                <li>You'll be prompted to download a CSV backup first (recommended!)</li>
+                                <li>Confirm the sync - this replaces all data in your Google Sheet</li>
+                                <li>Wait for the success message: "✅ Replaced all data in Google Sheets"</li>
+                            </ul>
+                            <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-top: 12px; border-left: 4px solid #ffc107;">
+                                <strong>⚠️ Important:</strong> This step overwrites your Google Sheet. Always download a backup first if you're unsure!
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="deploy-step">
+                        <div class="deploy-step-number" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">3</div>
+                        <div class="deploy-step-content">
+                            <h3>Framer CMS Auto-Refresh</h3>
+                            <p>Framer automatically picks up the changes:</p>
+                            <ul>
+                                <li>Framer CMS checks your Google Sheet periodically (usually every few minutes)</li>
+                                <li>When it detects changes, it automatically updates the CMS collection</li>
+                                <li>You can manually refresh in Framer: <strong>CMS</strong> → <strong>Refresh Collection</strong></li>
+                                <li>Preview your changes in Framer's preview mode</li>
+                            </ul>
+                            <div style="background: #e0e7ff; padding: 12px; border-radius: 8px; margin-top: 12px; border-left: 4px solid #6366f1;">
+                                <strong>💡 Tip:</strong> If changes don't appear immediately, try manually refreshing the CMS collection in Framer.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="deploy-step">
+                        <div class="deploy-step-number" style="background: linear-gradient(135deg, #D65052 0%, #b84446 100%);">4</div>
+                        <div class="deploy-step-content">
+                            <h3>Publish in Framer</h3>
+                            <p>Make changes live on your website:</p>
+                            <ul>
+                                <li>Review your changes in Framer's preview</li>
+                                <li>Click <strong>Publish</strong> in Framer</li>
+                                <li>Changes go live immediately on your website</li>
+                                <li>No code editing needed - it's all automatic!</li>
+                            </ul>
+                            <div style="background: #fee2e2; padding: 12px; border-radius: 8px; margin-top: 12px; border-left: 4px solid #D65052;">
+                                <strong>✅ That's it!</strong> Your workflow is complete: Admin Panel → Google Sheets → Framer CMS → Live Site
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Important Information Section -->
+            <div style="margin-top: 60px; padding-top: 40px; border-top: 2px solid var(--border-color);">
+                <div class="deploy-header" style="margin-bottom: 30px;">
+                    <h2 style="display: flex; align-items: center; gap: 12px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 32px; height: 32px; color: #4E6B52;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                        </svg>
+                        Important Things to Know
+                    </h2>
+                </div>
+                
+                <div class="deploy-steps">
+                    <div class="deploy-step">
+                        <div class="deploy-step-number" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">⚠️</div>
+                        <div class="deploy-step-content">
+                            <h3>Data Safety & Backups</h3>
+                            <ul>
+                                <li><strong>Always Backup First:</strong> Download CSV backup before syncing to Google Sheets</li>
+                                <li><strong>Local Storage:</strong> Your changes are saved locally in your browser - they persist between sessions on the same computer</li>
+                                <li><strong>Google Sheets is Source of Truth:</strong> Once synced, Google Sheets becomes the authoritative data source</li>
+                                <li><strong>Multiple Devices:</strong> If you use this admin panel on different computers, sync to Google Sheets to share data</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="deploy-step">
+                        <div class="deploy-step-number" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">🔧</div>
+                        <div class="deploy-step-content">
+                            <h3>Google Apps Script Configuration</h3>
+                            <p>Your Apps Script must be properly configured:</p>
+                            <ul>
+                                <li><strong>Deployment:</strong> Must be deployed as a "Web app" with "Anyone" access</li>
+                                <li><strong>CORS:</strong> Script must read from <code>e.postData.contents</code> (not <code>e.parameter.data</code>)</li>
+                                <li><strong>URL:</strong> Copy the deployment URL and paste it in the admin panel configuration</li>
+                                <li><strong>New Deployments:</strong> If you update the script, create a new deployment (don't just update)</li>
+                            </ul>
+                            <div style="background: #f3f4f6; padding: 12px; border-radius: 8px; margin-top: 12px;">
+                                <strong>Script File:</strong> See <code>nelson-county-apps-script.gs</code> for the complete, ready-to-use script.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="deploy-step">
+                        <div class="deploy-step-number" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">📊</div>
+                        <div class="deploy-step-content">
+                            <h3>Google Sheet Structure</h3>
+                            <p>Your Google Sheet should have these columns (in any order):</p>
+                            <ul>
+                                <li><strong>id</strong> - Unique identifier for each listing</li>
+                                <li><strong>name</strong> - Listing name/title</li>
+                                <li><strong>type</strong> - Category (Brewery, Winery, etc.)</li>
+                                <li><strong>area</strong> - Location area</li>
+                                <li><strong>description</strong> - Full description text</li>
+                                <li><strong>image1</strong> - Primary image URL</li>
+                                <li><strong>image2</strong> - Secondary image URL (optional)</li>
+                                <li><strong>website</strong> - External website URL</li>
+                                <li><strong>phone</strong> - Contact phone number</li>
+                                <li><strong>address</strong> - Physical address</li>
+                                <li><strong>amenities</strong> - Comma or semicolon-separated list</li>
+                                <li><strong>featured</strong> - TRUE or FALSE</li>
+                            </ul>
+                            <div style="background: #f0fdf4; padding: 12px; border-radius: 8px; margin-top: 12px; border-left: 4px solid #22c55e;">
+                                <strong>💡 Tip:</strong> The Apps Script automatically handles different column orders and missing fields.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="deploy-step">
+                        <div class="deploy-step-number" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">🎨</div>
+                        <div class="deploy-step-content">
+                            <h3>Framer CMS Setup Tips</h3>
+                            <ul>
+                                <li><strong>Sheet Sharing:</strong> Make sure your Google Sheet is shared (view access) or published</li>
+                                <li><strong>Column Names:</strong> Framer CMS will automatically detect column names from your sheet header row</li>
+                                <li><strong>Refresh Rate:</strong> Framer checks for updates every few minutes - you can manually refresh</li>
+                                <li><strong>Data Types:</strong> Framer will auto-detect data types (text, number, image URL, etc.)</li>
+                                <li><strong>Multiple Collections:</strong> You can create separate CMS collections for different views/filters</li>
+                            </ul>
+                            <div style="background: #fce7f3; padding: 12px; border-radius: 8px; margin-top: 12px; border-left: 4px solid #ec4899;">
+                                <strong>💡 Pro Tip:</strong> Use Framer's CMS filtering and sorting features to create dynamic, filtered views without additional code.
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Update Workflow Section -->
+                <!-- Troubleshooting Section -->
                 <div style="margin-top: 60px; padding-top: 40px; border-top: 2px solid var(--border-color);">
                     <div class="deploy-header" style="margin-bottom: 30px;">
                         <h2 style="display: flex; align-items: center; gap: 12px;">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 32px; height: 32px; color: #4E6B52;">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                             </svg>
-                            How to Update Your Listings
+                            Troubleshooting
                         </h2>
-                        <p style="color: var(--text-secondary); margin-top: 10px;">This admin panel makes it easy to manage your content, but updates require re-deploying the code to Squarespace</p>
-                    </div>
-                    
-                    <div class="deploy-steps">
-                        <div class="deploy-step">
-                            <div class="deploy-step-number" style="background: linear-gradient(135deg, #D65052 0%, #b84446 100%);">1</div>
-                            <div class="deploy-step-content">
-                                <h3>Make Changes in the Admin Tab</h3>
-                                <p>Use the <strong>Admin Tab</strong> to manage your listings:</p>
-                                <ul>
-                                    <li><strong>Add:</strong> Click "+ Add New Listing" to create new cards</li>
-                                    <li><strong>Edit:</strong> Click the edit button on any card to modify details</li>
-                                    <li><strong>Delete:</strong> Remove listings that are no longer needed</li>
-                                    <li><strong>Toggle Featured:</strong> Mark important listings as featured</li>
-                                </ul>
-                                <p style="margin-top: 12px;">All changes are saved in your browser's local storage, so they'll persist when you return to this page.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="deploy-step">
-                            <div class="deploy-step-number" style="background: linear-gradient(135deg, #D65052 0%, #b84446 100%);">2</div>
-                            <div class="deploy-step-content">
-                                <h3>Alternative: Bulk Edit in Data Table</h3>
-                                <p>For larger updates, use the <strong>Data Table</strong> tab:</p>
-                                <ul>
-                                    <li><strong>Direct Editing:</strong> Click any cell to edit inline</li>
-                                    <li><strong>CSV Upload:</strong> Upload a spreadsheet with all your data</li>
-                                    <li><strong>CSV Download:</strong> Export your current data to Excel/Sheets</li>
-                                    <li><strong>Bulk Changes:</strong> Easier for updating many listings at once</li>
-                                </ul>
-                                <button class="btn btn-secondary" onclick="switchTab('data')" style="margin-top: 12px;">
-                                    Open Data Table →
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="deploy-step">
-                            <div class="deploy-step-number" style="background: linear-gradient(135deg, #D65052 0%, #b84446 100%);">3</div>
-                            <div class="deploy-step-content">
-                                <h3>Generate New Embed Code</h3>
-                                <p>After making changes, get the updated code:</p>
-                                <ul>
-                                    <li>Go to the <strong>Code Tab</strong></li>
-                                    <li>Your changes are automatically embedded in the code</li>
-                                    <li>Click <strong>Copy</strong> next to "Embed Code"</li>
-                                    <li>The new code includes all your latest listings and edits</li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div class="deploy-step">
-                            <div class="deploy-step-number" style="background: linear-gradient(135deg, #D65052 0%, #b84446 100%);">4</div>
-                            <div class="deploy-step-content">
-                                <h3>Replace Code in Squarespace</h3>
-                                <p>Update your live site with the new version:</p>
-                                <ul>
-                                    <li>Log into Squarespace and navigate to your page</li>
-                                    <li>Find the existing Code Block with your directory</li>
-                                    <li>Click to edit it</li>
-                                    <li>Select all the old code (Ctrl+A or Cmd+A) and delete it</li>
-                                    <li>Paste the new embed code</li>
-                                    <li>Click <strong>Apply</strong> then <strong>Save</strong> and <strong>Publish</strong></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="deploy-tips" style="border-color: #D65052;">
-                        <div class="deploy-tip-header" style="color: #D65052;">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px; margin-right: 12px;">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-                            </svg>
-                            <h3>Quick Update Tips</h3>
-                        </div>
-                        <ul>
-                            <li><strong>Keep This Admin Panel Saved:</strong> Bookmark this HTML file or keep it somewhere accessible. You'll need to open it whenever you want to make updates.</li>
-                            <li><strong>Your Data Persists:</strong> All your listings are saved in your browser's local storage, so you don't lose work between sessions (on the same computer/browser).</li>
-                            <li><strong>Backup Your Data:</strong> Regularly download your data as CSV from the Data Table tab. This gives you a backup if you switch computers or clear your browser data.</li>
-                            <li><strong>Preview Before Deploying:</strong> Always check the Preview tab to see how your changes look before copying the code to Squarespace.</li>
-                            <li><strong>Same Process Every Time:</strong> The workflow is always: Edit → Generate Code → Copy → Paste in Squarespace → Publish</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="deploy-note" style="border-left-color: #D65052; background: rgba(214, 80, 82, 0.1);">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-right: 10px; flex-shrink: 0;">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                        </svg>
-                        <div>
-                            <strong>Why Manual Re-deployment?</strong> This approach keeps everything simple and self-contained - no databases, servers, or recurring costs. While it requires manually updating the code in Squarespace, it gives you complete control and works with any Squarespace Business plan or higher without additional services.
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Auto-Deploy Section -->
-                <div style="margin-top: 60px; padding-top: 40px; border-top: 2px solid var(--border-color);">
-                    <div class="deploy-header" style="margin-bottom: 30px;">
-                        <h2 style="display: flex; align-items: center; gap: 12px;">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 32px; height: 32px; color: #4E6B52;">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008zm-3 6h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008z" />
-                            </svg>
-                            Advanced: Auto-Deploy with JSON
-                        </h2>
-                        <p style="color: var(--text-secondary); margin-top: 10px;">For automatic updates without touching Squarespace code, host your data externally and fetch it dynamically</p>
-                    </div>
-                    
-                    <div class="deploy-tips" style="border-color: #6366f1; margin-bottom: 30px;">
-                        <div class="deploy-tip-header" style="color: #6366f1;">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px; margin-right: 12px;">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
-                            </svg>
-                            <h3>Benefits of Auto-Deploy</h3>
-                        </div>
-                        <ul>
-                            <li><strong>Update Once, Apply Everywhere:</strong> Change one JSON file and all pages update automatically</li>
-                            <li><strong>No Code Changes:</strong> Never touch the Squarespace code block after initial setup</li>
-                            <li><strong>Team Collaboration:</strong> Multiple people can update the JSON file</li>
-                            <li><strong>Version Control:</strong> Track changes over time using Git</li>
-                            <li><strong>Instant Updates:</strong> Changes appear within seconds (depending on caching)</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="deploy-steps">
-                        <div class="deploy-step">
-                            <div class="deploy-step-number" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">1</div>
-                            <div class="deploy-step-content">
-                                <h3>Choose a JSON Hosting Service</h3>
-                                <p>You need to host your JSON data file somewhere publicly accessible. Here are the best options:</p>
-                                
-                                <div style="background: var(--bg-secondary); border-radius: 8px; padding: 15px; margin: 15px 0;">
-                                    <h4 style="font-size: 16px; color: var(--text-primary); margin-bottom: 10px;">Option A: GitHub (Free & Recommended)</h4>
-                                    <ul style="margin: 0; padding-left: 20px;">
-                                        <li>Create a free GitHub account at <a href="https://github.com" target="_blank" style="color: #4E6B52;">github.com</a></li>
-                                        <li>Create a new repository (can be public or private)</li>
-                                        <li>Upload your <code>listings.json</code> file</li>
-                                        <li>Use GitHub's raw content URL: <code>https://raw.githubusercontent.com/username/repo/main/listings.json</code></li>
-                                        <li><strong>Pros:</strong> Free, version control, easy updates via web interface or Git</li>
-                                    </ul>
-                                    <button class="btn btn-primary" onclick="document.getElementById('githubDetailedSteps').style.display = document.getElementById('githubDetailedSteps').style.display === 'none' ? 'block' : 'none'" style="margin-top: 12px; font-size: 13px;">
-                                        📖 Show Detailed GitHub Setup Guide
-                                    </button>
-                                    
-                                    <!-- Detailed GitHub Guide -->
-                                    <div id="githubDetailedSteps" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--border-color);">
-                                        <h4 style="font-size: 18px; color: #4E6B52; margin-bottom: 20px; font-weight: 600;">📚 Complete GitHub Setup Guide</h4>
-                                        
-                                        <div style="background: white; border: 2px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                                <div style="width: 32px; height: 32px; background: #4E6B52; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</div>
-                                                <h5 style="margin: 0; font-size: 16px; color: var(--text-primary);">Create a GitHub Account</h5>
-                                            </div>
-                                            <ul style="margin: 10px 0 0 44px; padding: 0; list-style: none;">
-                                                <li style="margin-bottom: 8px;">→ Go to <a href="https://github.com/signup" target="_blank" style="color: #4E6B52; font-weight: 600;">github.com/signup</a></li>
-                                                <li style="margin-bottom: 8px;">→ Enter your email address and click "Continue"</li>
-                                                <li style="margin-bottom: 8px;">→ Create a password and username</li>
-                                                <li style="margin-bottom: 8px;">→ Verify your account via email</li>
-                                                <li style="margin-bottom: 8px;">→ Choose the free plan (no credit card needed)</li>
-                                            </ul>
-                                        </div>
-                                        
-                                        <div style="background: white; border: 2px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                                <div style="width: 32px; height: 32px; background: #4E6B52; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">2</div>
-                                                <h5 style="margin: 0; font-size: 16px; color: var(--text-primary);">Create a New Repository</h5>
-                                            </div>
-                                            <ul style="margin: 10px 0 0 44px; padding: 0; list-style: none;">
-                                                <li style="margin-bottom: 8px;">→ Once logged in, click the <strong>+</strong> button in the top-right corner</li>
-                                                <li style="margin-bottom: 8px;">→ Select <strong>"New repository"</strong></li>
-                                                <li style="margin-bottom: 8px;">→ <strong>Repository name:</strong> Type something like <code>adventure-listings</code> or <code>listings-data</code></li>
-                                                <li style="margin-bottom: 8px;">→ <strong>Description (optional):</strong> "JSON data for my adventure directory"</li>
-                                                <li style="margin-bottom: 8px;">→ <strong>Visibility:</strong> Choose <strong>Public</strong> (required for free raw file access)</li>
-                                                <li style="margin-bottom: 8px;">→ Check ✓ <strong>"Add a README file"</strong></li>
-                                                <li style="margin-bottom: 8px;">→ Click <strong>"Create repository"</strong></li>
-                                            </ul>
-                                        </div>
-                                        
-                                        <div style="background: white; border: 2px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                                <div style="width: 32px; height: 32px; background: #4E6B52; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</div>
-                                                <h5 style="margin: 0; font-size: 16px; color: var(--text-primary);">Export Your JSON Data</h5>
-                                            </div>
-                                            <ul style="margin: 10px 0 0 44px; padding: 0; list-style: none;">
-                                                <li style="margin-bottom: 8px;">→ In this admin panel, click the <strong>Code</strong> tab at the top</li>
-                                                <li style="margin-bottom: 8px;">→ Scroll down to the <strong>"JSON Data"</strong> section</li>
-                                                <li style="margin-bottom: 8px;">→ Click the <strong>"Copy"</strong> button</li>
-                                                <li style="margin-bottom: 8px;">→ Open a text editor (Notepad, TextEdit, VS Code, etc.)</li>
-                                                <li style="margin-bottom: 8px;">→ Paste the JSON data</li>
-                                                <li style="margin-bottom: 8px;">→ Save the file as <code><strong>listings.json</strong></code> (make sure it has the .json extension)</li>
-                                            </ul>
-                                        </div>
-                                        
-                                        <div style="background: white; border: 2px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                                <div style="width: 32px; height: 32px; background: #4E6B52; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">4</div>
-                                                <h5 style="margin: 0; font-size: 16px; color: var(--text-primary);">Upload JSON File to GitHub</h5>
-                                            </div>
-                                            <ul style="margin: 10px 0 0 44px; padding: 0; list-style: none;">
-                                                <li style="margin-bottom: 8px;">→ Go back to your GitHub repository page</li>
-                                                <li style="margin-bottom: 8px;">→ Click <strong>"Add file"</strong> → <strong>"Upload files"</strong></li>
-                                                <li style="margin-bottom: 8px;">→ Drag and drop your <code>listings.json</code> file, or click "choose your files"</li>
-                                                <li style="margin-bottom: 8px;">→ In the "Commit changes" box at the bottom, type: <code>Add listings data</code></li>
-                                                <li style="margin-bottom: 8px;">→ Click <strong>"Commit changes"</strong></li>
-                                                <li style="margin-bottom: 8px;">→ Your file is now uploaded! ✓</li>
-                                            </ul>
-                                        </div>
-                                        
-                                        <div style="background: white; border: 2px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                                <div style="width: 32px; height: 32px; background: #4E6B52; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">5</div>
-                                                <h5 style="margin: 0; font-size: 16px; color: var(--text-primary);">Get Your JSON File URL</h5>
-                                            </div>
-                                            <ul style="margin: 10px 0 0 44px; padding: 0; list-style: none;">
-                                                <li style="margin-bottom: 8px;">→ On your repository page, click on <code>listings.json</code></li>
-                                                <li style="margin-bottom: 8px;">→ Click the <strong>"Raw"</strong> button (top-right of the file viewer)</li>
-                                                <li style="margin-bottom: 8px;">→ Copy the URL from your browser's address bar</li>
-                                                <li style="margin-bottom: 12px;">→ It should look like: <code style="display: block; background: #f3f4f6; padding: 8px; border-radius: 4px; margin-top: 8px; word-break: break-all;">https://raw.githubusercontent.com/YourUsername/adventure-listings/main/listings.json</code></li>
-                                                <li style="margin-bottom: 8px; padding: 12px; background: #dcfce7; border-left: 3px solid #4E6B52; border-radius: 4px;"><strong>✓ Save this URL!</strong> You'll use it in Step 3 of the Auto-Deploy setup</li>
-                                            </ul>
-                                        </div>
-                                        
-                                        <div style="background: white; border: 2px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                                <div style="width: 32px; height: 32px; background: #4E6B52; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">6</div>
-                                                <h5 style="margin: 0; font-size: 16px; color: var(--text-primary);">How to Update Your Data Later</h5>
-                                            </div>
-                                            <ul style="margin: 10px 0 0 44px; padding: 0; list-style: none;">
-                                                <li style="margin-bottom: 8px;"><strong>Method 1: Web Interface (Easiest)</strong></li>
-                                                <li style="margin-bottom: 8px; margin-left: 20px;">→ Go to your repository on GitHub</li>
-                                                <li style="margin-bottom: 8px; margin-left: 20px;">→ Click on <code>listings.json</code></li>
-                                                <li style="margin-bottom: 8px; margin-left: 20px;">→ Click the pencil icon (✏️) to edit</li>
-                                                <li style="margin-bottom: 8px; margin-left: 20px;">→ Delete all content and paste your new JSON data</li>
-                                                <li style="margin-bottom: 8px; margin-left: 20px;">→ Scroll down, add a commit message: <code>Update listings</code></li>
-                                                <li style="margin-bottom: 12px; margin-left: 20px;">→ Click <strong>"Commit changes"</strong></li>
-                                                
-                                                <li style="margin-bottom: 8px; margin-top: 12px;"><strong>Method 2: Re-upload</strong></li>
-                                                <li style="margin-bottom: 8px; margin-left: 20px;">→ Download new JSON from Code tab</li>
-                                                <li style="margin-bottom: 8px; margin-left: 20px;">→ Go to your GitHub repository</li>
-                                                <li style="margin-bottom: 8px; margin-left: 20px;">→ Click <code>listings.json</code> → Click trash icon 🗑️ to delete</li>
-                                                <li style="margin-bottom: 8px; margin-left: 20px;">→ Upload the new version</li>
-                                            </ul>
-                                        </div>
-                                        
-                                        <div style="background: #fef3c7; border: 2px solid #fbbf24; border-radius: 8px; padding: 15px; margin-top: 20px;">
-                                            <div style="display: flex; align-items: start; gap: 10px;">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px; color: #d97706; flex-shrink: 0;">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
-                                                </svg>
-                                                <div>
-                                                    <strong style="color: #92400e;">Pro Tip:</strong> After uploading to GitHub, test your URL by pasting it directly into your browser. You should see your JSON data displayed. If it works there, it will work in your Squarespace embed!
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div style="background: #dbeafe; border: 2px solid #3b82f6; border-radius: 8px; padding: 15px; margin-top: 15px;">
-                                            <div style="display: flex; align-items: start; gap: 10px;">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px; color: #1d4ed8; flex-shrink: 0;">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                <div>
-                                                    <strong style="color: #1e40af;">Next Steps:</strong> Once your JSON file is on GitHub and you have the raw URL, continue to <strong>Step 3</strong> in the Auto-Deploy section above to modify your embed code.
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div style="background: var(--bg-secondary); border-radius: 8px; padding: 15px; margin: 15px 0;">
-                                    <h4 style="font-size: 16px; color: var(--text-primary); margin-bottom: 10px;">Option B: JSONBin.io (Easiest)</h4>
-                                    <ul style="margin: 0; padding-left: 20px;">
-                                        <li>Visit <a href="https://jsonbin.io" target="_blank" style="color: #4E6B52;">jsonbin.io</a> (free tier available)</li>
-                                        <li>Create a "bin" and paste your JSON data</li>
-                                        <li>Get a public URL to your data</li>
-                                        <li><strong>Pros:</strong> Super simple, no technical knowledge needed</li>
-                                        <li><strong>Cons:</strong> Free tier has rate limits</li>
-                                    </ul>
-                                </div>
-                                
-                                <div style="background: var(--bg-secondary); border-radius: 8px; padding: 15px; margin: 15px 0;">
-                                    <h4 style="font-size: 16px; color: var(--text-primary); margin-bottom: 10px;">Option C: Cloudflare Workers/Pages (Advanced)</h4>
-                                    <ul style="margin: 0; padding-left: 20px;">
-                                        <li>Host static JSON files on Cloudflare's CDN</li>
-                                        <li>Extremely fast global delivery</li>
-                                        <li><strong>Pros:</strong> Best performance, generous free tier</li>
-                                        <li><strong>Cons:</strong> Requires more technical setup</li>
-                                    </ul>
-                                </div>
-                                
-                                <div style="background: var(--bg-secondary); border-radius: 8px; padding: 15px; margin: 15px 0;">
-                                    <h4 style="font-size: 16px; color: var(--text-primary); margin-bottom: 10px;">Option D: Your Own Web Hosting</h4>
-                                    <ul style="margin: 0; padding-left: 20px;">
-                                        <li>If you have web hosting, upload the JSON file via FTP</li>
-                                        <li>Access it at <code>https://yourdomain.com/listings.json</code></li>
-                                        <li><strong>Pros:</strong> Complete control</li>
-                                        <li><strong>Cons:</strong> Need existing hosting and CORS configuration</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="deploy-step">
-                            <div class="deploy-step-number" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">2</div>
-                            <div class="deploy-step-content">
-                                <h3>Export Your JSON Data</h3>
-                                <p>Get your listings data from this admin panel:</p>
-                                <ul>
-                                    <li>Go to the <strong>Code Tab</strong></li>
-                                    <li>Find the <strong>JSON Data</strong> section</li>
-                                    <li>Copy all the JSON code</li>
-                                    <li>Save it as <code>listings.json</code> on your computer</li>
-                                    <li>Upload this file to your chosen hosting service</li>
-                                </ul>
-                                <button class="btn btn-primary" onclick="switchTab('code')" style="margin-top: 12px;">
-                                    Go to Code Tab →
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="deploy-step">
-                            <div class="deploy-step-number" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">3</div>
-                            <div class="deploy-step-content">
-                                <h3>Modify the Embed Code</h3>
-                                <p>Update the JavaScript to fetch data from your JSON URL instead of using embedded data:</p>
-                                
-                                <div style="background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; margin: 15px 0; font-family: 'Courier New', monospace; font-size: 13px; overflow-x: auto;">
-<pre style="margin: 0; white-space: pre-wrap;">// Replace the embedded listingsData with:
-let listingsData = [];
-
-// Your JSON file URL
-const JSON_URL = 'https://raw.githubusercontent.com/username/repo/main/listings.json';
-
-// Fetch data on page load
-async function loadListings() {
-    try {
-        const response = await fetch(JSON_URL);
-        listingsData = await response.json();
-        renderListings(); // Your existing render function
-    } catch (error) {
-        console.error('Error loading listings:', error);
-    }
-}
-
-// Call on page load
-loadListings();</pre>
-                                </div>
-                                
-                                <p style="margin-top: 15px;">Replace <code>JSON_URL</code> with your actual JSON file URL from Step 1.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="deploy-step">
-                            <div class="deploy-step-number" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">4</div>
-                            <div class="deploy-step-content">
-                                <h3>Deploy Modified Code to Squarespace</h3>
-                                <p>Put the updated code on your Squarespace site (one-time setup):</p>
-                                <ul>
-                                    <li>Copy the modified embed code (with the fetch logic)</li>
-                                    <li>Paste it into a Code Block in Squarespace</li>
-                                    <li>Save and publish</li>
-                                    <li><strong>That's it!</strong> You'll never need to touch this code again</li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div class="deploy-step">
-                            <div class="deploy-step-number" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">5</div>
-                            <div class="deploy-step-content">
-                                <h3>Update Your Listings Anytime</h3>
-                                <p>Now updating is as simple as updating the JSON file:</p>
-                                <ul>
-                                    <li>Make changes in this Admin Panel</li>
-                                    <li>Go to Code Tab → Copy the JSON Data</li>
-                                    <li>Update your <code>listings.json</code> file on your hosting service</li>
-                                    <li>Changes appear on your site automatically (within seconds to minutes)</li>
-                                </ul>
-                                <p style="margin-top: 12px; padding: 12px; background: rgba(99, 102, 241, 0.1); border-left: 3px solid #6366f1; border-radius: 4px;">
-                                    <strong>No Squarespace changes needed!</strong> Just update the JSON file and you're done.
-                                </p>
-                            </div>
-                        </div>
                     </div>
                     
                     <div class="deploy-tips" style="border-color: #f59e0b;">
                         <div class="deploy-tip-header" style="color: #f59e0b;">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px; margin-right: 12px;">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.57.393A9.065 9.065 0 0021.75 12a9.065 9.065 0 00-6.23-.693m0 0l-1.57-.393M5 14.5l1.57-.393M5 14.5l-1.57.393M12 15.75l-1.57-.393M12 15.75l1.57-.393" />
                             </svg>
-                            <h3>Important Considerations</h3>
+                            <h3>Common Issues & Solutions</h3>
                         </div>
                         <ul>
-                            <li><strong>CORS Headers:</strong> Your JSON hosting must allow cross-origin requests. GitHub, JSONBin, and Cloudflare all support this by default.</li>
-                            <li><strong>Caching:</strong> Some services cache data. Changes may take 1-5 minutes to appear. GitHub typically updates within 30 seconds.</li>
-                            <li><strong>Rate Limits:</strong> Free tiers have request limits. For high-traffic sites, consider paid plans or Cloudflare.</li>
-                            <li><strong>Security:</strong> Your JSON file will be publicly accessible. Don't include sensitive data.</li>
-                            <li><strong>Backup Strategy:</strong> Always keep a local copy of your JSON file. Use version control (Git) if possible.</li>
+                            <li><strong>CORS Errors:</strong> Make sure Apps Script is deployed with "Anyone" access and uses <code>e.postData.contents</code>. Try creating a new deployment if issues persist.</li>
+                            <li><strong>Data Not Syncing:</strong> Check that your Apps Script URL is correct in the admin panel. Verify the script is deployed and active.</li>
+                            <li><strong>Framer Not Updating:</strong> Manually refresh the CMS collection in Framer. Check that your Google Sheet is properly shared/published.</li>
+                            <li><strong>Missing Fields:</strong> Ensure your Google Sheet has the required columns (id, name, type, area, description, etc.)</li>
+                            <li><strong>Local Changes Lost:</strong> Always sync to Google Sheets before closing the admin panel if you want to keep changes across devices.</li>
                         </ul>
                     </div>
+                </div>
+                
+                <!-- Quick Reference -->
+                <div style="margin-top: 60px; padding-top: 40px; border-top: 2px solid var(--border-color);">
+                    <div class="deploy-header" style="margin-bottom: 30px;">
+                        <h2 style="display: flex; align-items: center; gap: 12px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 32px; height: 32px; color: #4E6B52;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                            </svg>
+                            Quick Reference
+                        </h2>
+                    </div>
                     
-                    <div class="deploy-note" style="border-left-color: #6366f1; background: rgba(99, 102, 241, 0.1);">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-right: 10px; flex-shrink: 0;">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                        </svg>
-                        <div>
-                            <strong>Recommended Setup:</strong> Start with GitHub for hosting. It's free, reliable, has version control, and is easy to update through their web interface. For most use cases, this is the perfect balance of simplicity and functionality.
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                        <div style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;">
+                            <h4 style="margin: 0 0 10px 0; color: #4E6B52;">📝 Admin Panel</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+                                <li>Edit listings locally</li>
+                                <li>Manage field options</li>
+                                <li>Download backups</li>
+                                <li>Sync to Sheets</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;">
+                            <h4 style="margin: 0 0 10px 0; color: #34a853;">📊 Google Sheets</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+                                <li>Central data storage</li>
+                                <li>Accessed via Apps Script</li>
+                                <li>Source for Framer CMS</li>
+                                <li>Always backup first!</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;">
+                            <h4 style="margin: 0 0 10px 0; color: #6366f1;">🎨 Framer CMS</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+                                <li>Auto-refreshes from Sheets</li>
+                                <li>No code deployment needed</li>
+                                <li>Design with CMS data</li>
+                                <li>Publish to go live</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;">
+                            <h4 style="margin: 0 0 10px 0; color: #D65052;">🌐 Live Site</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+                                <li>Automatic updates</li>
+                                <li>No downtime</li>
+                                <li>Reflects Sheet data</li>
+                                <li>Always current</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -2217,14 +2106,7 @@ loadListings();</pre>
                         <label>Type *</label>
                         <select id="listingType" required>
                             <option value="">Select Type</option>
-                            <option value="Brewery">Brewery</option>
-                            <option value="Winery">Winery</option>
-                            <option value="Cidery">Cidery</option>
-                            <option value="Hiking">Hiking</option>
-                            <option value="Outdoor">Outdoor</option>
-                            <option value="Indoor Activity">Indoor Activity</option>
-                            <option value="Attraction">Attraction</option>
-                            <option value="Farm & Orchard">Farm & Orchard</option>
+                            <!-- Options will be populated dynamically -->
                         </select>
                     </div>
                     
@@ -2232,13 +2114,7 @@ loadListings();</pre>
                         <label>Area *</label>
                         <select id="listingArea" required>
                             <option value="">Select Area</option>
-                            <option value="Afton">Afton</option>
-                            <option value="Wintergreen">Wintergreen</option>
-                            <option value="Lovingston">Lovingston</option>
-                            <option value="Nellysford">Nellysford</option>
-                            <option value="Montebello">Montebello</option>
-                            <option value="Arrington">Arrington</option>
-                            <option value="Roseland">Roseland</option>
+                            <!-- Options will be populated dynamically -->
                         </select>
                     </div>
                 </div>
@@ -2534,6 +2410,17 @@ loadListings();</pre>
         // ========================================
         
         let data = JSON.parse(JSON.stringify(initialData));
+        
+        // Load saved filterOptions from localStorage if available
+        const savedFilterOptions = localStorage.getItem('nelsonCounty_filterOptions');
+        if (savedFilterOptions) {
+            try {
+                data.filterOptions = JSON.parse(savedFilterOptions);
+            } catch (e) {
+                console.error('Error loading saved filterOptions:', e);
+            }
+        }
+        
         let deleteConfirmId = null;
         let deleteConfirmTimeout = null;
         
@@ -2778,7 +2665,9 @@ loadListings();</pre>
                     if (result.success && result.listings && result.listings.length > 0) {
                         const listings = result.listings;
                         
-                        // Extract filter options from listings
+                        // Preserve existing filterOptions when loading from Sheets
+                        const existingFilterOptions = data.filterOptions || initialData.filterOptions;
+                        // Extract filter options from listings (for merging)
                         const types = [...new Set(listings.map(l => l.type).filter(Boolean))].sort();
                         const areas = [...new Set(listings.map(l => l.area).filter(Boolean))].sort();
                         const amenities = [...new Set(listings.flatMap(l => l.amenities || []).filter(Boolean))].sort();
@@ -2786,11 +2675,13 @@ loadListings();</pre>
                         data = {
                             listings: listings,
                             filterOptions: {
-                                types: types,
-                                areas: areas,
-                                amenities: amenities
+                                types: existingFilterOptions.types || types,
+                                areas: existingFilterOptions.areas || areas,
+                                amenities: existingFilterOptions.amenities || amenities
                             }
                         };
+                        // Save filterOptions to localStorage
+                        saveFilterOptions();
                         
                         console.log('✅ Loaded ' + listings.length + ' listings from Google Sheets (Apps Script)');
                         updateSyncStatus(true, `✅ Loaded ${listings.length} listings`);
@@ -2892,6 +2783,9 @@ loadListings();</pre>
                             .filter(listing => listing.name); // Only keep listings with names
                         
                         // Extract filter options from listings
+                        // Preserve existing filterOptions when loading from CSV
+                        const existingFilterOptions = data.filterOptions || initialData.filterOptions;
+                        // Extract filter options from listings (for merging)
                         const types = [...new Set(listings.map(l => l.type).filter(Boolean))].sort();
                         const areas = [...new Set(listings.map(l => l.area).filter(Boolean))].sort();
                         const amenities = [...new Set(listings.flatMap(l => l.amenities || []).filter(Boolean))].sort();
@@ -2899,11 +2793,13 @@ loadListings();</pre>
                         data = {
                             listings: listings,
                             filterOptions: {
-                                types: types,
-                                areas: areas,
-                                amenities: amenities
+                                types: existingFilterOptions.types || types,
+                                areas: existingFilterOptions.areas || areas,
+                                amenities: existingFilterOptions.amenities || amenities
                             }
                         };
+                        // Save filterOptions to localStorage
+                        saveFilterOptions();
                         
                         console.log('✅ Loaded ' + listings.length + ' listings from Google Sheets (CSV)');
                         updateSyncStatus(true, `✅ Loaded ${listings.length} listings (CSV)`);
@@ -2950,6 +2846,78 @@ loadListings();</pre>
             await loadDataFromGoogleSheets();
         }
         
+        /**
+         * Shows a confirmation dialog recommending CSV backup before saving to Sheets
+         * @param {number} listingCount - Number of listings to be saved
+         * @returns {Promise<boolean>} - true if user confirmed, false if cancelled
+         */
+        function showBackupConfirmation(listingCount) {
+            return new Promise((resolve) => {
+                // Create modal overlay
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; display: flex; align-items: center; justify-content: center;';
+                
+                // Create modal dialog
+                const modal = document.createElement('div');
+                modal.style.cssText = 'background: white; padding: 30px; border-radius: 8px; max-width: 500px; width: 90%; box-shadow: 0 4px 20px rgba(0,0,0,0.3);';
+                
+                modal.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <h2 style="margin: 0 0 15px 0; color: #212529; font-size: 24px;">⚠️ Backup Recommended</h2>
+                        <p style="margin: 0 0 15px 0; color: #6c757d; line-height: 1.6;">
+                            You're about to replace <strong>all existing data</strong> in Google Sheets with ${listingCount} listing(s).
+                        </p>
+                        <p style="margin: 0 0 20px 0; color: #6c757d; line-height: 1.6;">
+                            <strong>We recommend downloading a CSV backup first</strong> in case you need to restore the previous data.
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
+                        <button id="backupCancelBtn" style="padding: 10px 20px; border: 1px solid #dee2e6; background: white; color: #212529; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                            Cancel
+                        </button>
+                        <button id="backupDownloadBtn" style="padding: 10px 20px; border: none; background: #4E6B52; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                            📥 Download CSV Backup First
+                        </button>
+                        <button id="backupProceedBtn" style="padding: 10px 20px; border: none; background: #34a853; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                            Proceed Without Backup
+                        </button>
+                    </div>
+                `;
+                
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
+                
+                // Button handlers
+                document.getElementById('backupCancelBtn').onclick = () => {
+                    document.body.removeChild(overlay);
+                    resolve(false);
+                };
+                
+                document.getElementById('backupDownloadBtn').onclick = () => {
+                    // Download CSV backup
+                    downloadCSV();
+                    // Wait a moment for download to start, then proceed
+                    setTimeout(() => {
+                        document.body.removeChild(overlay);
+                        resolve(true);
+                    }, 500);
+                };
+                
+                document.getElementById('backupProceedBtn').onclick = () => {
+                    document.body.removeChild(overlay);
+                    resolve(true);
+                };
+                
+                // Close on overlay click
+                overlay.onclick = (e) => {
+                    if (e.target === overlay) {
+                        document.body.removeChild(overlay);
+                        resolve(false);
+                    }
+                };
+            });
+        }
+        
         async function saveAllToSheets() {
             if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
                 alert('⚠️ Google Sheets not configured. Please set up your Apps Script URL.');
@@ -2959,6 +2927,12 @@ loadListings();</pre>
             if (!data.listings || data.listings.length === 0) {
                 alert('⚠️ No listings to save.');
                 return;
+            }
+            
+            // Show confirmation dialog with backup recommendation
+            const confirmed = await showBackupConfirmation(data.listings.length);
+            if (!confirmed) {
+                return; // User cancelled
             }
             
             updateSyncStatus(true, `💾 Saving ${data.listings.length} listings to Google Sheets (replacing all existing data)...`);
@@ -3209,12 +3183,21 @@ loadListings();</pre>
             document.getElementById('modalTitle').textContent = 'Add New Listing';
             document.getElementById('listingForm').reset();
             document.getElementById('editingId').value = '';
+            // Ensure dropdowns are populated with current options
+            updateTypeDropdown();
+            updateAreaDropdown();
+            renderAmenitiesCheckboxes();
             document.getElementById('listingModal').classList.add('active');
         }
         
         function editListing(id) {
             const listing = data.listings.find(function(l) { return l.id === id; });
             if (!listing) return;
+            
+            // Ensure dropdowns are populated with current options
+            updateTypeDropdown();
+            updateAreaDropdown();
+            renderAmenitiesCheckboxes();
             
             document.getElementById('modalTitle').textContent = 'Edit Listing';
             document.getElementById('editingId').value = id;
@@ -3462,21 +3445,180 @@ loadListings();</pre>
                 document.getElementById('dataTab').classList.add('active');
                 header.style.display = 'block';
                 renderDataTable();
-            } else if (tab === 'code') {
+            } else if (tab === 'settings') {
                 document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('settingsTab').classList.add('active');
+                header.style.display = 'block';
+                renderSettings();
+            } else if (tab === 'code') {
+                document.querySelectorAll('.tab-btn')[3].classList.add('active');
                 document.getElementById('codeTab').classList.add('active');
                 header.style.display = 'block';
                 generateCode();
             } else if (tab === 'preview') {
-                document.querySelectorAll('.tab-btn')[3].classList.add('active');
+                document.querySelectorAll('.tab-btn')[4].classList.add('active');
                 document.getElementById('previewTab').classList.add('active');
                 header.style.display = 'none';
                 renderPreview();
-            } else if (tab === 'deploy') {
-                document.querySelectorAll('.tab-btn')[4].classList.add('active');
-                document.getElementById('deployTab').classList.add('active');
+            } else if (tab === 'learn') {
+                document.querySelectorAll('.tab-btn')[5].classList.add('active');
+                document.getElementById('learnTab').classList.add('active');
                 header.style.display = 'block';
             }
+        }
+        
+        // ==================================================
+        // SETTINGS MANAGEMENT FUNCTIONS
+        // ==================================================
+        
+        function renderSettings() {
+            renderTypesList();
+            renderAreasList();
+            renderAmenitiesList();
+        }
+        
+        function renderTypesList() {
+            const container = document.getElementById('typesList');
+            if (!container) return;
+            
+            container.innerHTML = data.filterOptions.types.map(function(type, index) {
+                return '<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #f8f9fa; border-radius: 4px; margin-bottom: 8px;">' +
+                    '<span>' + type + '</span>' +
+                    '<button onclick="removeType(' + index + ')" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Remove</button>' +
+                    '</div>';
+            }).join('');
+        }
+        
+        function renderAreasList() {
+            const container = document.getElementById('areasList');
+            if (!container) return;
+            
+            container.innerHTML = data.filterOptions.areas.map(function(area, index) {
+                return '<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #f8f9fa; border-radius: 4px; margin-bottom: 8px;">' +
+                    '<span>' + area + '</span>' +
+                    '<button onclick="removeArea(' + index + ')" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Remove</button>' +
+                    '</div>';
+            }).join('');
+        }
+        
+        function renderAmenitiesList() {
+            const container = document.getElementById('amenitiesList');
+            if (!container) return;
+            
+            container.innerHTML = data.filterOptions.amenities.map(function(amenity, index) {
+                return '<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #f8f9fa; border-radius: 4px;">' +
+                    '<span>' + amenity + '</span>' +
+                    '<button onclick="removeAmenity(' + index + ')" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Remove</button>' +
+                    '</div>';
+            }).join('');
+        }
+        
+        function addType() {
+            const input = document.getElementById('newTypeInput');
+            const value = input.value.trim();
+            if (!value) return;
+            
+            if (data.filterOptions.types.indexOf(value) === -1) {
+                data.filterOptions.types.push(value);
+                saveFilterOptions();
+                renderTypesList();
+                updateTypeDropdown();
+                input.value = '';
+            } else {
+                alert('This type already exists.');
+            }
+        }
+        
+        function removeType(index) {
+            if (confirm('Are you sure you want to remove "' + data.filterOptions.types[index] + '"? This will not affect existing listings.')) {
+                data.filterOptions.types.splice(index, 1);
+                saveFilterOptions();
+                renderTypesList();
+                updateTypeDropdown();
+            }
+        }
+        
+        function addArea() {
+            const input = document.getElementById('newAreaInput');
+            const value = input.value.trim();
+            if (!value) return;
+            
+            if (data.filterOptions.areas.indexOf(value) === -1) {
+                data.filterOptions.areas.push(value);
+                saveFilterOptions();
+                renderAreasList();
+                updateAreaDropdown();
+                input.value = '';
+            } else {
+                alert('This area already exists.');
+            }
+        }
+        
+        function removeArea(index) {
+            if (confirm('Are you sure you want to remove "' + data.filterOptions.areas[index] + '"? This will not affect existing listings.')) {
+                data.filterOptions.areas.splice(index, 1);
+                saveFilterOptions();
+                renderAreasList();
+                updateAreaDropdown();
+            }
+        }
+        
+        function addAmenity() {
+            const input = document.getElementById('newAmenityInput');
+            const value = input.value.trim();
+            if (!value) return;
+            
+            if (data.filterOptions.amenities.indexOf(value) === -1) {
+                data.filterOptions.amenities.push(value);
+                saveFilterOptions();
+                renderAmenitiesList();
+                updateAmenitiesCheckboxes();
+                input.value = '';
+            } else {
+                alert('This amenity already exists.');
+            }
+        }
+        
+        function removeAmenity(index) {
+            if (confirm('Are you sure you want to remove "' + data.filterOptions.amenities[index] + '"? This will not affect existing listings.')) {
+                data.filterOptions.amenities.splice(index, 1);
+                saveFilterOptions();
+                renderAmenitiesList();
+                updateAmenitiesCheckboxes();
+            }
+        }
+        
+        function saveFilterOptions() {
+            // Save to localStorage
+            localStorage.setItem('nelsonCounty_filterOptions', JSON.stringify(data.filterOptions));
+        }
+        
+        function updateTypeDropdown() {
+            const select = document.getElementById('listingType');
+            if (!select) return;
+            
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">Select Type</option>' +
+                data.filterOptions.types.map(function(type) {
+                    return '<option value="' + type + '">' + type + '</option>';
+                }).join('');
+            select.value = currentValue;
+        }
+        
+        function updateAreaDropdown() {
+            const select = document.getElementById('listingArea');
+            if (!select) return;
+            
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">Select Area</option>' +
+                data.filterOptions.areas.map(function(area) {
+                    return '<option value="' + area + '">' + area + '</option>';
+                }).join('');
+            select.value = currentValue;
+        }
+        
+        function updateAmenitiesCheckboxes() {
+            renderAmenitiesCheckboxes();
         }
         
         // Icon mapping function - maps activity types to centralized icon library
@@ -4172,6 +4314,9 @@ loadListings();</pre>
         window.addEventListener("DOMContentLoaded", async function() {
             await loadDataFromGoogleSheets();
             
+            // Initialize form dropdowns with dynamic options
+            updateTypeDropdown();
+            updateAreaDropdown();
             renderAmenitiesCheckboxes();
             renderListings();
             updateStats();
