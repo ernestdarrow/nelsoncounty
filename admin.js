@@ -792,7 +792,7 @@ const initialData =
         }
         
         // Reload data from Google Sheets (manual refresh)
-        async function reloadFromSheets() {
+        window.reloadFromSheets = async function reloadFromSheets() {
             const confirmed = await showConfirm('⚠️ Warning: Reloading from Google Sheets will override all changes you\'ve made in this admin panel.\n\n' +
                                     'Any unsaved changes will be lost.\n\n' +
                                     'Do you want to continue?', 'Warning', {
@@ -880,7 +880,7 @@ const initialData =
             });
         }
         
-        async function saveAllToSheets() {
+        window.saveAllToSheets = async function saveAllToSheets() {
             if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
                 await showAlert('⚠️ Google Sheets not configured. Please set up your Apps Script URL.', 'Configuration Required');
                 return;
@@ -1184,7 +1184,7 @@ const initialData =
             }).join('');
         }
         
-        function openAddModal() {
+        window.openAddModal = function openAddModal() {
             document.getElementById('modalTitle').textContent = 'Add New Listing';
             document.getElementById('listingForm').reset();
             document.getElementById('editingId').value = '';
@@ -1435,7 +1435,7 @@ const initialData =
             }
         }
         
-        function quickExportJSON() {
+        async function quickExportJSON() {
             const dataStr = JSON.stringify(data, null, 2);
             const dataBlob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(dataBlob);
@@ -2034,7 +2034,7 @@ const initialData =
             document.getElementById('jsCode').value = jsCode;
         }
         
-        function copyCode(type) {
+        async function copyCode(type) {
             let textarea;
             if (type === 'embed') textarea = document.getElementById('embedCode');
             else if (type === 'json') textarea = document.getElementById('jsonCode');
@@ -2082,7 +2082,7 @@ const initialData =
             });
         }
         
-        function saveTableChanges() {
+        async function saveTableChanges() {
             const rows = Array.from(document.querySelectorAll('#dataTableBody tr'));
             let changeCount = 0;
             
@@ -2176,7 +2176,7 @@ const initialData =
             }
         }
         
-        function downloadCSV() {
+        window.downloadCSV = function downloadCSV() {
             try {
                 const headers = ['ID', 'Name', 'Type', 'Area', 'Description', 'Image1', 'Image2', 'Website', 'Phone', 'Address', 'Amenities', 'Featured'];
                 const rows = data.listings.map(function(listing) {
@@ -3024,7 +3024,7 @@ const initialData =
         }
         
         // Logout function
-        function logout() {
+        window.logout = function logout() {
             // Revoke Google token if available
             if (typeof google !== 'undefined' && google.accounts) {
                 google.accounts.id.disableAutoSelect();
