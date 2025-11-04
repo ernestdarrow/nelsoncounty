@@ -1340,11 +1340,6 @@ const initialData =
                 document.getElementById('codeTab').classList.add('active');
                 header.style.display = 'block';
                 generateCode();
-            } else if (tab === 'learn') {
-                document.querySelectorAll('.tab-btn')[5].classList.add('active');
-                document.getElementById('learnTab').classList.add('active');
-                header.style.display = 'block';
-            }
         }
         
         // ===========================================
