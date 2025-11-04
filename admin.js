@@ -358,107 +358,6 @@ const initialData =
             return listing;
         }
         
-        // ========================================
-        // Dialog Modal System (replaces confirm/alert)
-        // ========================================
-        let dialogResolve = null;
-        let dialogReject = null;
-        
-        function showDialogModal(title, message, options) {
-            return new Promise(function(resolve, reject) {
-                dialogResolve = resolve;
-                dialogReject = reject;
-                
-                const modal = document.getElementById('dialogModal');
-                const titleEl = document.getElementById('dialogModalTitle');
-                const messageEl = document.getElementById('dialogModalMessage');
-                const cancelBtn = document.getElementById('dialogModalCancel');
-                const confirmBtn = document.getElementById('dialogModalConfirm');
-                
-                titleEl.textContent = title || 'Confirmation';
-                messageEl.textContent = message || '';
-                
-                // Configure buttons based on options
-                if (options && options.type === 'confirm') {
-                    cancelBtn.style.display = 'inline-block';
-                    confirmBtn.textContent = options.confirmText || 'Confirm';
-                    cancelBtn.textContent = options.cancelText || 'Cancel';
-                } else {
-                    // Alert style - only OK button
-                    cancelBtn.style.display = 'none';
-                    confirmBtn.textContent = options && options.okText ? options.okText : 'Got it';
-                }
-                
-                // Set button styles with defaults
-                if (options && options.confirmStyle) {
-                    confirmBtn.className = 'btn ' + options.confirmStyle;
-                } else {
-                    // Default to primary for alerts, or use provided style
-                    confirmBtn.className = options && options.type === 'confirm' ? 'btn btn-primary' : 'btn btn-primary';
-                }
-                
-                // Set cancel button style
-                if (options && options.cancelStyle) {
-                    cancelBtn.className = 'btn ' + options.cancelStyle;
-                } else {
-                    cancelBtn.className = 'btn btn-secondary';
-                }
-                
-                modal.classList.add('active');
-                
-                // Close on backdrop click (optional)
-                // Remove any existing listeners first
-                const backdropHandler = function backdropClick(e) {
-                    if (e.target === modal && (options && options.closeOnBackdrop !== false)) {
-                        closeDialogModal();
-                        modal.removeEventListener('click', backdropHandler);
-                    }
-                };
-                modal.addEventListener('click', backdropHandler);
-            });
-        }
-        
-        function closeDialogModal() {
-            const modal = document.getElementById('dialogModal');
-            modal.classList.remove('active');
-            
-            if (dialogReject) {
-                dialogReject(false);
-                dialogResolve = null;
-                dialogReject = null;
-            }
-        }
-        
-        function handleDialogConfirm() {
-            const modal = document.getElementById('dialogModal');
-            modal.classList.remove('active');
-            
-            if (dialogResolve) {
-                dialogResolve(true);
-                dialogResolve = null;
-                dialogReject = null;
-            }
-        }
-        
-        // Close on Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                const modal = document.getElementById('dialogModal');
-                if (modal && modal.classList.contains('active')) {
-                    closeDialogModal();
-                }
-            }
-        });
-        
-        // Wrapper functions for easy replacement
-        async function showAlert(message, title, options) {
-            await showDialogModal(title || 'Information', message, Object.assign({ type: 'alert' }, options || {}));
-        }
-        
-        async function showConfirm(message, title, options) {
-            return await showDialogModal(title || 'Confirmation', message, Object.assign({ type: 'confirm' }, options || {}));
-        }
-        
         // Update sync status UI
         function updateSyncStatus(success, message) {
             const statusBadge = document.getElementById('sheetsStatusBadge');
@@ -779,28 +678,23 @@ const initialData =
                 console.error('   OR host on GitHub Pages / Netlify / etc.');
                 
                 // Show alert to user
-                setTimeout(async () => {
-                    await showAlert('⚠️ CORS Error\n\n' +
+                setTimeout(() => {
+                    alert('⚠️ CORS Error\n\n' +
                           'Opening HTML files directly (file://) has browser restrictions.\n\n' +
                           'To fix:\n' +
                           '1. Open Terminal in this folder\n' +
                           '2. Run: python3 -m http.server 8000\n' +
                           '3. Open: http://localhost:8000/index-sheets.html\n\n' +
-                          'For now, using local data only.', 'CORS Error');
+                          'For now, using local data only.');
                 }, 1000);
             }
         }
         
         // Reload data from Google Sheets (manual refresh)
         window.reloadFromSheets = async function reloadFromSheets() {
-            const confirmed = await showConfirm('⚠️ Warning: Reloading from Google Sheets will override all changes you\'ve made in this admin panel.\n\n' +
+            const confirmed = confirm('⚠️ Warning: Reloading from Google Sheets will override all changes you\'ve made in this admin panel.\n\n' +
                                     'Any unsaved changes will be lost.\n\n' +
-                                    'Do you want to continue?', 'Warning', {
-                                    confirmText: 'Yes, Reload from Sheets',
-                                    cancelText: 'Keep My Changes',
-                                    confirmStyle: 'btn-warning',
-                                    cancelStyle: 'btn-secondary'
-                                });
+                                    'Do you want to continue?');
             if (!confirmed) {
                 return;
             }
@@ -882,24 +776,19 @@ const initialData =
         
         window.saveAllToSheets = async function saveAllToSheets() {
             if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
-                await showAlert('⚠️ Google Sheets not configured. Please set up your Apps Script URL.', 'Configuration Required');
+                alert('⚠️ Google Sheets not configured. Please set up your Apps Script URL.');
                 return;
             }
             
             if (!data.listings || data.listings.length === 0) {
-                await showAlert('⚠️ No listings to save.', 'No Data');
+                alert('⚠️ No listings to save.');
                 return;
             }
             
             // Show confirmation dialog asking if they want to download CSV backup first
-            const wantBackup = await showConfirm('⚠️ You are about to replace ALL data in Google Sheets.\n\n' +
+            const wantBackup = confirm('⚠️ You are about to replace ALL data in Google Sheets.\n\n' +
                                  'Would you like to download a CSV backup first?\n\n' +
-                                 'It\'s recommended to download a backup before overwriting.', 'Backup Recommendation', {
-                                 confirmText: 'Download CSV Backup',
-                                 cancelText: 'Skip Backup',
-                                 confirmStyle: 'btn-success',
-                                 cancelStyle: 'btn-secondary'
-                             });
+                                 'Click OK to download backup, or Cancel to skip.');
             
             if (wantBackup) {
                 // Download CSV backup
@@ -909,15 +798,10 @@ const initialData =
             }
             
             // Now ask for confirmation to overwrite
-            const confirmed = await showConfirm('⚠️ Final Confirmation\n\n' +
+            const confirmed = confirm('⚠️ Final Confirmation\n\n' +
                                     `You are about to replace all data in Google Sheets with ${data.listings.length} listing(s).\n\n` +
                                     'This action cannot be undone.\n\n' +
-                                    'Do you want to proceed?', 'Confirm Overwrite', {
-                                    confirmText: 'Yes, Overwrite Sheets',
-                                    cancelText: 'Cancel',
-                                    confirmStyle: 'btn-danger',
-                                    cancelStyle: 'btn-secondary'
-                                });
+                                    'Do you want to proceed?');
             if (!confirmed) {
                 return; // User cancelled
             }
@@ -967,31 +851,22 @@ const initialData =
                     } catch (e) {
                         console.error('No-cors also failed:', e);
                         result = { success: false, error: 'Failed to connect to Google Sheets' };
-                        await showAlert('⚠️ Unable to save to Google Sheets. Changes saved locally only.\n\n' +
-                              'This may be due to CORS restrictions. Your Apps Script may need to be configured to allow CORS.', 'Save Failed');
+                        alert('⚠️ Unable to save to Google Sheets. Changes saved locally only.\n\n' +
+                              'This may be due to CORS restrictions. Your Apps Script may need to be configured to allow CORS.');
                     }
                 }
                 
                 if (result.success) {
                     updateSyncStatus(true, `✅ Replaced all data in Google Sheets with ${data.listings.length} listings`);
-                    await showAlert(`✅ Successfully saved all ${data.listings.length} listings to Google Sheets!`, 'Success', {
-                        okText: 'Great!',
-                        confirmStyle: 'btn-success'
-                    });
+                    alert(`✅ Successfully saved all ${data.listings.length} listings to Google Sheets!`);
                 } else {
-                    updateSyncStatus(false, '❌ Save failed');
-                    await showAlert('❌ Error saving to Google Sheets: ' + (result.error || 'Unknown error'), 'Error', {
-                        okText: 'OK',
-                        confirmStyle: 'btn-danger'
-                    });
+                    updateSyncStatus(false);
+                    alert('❌ Error saving to Google Sheets: ' + (result.error || 'Unknown error'));
                 }
             } catch (error) {
                 console.error('Error saving to Google Sheets:', error);
                 updateSyncStatus(false, '❌ Save failed');
-                await showAlert('❌ Error saving to Google Sheets: ' + error.message, 'Error', {
-                    okText: 'OK',
-                    confirmStyle: 'btn-danger'
-                });
+                alert('❌ Error saving to Google Sheets: ' + error.message);
             }
         }
         
@@ -1225,14 +1100,11 @@ const initialData =
             document.getElementById('listingModal').classList.add('active');
         }
         
-        async function deleteListing(id) {
+        function deleteListing(id) {
             const listing = data.listings.find(function(l) { return l.id === id; });
             
             if (!listing) {
-                await showAlert('Listing not found!', 'Error', {
-                    okText: 'OK',
-                    confirmStyle: 'btn-danger'
-                });
+                alert('Listing not found!');
                 return;
             }
             
@@ -1299,10 +1171,7 @@ const initialData =
                     } catch (error) {
                         console.error('Error deleting from Google Sheets:', error);
                         updateSyncStatus(false, '❌ Delete failed');
-                        await showAlert('⚠️ Failed to delete from Google Sheets: ' + error.message + '\n\nDeleted locally only.', 'Delete Failed', {
-                            okText: 'OK',
-                            confirmStyle: 'btn-warning'
-                        });
+                        alert('⚠️ Failed to delete from Google Sheets: ' + error.message + '\n\nDeleted locally only.');
                         
                         // Still delete locally
                         data.listings = data.listings.filter(function(l) { return l.id !== id; });
@@ -1310,10 +1179,7 @@ const initialData =
                 } else {
                     // No Google Sheets configured - delete locally only
                     data.listings = data.listings.filter(function(l) { return l.id !== id; });
-                    await showAlert('Deleted "' + listing.name + '" (Local only - configure Google Sheets to sync)', 'Deleted', {
-                        okText: 'Got it',
-                        confirmStyle: 'btn-info'
-                    });
+                    alert('Deleted "' + listing.name + '" (Local only - configure Google Sheets to sync)');
                 }
                 
                 renderListings();
@@ -1340,7 +1206,7 @@ const initialData =
             }
         }
         
-        async function saveListing(event) {
+        function saveListing(event) {
             event.preventDefault();
             
             const checkboxes = document.querySelectorAll('#amenitiesCheckboxes input[type="checkbox"]:checked');
@@ -1370,23 +1236,14 @@ const initialData =
                             const index = data.listings.findIndex(function(l) { return l.id === editingId; });
                             if (index >= 0) {
                                 data.listings[index] = listing;
-                    await showAlert('"' + listing.name + '" has been updated locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.', 'Updated', {
-                        okText: 'Got it',
-                        confirmStyle: 'btn-success'
-                    });
+                    alert('"' + listing.name + '" has been updated locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.');
                         } else {
                             data.listings.push(listing);
-                    await showAlert('"' + listing.name + '" has been added locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.', 'Added', {
-                        okText: 'Got it',
-                        confirmStyle: 'btn-success'
-                    });
+                    alert('"' + listing.name + '" has been added locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.');
                 }
                     } else {
                         data.listings.push(listing);
-                await showAlert('"' + listing.name + '" has been added locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.', 'Added', {
-                    okText: 'Got it',
-                    confirmStyle: 'btn-success'
-                });
+                alert('"' + listing.name + '" has been added locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.');
             }
             
             // Update the display and close modal
@@ -1398,13 +1255,8 @@ const initialData =
             document.getElementById('listingModal').classList.remove('active');
         }
         
-        async function exportData() {
-            const format = await showConfirm('Choose export format:\n\n• JSON Export: Data only (JSON file)\n• HTML Backup: Full admin panel (standalone HTML)', 'Export Options', {
-                confirmText: 'Export as JSON',
-                cancelText: 'Export as HTML',
-                confirmStyle: 'btn-primary',
-                cancelStyle: 'btn-info'
-            });
+        function exportData() {
+            const format = confirm('Export as JSON data file?\n\nClick OK for JSON\nClick Cancel for full HTML admin backup');
             
             if (format) {
                 const dataStr = JSON.stringify(data, null, 2);
@@ -1415,10 +1267,7 @@ const initialData =
                 link.download = 'adventure-directory-data-' + new Date().toISOString().split('T')[0] + '.json';
                 link.click();
                 URL.revokeObjectURL(url);
-                await showAlert('JSON data exported! Check your downloads folder.', 'Export Complete', {
-                    okText: 'Got it',
-                    confirmStyle: 'btn-success'
-                });
+                alert('JSON data exported! Check your downloads folder.');
             } else {
                 const htmlContent = document.documentElement.outerHTML;
                 const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
@@ -1428,14 +1277,11 @@ const initialData =
                 link.download = 'adventure-directory-admin-backup-' + new Date().toISOString().split('T')[0] + '.html';
                 link.click();
                 URL.revokeObjectURL(url);
-                await showAlert('Full admin backup exported! You can open this HTML file anytime to continue editing.', 'Export Complete', {
-                    okText: 'Got it',
-                    confirmStyle: 'btn-success'
-                });
+                alert('Full admin backup exported! You can open this HTML file anytime to continue editing.');
             }
         }
         
-        async function quickExportJSON() {
+        function quickExportJSON() {
             const dataStr = JSON.stringify(data, null, 2);
             const dataBlob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(dataBlob);
@@ -1444,10 +1290,7 @@ const initialData =
             link.download = 'data-' + new Date().toISOString().split('T')[0] + '.json';
             link.click();
             URL.revokeObjectURL(url);
-            await showAlert('JSON file downloaded! This contains all your listing data.', 'Download Complete', {
-                okText: 'Got it',
-                confirmStyle: 'btn-success'
-            });
+            alert('JSON file downloaded! This contains all your listing data.');
         }
         
         // Download JSON backup (same as quickExportJSON but with different naming)
@@ -1554,7 +1397,7 @@ const initialData =
             }).join('');
         }
         
-        async function addType() {
+        function addType() {
             const input = document.getElementById('newTypeInput');
             const value = input.value.trim();
             if (!value) return;
@@ -1566,20 +1409,12 @@ const initialData =
                 updateTypeDropdown();
                 input.value = '';
             } else {
-                await showAlert('This type already exists.', 'Duplicate', {
-                    okText: 'OK',
-                    confirmStyle: 'btn-warning'
-                });
+                alert('This type already exists.');
             }
         }
         
-        async function removeType(index) {
-            const confirmed = await showConfirm('Are you sure you want to remove "' + data.filterOptions.types[index] + '"?\n\nThis will remove it from the filter options, but will not affect existing listings.', 'Remove Type', {
-                confirmText: 'Remove Type',
-                cancelText: 'Keep It',
-                confirmStyle: 'btn-danger',
-                cancelStyle: 'btn-secondary'
-            });
+        function removeType(index) {
+            const confirmed = confirm('Are you sure you want to remove "' + data.filterOptions.types[index] + '"? This will not affect existing listings.');
             if (confirmed) {
                 data.filterOptions.types.splice(index, 1);
                 saveFilterOptions();
@@ -1588,7 +1423,7 @@ const initialData =
             }
         }
         
-        async function addArea() {
+        function addArea() {
             const input = document.getElementById('newAreaInput');
             const value = input.value.trim();
             if (!value) return;
@@ -1600,20 +1435,12 @@ const initialData =
                 updateAreaDropdown();
                 input.value = '';
             } else {
-                await showAlert('This area already exists.', 'Duplicate', {
-                    okText: 'OK',
-                    confirmStyle: 'btn-warning'
-                });
+                alert('This area already exists.');
             }
         }
         
-        async function removeArea(index) {
-            const confirmed = await showConfirm('Are you sure you want to remove "' + data.filterOptions.areas[index] + '"?\n\nThis will remove it from the filter options, but will not affect existing listings.', 'Remove Area', {
-                confirmText: 'Remove Area',
-                cancelText: 'Keep It',
-                confirmStyle: 'btn-danger',
-                cancelStyle: 'btn-secondary'
-            });
+        function removeArea(index) {
+            const confirmed = confirm('Are you sure you want to remove "' + data.filterOptions.areas[index] + '"? This will not affect existing listings.');
             if (confirmed) {
                 data.filterOptions.areas.splice(index, 1);
                 saveFilterOptions();
@@ -1622,7 +1449,7 @@ const initialData =
             }
         }
         
-        async function addAmenity() {
+        function addAmenity() {
             const input = document.getElementById('newAmenityInput');
             const value = input.value.trim();
             if (!value) return;
@@ -1634,20 +1461,12 @@ const initialData =
                 updateAmenitiesCheckboxes();
                 input.value = '';
             } else {
-                await showAlert('This amenity already exists.', 'Duplicate', {
-                    okText: 'OK',
-                    confirmStyle: 'btn-warning'
-                });
+                alert('This amenity already exists.');
             }
         }
         
-        async function removeAmenity(index) {
-            const confirmed = await showConfirm('Are you sure you want to remove "' + data.filterOptions.amenities[index] + '"?\n\nThis will remove it from the filter options, but will not affect existing listings.', 'Remove Amenity', {
-                confirmText: 'Remove Amenity',
-                cancelText: 'Keep It',
-                confirmStyle: 'btn-danger',
-                cancelStyle: 'btn-secondary'
-            });
+        function removeAmenity(index) {
+            const confirmed = confirm('Are you sure you want to remove "' + data.filterOptions.amenities[index] + '"? This will not affect existing listings.');
             if (confirmed) {
                 data.filterOptions.amenities.splice(index, 1);
                 saveFilterOptions();
@@ -2034,7 +1853,7 @@ const initialData =
             document.getElementById('jsCode').value = jsCode;
         }
         
-        async function copyCode(type) {
+        function copyCode(type) {
             let textarea;
             if (type === 'embed') textarea = document.getElementById('embedCode');
             else if (type === 'json') textarea = document.getElementById('jsonCode');
@@ -2043,10 +1862,7 @@ const initialData =
             
             textarea.select();
             document.execCommand('copy');
-            await showAlert('Copied to clipboard!', 'Success', {
-                okText: 'Got it',
-                confirmStyle: 'btn-success'
-            });
+            alert('Copied to clipboard!');
         }
         
         function renderDataTable() {
@@ -2082,7 +1898,7 @@ const initialData =
             });
         }
         
-        async function saveTableChanges() {
+        function saveTableChanges() {
             const rows = Array.from(document.querySelectorAll('#dataTableBody tr'));
             let changeCount = 0;
             
@@ -2127,19 +1943,13 @@ const initialData =
             
             // Changes saved locally only - user must click "Save All to Google Sheets" to sync
             if (changeCount > 0) {
-                await showAlert('Table updated! ' + changeCount + ' field(s) changed locally.\n\n💾 Click "Save All to Google Sheets" to sync changes.', 'Updated', {
-                    okText: 'Got it',
-                    confirmStyle: 'btn-success'
-                });
+                alert('Table updated! ' + changeCount + ' field(s) changed locally.\n\n💾 Click "Save All to Google Sheets" to sync changes.');
             } else {
-                await showAlert('No changes detected.', 'Info', {
-                    okText: 'OK',
-                    confirmStyle: 'btn-info'
-                });
+                alert('No changes detected.');
             }
         }
         
-        async function deleteFromTable(index) {
+        function deleteFromTable(index) {
             const listing = data.listings[index];
             
             // Check if this is the confirmation click
@@ -2157,7 +1967,7 @@ const initialData =
                     renderPreview();
                 }
                 
-                await showAlert('Deleted: ' + listing.name, 'Deleted');
+                alert('Deleted: ' + listing.name);
             } else {
                 // First click - set confirmation needed
                 deleteConfirmId = listing.id;
@@ -2216,10 +2026,7 @@ const initialData =
             } catch (error) {
                 console.error('Error downloading CSV:', error);
                 updateSyncStatus(false, '❌ CSV download failed');
-                await showAlert('Error downloading CSV: ' + error.message, 'Error', {
-                    okText: 'OK',
-                    confirmStyle: 'btn-danger'
-                });
+                alert('Error downloading CSV: ' + error.message);
             }
         }
         
@@ -2235,15 +2042,12 @@ const initialData =
                 console.log('Reading file:', file.name);
                 const reader = new FileReader();
                 
-                reader.onerror = async function(error) {
+                reader.onerror = function(error) {
                     console.error('File read error:', error);
-                    await showAlert('Error reading file: ' + error, 'Error', {
-                        okText: 'OK',
-                        confirmStyle: 'btn-danger'
-                    });
+                    alert('Error reading file: ' + error);
                 };
                 
-                reader.onload = async function(e) {
+                reader.onload = function(e) {
                     try {
                         console.log('File loaded, parsing CSV...');
                         const text = e.target.result;
@@ -2301,19 +2105,11 @@ const initialData =
                         console.log('Parsed listings:', newListings.length);
                         
                         if (newListings.length === 0) {
-                            await showAlert('No valid listings found in CSV file.', 'Error', {
-                                okText: 'OK',
-                                confirmStyle: 'btn-danger'
-                            });
+                            alert('No valid listings found in CSV file.');
                             return;
                         }
                         
-                        const confirmed = await showConfirm('Upload ' + newListings.length + ' listings from CSV?\n\n⚠️ This will replace all current listings with the CSV data.', 'Upload CSV', {
-                            confirmText: 'Yes, Replace All',
-                            cancelText: 'Cancel Upload',
-                            confirmStyle: 'btn-warning',
-                            cancelStyle: 'btn-secondary'
-                        });
+                        const confirmed = confirm('Upload ' + newListings.length + ' listings from CSV?\n\n⚠️ This will replace all current listings with the CSV data.');
                         if (confirmed) {
                             data.listings = newListings;
                             renderDataTable();
@@ -2326,10 +2122,7 @@ const initialData =
                             }
                             
                             // CSV imported locally only - user must click "Save All to Google Sheets" to sync
-                            await showAlert('CSV uploaded successfully! ' + newListings.length + ' listings imported locally.\n\n💾 Click "Save All to Google Sheets" to sync changes.', 'Upload Complete', {
-                                okText: 'Got it',
-                                confirmStyle: 'btn-success'
-                            });
+                            alert('CSV uploaded successfully! ' + newListings.length + ' listings imported locally.\n\n💾 Click "Save All to Google Sheets" to sync changes.');
                         }
                         
                         // Reset file input
@@ -2337,10 +2130,7 @@ const initialData =
                         
                     } catch (parseError) {
                         console.error('Error parsing CSV:', parseError);
-                        await showAlert('Error parsing CSV file: ' + parseError.message, 'Error', {
-                            okText: 'OK',
-                            confirmStyle: 'btn-danger'
-                        });
+                        alert('Error parsing CSV file: ' + parseError.message);
                     }
                 };
                 
@@ -2348,10 +2138,7 @@ const initialData =
                 
             } catch (error) {
                 console.error('Error in handleCSVUpload:', error);
-                await showAlert('Error uploading CSV: ' + error.message, 'Error', {
-                    okText: 'OK',
-                    confirmStyle: 'btn-danger'
-                });
+                alert('Error uploading CSV: ' + error.message);
             }
         }
         
@@ -2787,7 +2574,7 @@ const initialData =
             
             // Check if Client ID is configured
             if (!GOOGLE_OAUTH_CLIENT_ID || GOOGLE_OAUTH_CLIENT_ID === 'YOUR_CLIENT_ID.apps.googleusercontent.com') {
-                await showAlert('❌ Google OAuth Client ID is not configured.\n\nPlease set GOOGLE_OAUTH_CLIENT_ID in the code.', 'Configuration Error');
+                alert('❌ Google OAuth Client ID is not configured.\n\nPlease set GOOGLE_OAUTH_CLIENT_ID in the code.');
                 return;
             }
             
@@ -2844,7 +2631,7 @@ const initialData =
                 }
             } else {
                 const currentOrigin = window.location.origin;
-                await showAlert(`Google Sign-In is not available.\n\nYour current domain: ${currentOrigin}\n\nTo fix:\n1. Go to: https://console.cloud.google.com/apis/credentials\n2. Edit your OAuth Client ID\n3. Add "${currentOrigin}" to "Authorized JavaScript origins"\n4. Also add "http://localhost" for local testing\n5. Save and wait 1-2 minutes, then refresh`, 'Configuration Required');
+                alert('❌ Google OAuth Client ID is not configured.\n\nPlease set GOOGLE_OAUTH_CLIENT_ID in the code.');
             }
         };
         
@@ -2942,9 +2729,9 @@ const initialData =
                 try {
                     google.accounts.id.initialize({
                         client_id: clientId,
-                        callback: async function(response) {
+                        callback: function(response) {
                             console.log('✅ Test successful! Got credential response');
-                            await showAlert('✅ Test successful! Google Sign-In is working.\n\nIf you see this, your configuration is correct!', 'Test Successful');
+                            alert('✅ Test successful! Google Sign-In is working.\n\nIf you see this, your configuration is correct!');
                         },
                         auto_select: false
                     });
@@ -2960,16 +2747,16 @@ const initialData =
                     });
                     
                     console.log('✅ Test button rendered - configuration is correct!');
-                    await showAlert('✅ Test successful! Google Sign-In button rendered.\n\nYour configuration is working correctly!\n\nIf you still don\'t see the button on the login screen, wait 1-2 minutes for Google\'s servers to update.', 'Test Successful');
+                    alert('✅ Test successful! Google Sign-In button rendered.\n\nYour configuration is working correctly!\n\nIf you still don\'t see the button on the login screen, wait 1-2 minutes for Google\'s servers to update.');
                     
                     // Remove test button
                     setTimeout(() => testDiv.remove(), 5000);
                 } catch (error) {
                     console.error('❌ Test failed:', error);
-                    await showAlert(`❌ Test failed: ${error.message}\n\nThis usually means:\n1. Your domain isn't authorized yet (wait 1-5 minutes)\n2. Or there's a configuration issue\n\nCheck the console for details.`, 'Test Failed');
+                    alert('❌ Test failed: ' + error.message + '\n\nThis usually means:\n1. Your domain isn\'t authorized yet (wait 1-5 minutes)\n2. Or there\'s a configuration issue\n\nCheck the console for details.');
                 }
             } else {
-                await showAlert('❌ Google Identity Services script not loaded.\n\nCheck:\n1. Your internet connection\n2. Browser console for errors\n3. That the script tag is in the HTML', 'Script Error');
+                alert('❌ Google Identity Services script not loaded.\n\nCheck:\n1. Your internet connection\n2. Browser console for errors\n3. That the script tag is in the HTML');
             }
         }
         
@@ -3002,7 +2789,7 @@ const initialData =
             
             message += `\nMake sure "${origin}" is added to Google Cloud Console → Authorized JavaScript origins`;
             
-            await showAlert(message, 'Information');
+            alert(message);
             console.log('Full config:', config);
         }
         

@@ -1112,28 +1112,6 @@
         </div>
     </div>
     
-    <!-- Dialog Modal for confirm/alert replacements -->
-    <div id="dialogModal" class="dialog-modal">
-        <div class="dialog-modal-content">
-            <div class="dialog-modal-header">
-                <h3 id="dialogModalTitle">Confirmation</h3>
-                <button class="dialog-modal-close" onclick="closeDialogModal()" aria-label="Close">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-            <div class="dialog-modal-body">
-                <p id="dialogModalMessage"></p>
-            </div>
-            <div class="dialog-modal-footer">
-                <button id="dialogModalCancel" class="btn btn-secondary" onclick="closeDialogModal()" style="display: none;">Cancel</button>
-                <button id="dialogModalConfirm" class="btn btn-primary" onclick="handleDialogConfirm()">OK</button>
-            </div>
-        </div>
-    </div>
-    
     <script src="https://ernestdarrow.github.io/nelsoncounty/admin.js" defer onerror="console.error('Failed to load admin.js'); document.getElementById('loginError').style.display='block'; document.getElementById('loginErrorText').textContent='Failed to load admin.js. Please check that the file exists on GitHub Pages.';"></script>
     
     <script>
