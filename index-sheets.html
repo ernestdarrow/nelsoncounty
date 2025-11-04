@@ -5473,8 +5473,18 @@ loadListings();</pre>
         // Check if user is already logged in
         window.addEventListener('load', function() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
+            const adminEmail = sessionStorage.getItem('adminEmail');
             
-            if (isLoggedIn === 'true') {
+            // If logged in but no email (old password-based login), force logout
+            if (isLoggedIn === 'true' && !adminEmail) {
+                console.log('Detected old password-based session. Forcing logout for Google OAuth.');
+                sessionStorage.clear();
+                localStorage.removeItem('adminLoggedIn');
+                // Fall through to show login
+            }
+            
+            // Check if properly logged in with Google OAuth
+            if (isLoggedIn === 'true' && adminEmail) {
                 document.getElementById('loginOverlay').style.display = 'none';
             } else {
                 // Initialize Google Sign-In when page loads
