@@ -692,9 +692,11 @@ const initialData =
         
         // Reload data from Google Sheets (manual refresh)
         window.reloadFromSheets = async function reloadFromSheets() {
-            const confirmed = confirm('⚠️ Warning: Reloading from Google Sheets will override all changes you\'ve made in this admin panel.\n\n' +
+            const confirmed = confirm('⚠️ Warning: Reloading from Google Sheets\n\n' +
+                                    'This will override all changes you\'ve made in this admin panel.\n' +
                                     'Any unsaved changes will be lost.\n\n' +
-                                    'Do you want to continue?');
+                                    'Click OK to reload from Google Sheets and override local changes\n' +
+                                    'Click Cancel to keep your local changes');
             if (!confirmed) {
                 return;
             }
@@ -788,7 +790,8 @@ const initialData =
             // Show confirmation dialog asking if they want to download CSV backup first
             const wantBackup = confirm('⚠️ You are about to replace ALL data in Google Sheets.\n\n' +
                                  'Would you like to download a CSV backup first?\n\n' +
-                                 'Click OK to download backup, or Cancel to skip.');
+                                 'Click OK to download CSV backup before saving\n' +
+                                 'Click Cancel to skip backup and continue');
             
             if (wantBackup) {
                 // Download CSV backup
@@ -801,7 +804,8 @@ const initialData =
             const confirmed = confirm('⚠️ Final Confirmation\n\n' +
                                     `You are about to replace all data in Google Sheets with ${data.listings.length} listing(s).\n\n` +
                                     'This action cannot be undone.\n\n' +
-                                    'Do you want to proceed?');
+                                    'Click OK to save all listings to Google Sheets and overwrite existing data\n' +
+                                    'Click Cancel to abort and keep Google Sheets unchanged');
             if (!confirmed) {
                 return; // User cancelled
             }
@@ -1254,7 +1258,9 @@ const initialData =
         }
         
         function exportData() {
-            const format = confirm('Export as JSON data file?\n\nClick OK for JSON\nClick Cancel for full HTML admin backup');
+            const format = confirm('Choose Export Format\n\n' +
+                                'Click OK to export as JSON data file\n' +
+                                'Click Cancel to export full HTML admin backup');
             
             if (format) {
                 const dataStr = JSON.stringify(data, null, 2);
@@ -1412,7 +1418,10 @@ const initialData =
         }
         
         function removeType(index) {
-            const confirmed = confirm('Are you sure you want to remove "' + data.filterOptions.types[index] + '"? This will not affect existing listings.');
+            const confirmed = confirm('Remove Filter Type: "' + data.filterOptions.types[index] + '"\n\n' +
+                                    'This will remove it from filter options but will not affect existing listings.\n\n' +
+                                    'Click OK to remove this filter type\n' +
+                                    'Click Cancel to keep it');
             if (confirmed) {
                 data.filterOptions.types.splice(index, 1);
                 saveFilterOptions();
@@ -1438,7 +1447,10 @@ const initialData =
         }
         
         function removeArea(index) {
-            const confirmed = confirm('Are you sure you want to remove "' + data.filterOptions.areas[index] + '"? This will not affect existing listings.');
+            const confirmed = confirm('Remove Filter Area: "' + data.filterOptions.areas[index] + '"\n\n' +
+                                    'This will remove it from filter options but will not affect existing listings.\n\n' +
+                                    'Click OK to remove this filter area\n' +
+                                    'Click Cancel to keep it');
             if (confirmed) {
                 data.filterOptions.areas.splice(index, 1);
                 saveFilterOptions();
@@ -1464,7 +1476,10 @@ const initialData =
         }
         
         function removeAmenity(index) {
-            const confirmed = confirm('Are you sure you want to remove "' + data.filterOptions.amenities[index] + '"? This will not affect existing listings.');
+            const confirmed = confirm('Remove Filter Amenity: "' + data.filterOptions.amenities[index] + '"\n\n' +
+                                    'This will remove it from filter options but will not affect existing listings.\n\n' +
+                                    'Click OK to remove this filter amenity\n' +
+                                    'Click Cancel to keep it');
             if (confirmed) {
                 data.filterOptions.amenities.splice(index, 1);
                 saveFilterOptions();
@@ -2107,7 +2122,10 @@ const initialData =
                             return;
                         }
                         
-                        const confirmed = confirm('Upload ' + newListings.length + ' listings from CSV?\n\n⚠️ This will replace all current listings with the CSV data.');
+                        const confirmed = confirm('Upload CSV with ' + newListings.length + ' listings?\n\n' +
+                                                '⚠️ This will replace all current listings with the CSV data.\n\n' +
+                                                'Click OK to upload CSV and replace all current listings\n' +
+                                                'Click Cancel to keep current listings unchanged');
                         if (confirmed) {
                             data.listings = newListings;
                             renderDataTable();
