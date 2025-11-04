@@ -2669,9 +2669,17 @@ const initialData =
             // 🔧 TESTING: Skip authentication if disabled
             if (!ENABLE_GOOGLE_AUTH) {
                 console.log('⚠️ Google OAuth disabled for testing - skipping login');
-                document.getElementById('loginOverlay').style.display = 'none';
+                // Set flag in localStorage for immediate hiding on next page load
+                localStorage.setItem('skipAuth', 'true');
+                const overlay = document.getElementById('loginOverlay');
+                if (overlay) {
+                    overlay.style.display = 'none';
+                }
                 document.body.classList.add('logged-in');
                 return; // Skip all auth checks
+            } else {
+                // Auth is enabled, clear the skip flag
+                localStorage.removeItem('skipAuth');
             }
             
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
