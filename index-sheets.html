@@ -1240,7 +1240,11 @@
                 <p style="color: #6c757d; margin: 0; font-size: 14px;">Sign in with your Google account to access the admin panel</p>
             </div>
             
-            <div id="g_id_onload" style="display: flex; justify-content: center; margin-bottom: 20px;"></div>
+            <div id="g_id_onload" style="display: flex; justify-content: center; margin-bottom: 20px; min-height: 50px;">
+                <div id="loadingMessage" style="color: #6c757d; padding: 20px;">
+                    Loading sign-in button...
+                </div>
+            </div>
             
             <div id="loginError" style="display: none; background: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; font-size: 14px; text-align: center; margin-bottom: 20px;">
                 <span id="loginErrorText"></span>
@@ -5424,49 +5428,82 @@ loadListings();</pre>
         }
         
         // Initialize Google Sign-In
+        let initAttempts = 0;
+        const MAX_INIT_ATTEMPTS = 50; // 5 seconds max wait
+        
         function initializeGoogleSignIn() {
+            initAttempts++;
+            const loadingMessage = document.getElementById('loadingMessage');
+            const errorDiv = document.getElementById('loginError');
+            const errorText = document.getElementById('loginErrorText');
+            const buttonContainer = document.getElementById('g_id_onload');
+            
+            // Check if Client ID is configured
             if (GOOGLE_OAUTH_CLIENT_ID === 'YOUR_CLIENT_ID.apps.googleusercontent.com') {
-                const errorDiv = document.getElementById('loginError');
-                const errorText = document.getElementById('loginErrorText');
+                if (loadingMessage) loadingMessage.style.display = 'none';
                 errorText.innerHTML = `
-                    <strong>Configuration Required:</strong><br>
+                    <strong>⚠️ Configuration Required:</strong><br>
                     Please set up Google OAuth Client ID in the code.<br>
-                    <small>See line ~5330 in index-sheets.html</small>
+                    <small>See line ~5337 in index-sheets.html<br>
+                    Replace 'YOUR_CLIENT_ID.apps.googleusercontent.com' with your actual Client ID from Google Cloud Console</small>
                 `;
                 errorDiv.style.display = 'block';
                 return;
             }
             
             // Wait for Google Identity Services to load
-            if (typeof google !== 'undefined' && google.accounts) {
-                google.accounts.id.initialize({
-                    client_id: GOOGLE_OAUTH_CLIENT_ID,
-                    callback: handleCredentialResponse,
-                    auto_select: false,
-                    cancel_on_tap_outside: true
-                });
-                
-                // Render the sign-in button
-                google.accounts.id.renderButton(
-                    document.getElementById('g_id_onload'),
-                    {
-                        theme: 'filled_blue',
-                        size: 'large',
-                        width: '100%',
-                        text: 'signin_with',
-                        type: 'standard'
-                    }
-                );
-                
-                // Also show One Tap (optional)
-                // google.accounts.id.prompt((notification) => {
-                //     if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                //         // User skipped or One Tap is not available
-                //     }
-                // });
+            if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+                try {
+                    if (loadingMessage) loadingMessage.style.display = 'none';
+                    
+                    google.accounts.id.initialize({
+                        client_id: GOOGLE_OAUTH_CLIENT_ID,
+                        callback: handleCredentialResponse,
+                        auto_select: false,
+                        cancel_on_tap_outside: true
+                    });
+                    
+                    // Render the sign-in button
+                    google.accounts.id.renderButton(
+                        buttonContainer,
+                        {
+                            theme: 'filled_blue',
+                            size: 'large',
+                            width: '100%',
+                            text: 'signin_with',
+                            type: 'standard'
+                        }
+                    );
+                    
+                    console.log('Google Sign-In button rendered successfully');
+                } catch (error) {
+                    console.error('Error rendering Google Sign-In button:', error);
+                    if (loadingMessage) loadingMessage.style.display = 'none';
+                    errorText.innerHTML = `
+                        <strong>❌ Error loading Google Sign-In:</strong><br>
+                        ${error.message || 'Unknown error'}<br>
+                        <small>Check your browser console for more details.</small>
+                    `;
+                    errorDiv.style.display = 'block';
+                }
             } else {
                 // Retry after a short delay if Google Identity Services hasn't loaded yet
-                setTimeout(initializeGoogleSignIn, 100);
+                if (initAttempts < MAX_INIT_ATTEMPTS) {
+                    if (loadingMessage) {
+                        loadingMessage.textContent = `Loading sign-in button... (${initAttempts})`;
+                    }
+                    setTimeout(initializeGoogleSignIn, 100);
+                } else {
+                    // Timeout - Google script failed to load
+                    if (loadingMessage) loadingMessage.style.display = 'none';
+                    errorText.innerHTML = `
+                        <strong>❌ Failed to load Google Sign-In:</strong><br>
+                        Google Identity Services script did not load.<br>
+                        <small>Please check your internet connection and try refreshing the page.</small>
+                    `;
+                    errorDiv.style.display = 'block';
+                    console.error('Google Identity Services failed to load after', MAX_INIT_ATTEMPTS, 'attempts');
+                }
             }
         }
         
