@@ -25,13 +25,13 @@
             /* Icon Colors - LIGHT MODE */
             --icon-primary: %23212529;        /* Dark gray for primary icons */
             --icon-secondary: %236c757d;      /* Medium gray for secondary icons */
-            --icon-on-badge: %234E6B52;       /* Type badge icon color */
+            --icon-on-badge: %23007AFF;       /* Type badge icon color */
             --icon-location: %23D65052;       /* Location/area icon color */
             --icon-hover-light: %23ffffff;    /* White for hover states on colored backgrounds */
             
             /* Badge Colors */
-            --badge-type-bg: rgba(78, 107, 82, 0.1);
-            --badge-type-color: #4E6B52;
+            --badge-type-bg: rgba(0, 122, 255, 0.1);
+            --badge-type-color: #007AFF;
             --badge-area-bg: rgba(214, 80, 82, 0.1);
             --badge-area-color: #D65052;
             --badge-featured-bg: rgba(214, 80, 82, 0.9);
@@ -145,13 +145,13 @@
            Icons adapt automatically to theme
         ======================================== */
         
-        /* Light Mode - Make badge type icons match the badge color (green) */
+        /* Light Mode - Make badge type icons match the badge color (blue) */
         .badge-type::before {
-            /* Convert black SVG icons to green (#4E6B52) */
+            /* Convert black SVG icons to blue (#007AFF) */
             filter: brightness(0) saturate(100%) invert(38%) sepia(15%) saturate(879%) hue-rotate(94deg) brightness(95%) contrast(89%);
         }
         
-        /* Light Mode - Filter buttons should also have green icons */
+        /* Light Mode - Filter buttons should also have blue icons */
         .type-filter-btn::before {
             filter: brightness(0) saturate(100%) invert(38%) sepia(15%) saturate(879%) hue-rotate(94deg) brightness(95%) contrast(89%);
         }
@@ -176,22 +176,22 @@
         .header p { opacity: 0.9; font-size: 16px; }
         .header-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
         
-        .tabs { max-width: 1600px; margin: 0 auto; display: flex; gap: 0; padding: 8px 20px; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 50px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .tab-btn { background: transparent; border: none; color: rgba(33,37,41,0.7); padding: 12px 24px; cursor: pointer; font-size: 14px; font-weight: 600; border-radius: 50px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 2px; }
+        .tabs { max-width: 1600px; margin: 0 auto; display: flex; gap: 0; padding: 8px 20px; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .tab-btn { background: transparent; border: none; color: rgba(33,37,41,0.7); padding: 12px 24px; cursor: pointer; font-size: 14px; font-weight: 600; border-radius: 20px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 2px; }
         .tab-btn:not(:last-child)::after { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 1px; height: 60%; background: #e0e0e0; }
         .tab-btn svg { stroke: rgba(33,37,41,0.7); transition: stroke 0.3s; }
-        .tab-btn:hover { color: #ffffff; background: linear-gradient(135deg, #4E6B52 0%, #3d5540 100%); }
+        .tab-btn:hover { color: #ffffff; background: linear-gradient(135deg, #007AFF 0%, #0051D5 100%); }
         .tab-btn:hover svg { stroke: #ffffff; }
         .tab-btn:hover::after { display: none; }
-        .tab-btn.active { color: #ffffff; background: linear-gradient(135deg, #4E6B52 0%, #3d5540 100%); box-shadow: 0 2px 8px rgba(78,107,82,0.3); }
+        .tab-btn.active { color: #ffffff; background: linear-gradient(135deg, #007AFF 0%, #0051D5 100%); box-shadow: 0 2px 8px rgba(0,122,255,0.3); }
         .tab-btn.active svg { stroke: #ffffff; }
         .tab-btn.active::after { display: none; }
         
         .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
         .btn-success { background: #28a745; color: white; font-weight: 600; }
         .btn-success:hover { background: #218838; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3); }
-        .btn-primary { background: #4E6B52; color: white; font-weight: 600; }
-        .btn-primary:hover { background: #3d5440; box-shadow: 0 4px 8px rgba(78, 107, 82, 0.3); }
+        .btn-primary { background: #007AFF; color: white; font-weight: 600; }
+        .btn-primary:hover { background: #0051D5; box-shadow: 0 4px 8px rgba(0, 122, 255, 0.3); }
         .btn-secondary { background: #6b7280; color: white; font-weight: 600; }
         .btn-secondary:hover { background: #4b5563; box-shadow: 0 4px 8px rgba(107, 114, 128, 0.3); }
         .btn-danger { background: #dc3545; color: white; font-weight: 600; }
@@ -202,16 +202,16 @@
         .btn-info:hover { background: #138496; box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3); }
         
         .stats { width: 100%; margin: 30px 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-        .stat-card { background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px var(--shadow); border-left: 4px solid #4E6B52; }
+        .stat-card { background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px var(--shadow); border-left: 4px solid #007AFF; }
         .stat-card h3 { font-size: 14px; color: var(--text-secondary); margin-bottom: 10px; }
-        .stat-card p { font-size: 32px; font-weight: 700; color: #4E6B52; }
+        .stat-card p { font-size: 32px; font-weight: 700; color: #007AFF; }
         
         .container { width: 100%; margin: 0; padding: 30px 20px; }
         .section-title { font-size: 24px; margin-bottom: 25px; color: var(--text-primary); }
         
         .filter-bar { background: var(--card-bg); padding: 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 2px 8px var(--shadow); }
         .filter-bar input { width: 100%; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px; }
-        .filter-bar input:focus { outline: none; border-color: #4E6B52; }
+        .filter-bar input:focus { outline: none; border-color: #007AFF; }
         
         .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
         .listing-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; transition: all 0.3s ease; position: relative; box-shadow: 0 2px 8px var(--shadow); display: flex; flex-direction: column; }
@@ -232,8 +232,8 @@
         
         .listing-contact { font-size: 13px; color: var(--text-secondary); margin-bottom: 15px; }
         .listing-actions { display: flex; gap: 10px; padding-top: 15px; border-top: 1px solid var(--border-color); margin-top: auto; }
-        .btn-edit { background: #4E6B52; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; flex: 1; }
-        .btn-edit:hover { background: #3d5440; }
+        .btn-edit { background: #007AFF; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; flex: 1; }
+        .btn-edit:hover { background: #0051D5; }
         .btn-delete { background: #E3795C; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
         .btn-delete:hover { background: #D65052; }
         
@@ -250,7 +250,7 @@
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-primary); font-size: 14px; }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px; font-family: inherit; transition: border-color 0.3s ease, background-color 0.3s ease; background: var(--bg-primary); color: var(--text-primary); }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #4E6B52; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #007AFF; }
         .form-group textarea { resize: vertical; min-height: 100px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         
@@ -362,7 +362,7 @@
             flex-shrink: 0;
         }
         .badge-type:hover {
-            background-color: #4E6B52;
+            background-color: #007AFF;
             color: white;
             transform: scale(1.05);
         }
@@ -400,7 +400,7 @@
             opacity: 0.8;
         }
         a.card-info-item:hover .card-info-icon {
-            background: #4E6B52;
+            background: #007AFF;
         }
         a.card-info-item:hover .card-info-icon svg {
             stroke: white;
@@ -445,13 +445,13 @@
         .preview-search { margin-bottom: 20px; }
         .preview-search label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
         .preview-search input { width: 100%; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; transition: border-color 0.2s; background: var(--bg-hover); }
-        .preview-search input:focus { outline: none; border-color: #4E6B52; background: var(--card-bg); }
+        .preview-search input:focus { outline: none; border-color: #007AFF; background: var(--card-bg); }
         
         .preview-filter-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
         .preview-filter-group label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
         .preview-filter-group select { width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; background: var(--bg-hover); cursor: pointer; transition: all 0.2s; color: var(--text-primary); appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
         .preview-filter-group select:hover { border-color: #cbd5e1; background: var(--card-bg); }
-        .preview-filter-group select:focus { outline: none; border-color: #4E6B52; background: var(--card-bg); }
+        .preview-filter-group select:focus { outline: none; border-color: #007AFF; background: var(--card-bg); }
         
         .preview-filters .btn { width: 100%; padding: 9px 16px; whitespace: nowrap; font-size: 13px; margin-top: 8px; }
         
@@ -492,12 +492,12 @@
         }
         .type-filter-btn:hover { 
             background: var(--bg-hover); 
-            border-color: #4E6B52;
+            border-color: #007AFF;
             color: var(--text-primary);
         }
         .type-filter-btn.active { 
-            background: #4E6B52; 
-            border-color: #4E6B52; 
+            background: #007AFF; 
+            border-color: #007AFF; 
             color: white; 
         }
         
@@ -513,7 +513,7 @@
         .data-table tbody tr:hover { background: var(--bg-hover); }
         .data-table td { padding: 12px; font-size: 13px; color: var(--text-primary); }
         .data-table td input, .data-table td textarea { width: 100%; padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; background: var(--bg-primary); color: var(--text-primary); }
-        .data-table td input:focus, .data-table td textarea:focus { outline: none; border-color: #4E6B52; }
+        .data-table td input:focus, .data-table td textarea:focus { outline: none; border-color: #007AFF; }
         .data-table td textarea { min-height: 60px; resize: vertical; }
         .data-table .cell-id { color: var(--text-secondary); font-weight: 600; }
         .data-table .cell-name { font-weight: 600; min-width: 150px; }
@@ -528,8 +528,8 @@
         .data-table .cell-amenities textarea { min-height: 50px; }
         .data-table .cell-featured { text-align: center; }
         .data-table .cell-actions { white-space: nowrap; }
-        .data-table .btn-table-save { background: #4E6B52; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; margin-right: 5px; }
-        .data-table .btn-table-save:hover { background: #3d5440; }
+        .data-table .btn-table-save { background: #007AFF; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; margin-right: 5px; }
+        .data-table .btn-table-save:hover { background: #0051D5; }
         .data-table .btn-table-delete { background: #E3795C; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; }
         .data-table .btn-table-delete:hover { background: #D65052; }
         
@@ -549,16 +549,16 @@
         .deploy-step-number { 
             width: 48px; 
             height: 48px; 
-            background: linear-gradient(135deg, #4E6B52 0%, #3d5440 100%);
+            background: linear-gradient(135deg, #007AFF 0%, #0051D5 100%);
             color: white; 
-            border-radius: 50%; 
+            border-radius: 20px; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             font-size: 20px; 
             font-weight: 700;
             flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(78, 107, 82, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
         }
         .deploy-step-content { flex: 1; }
         .deploy-step-content h3 { 
@@ -589,17 +589,17 @@
         }
         .deploy-tips {
             background: var(--card-bg);
-            border: 2px solid #4E6B52;
+            border: 2px solid #007AFF;
             border-radius: 12px;
             padding: 25px;
             margin-top: 40px;
-            box-shadow: 0 4px 16px rgba(78, 107, 82, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 122, 255, 0.1);
         }
         .deploy-tip-header {
             display: flex;
             align-items: center;
             margin-bottom: 20px;
-            color: #4E6B52;
+            color: #007AFF;
         }
         .deploy-tip-header h3 {
             font-size: 20px;
@@ -617,8 +617,8 @@
             margin-bottom: 12px;
         }
         .deploy-note {
-            background: rgba(78, 107, 82, 0.1);
-            border-left: 4px solid #4E6B52;
+            background: rgba(0, 122, 255, 0.1);
+            border-left: 4px solid #007AFF;
             border-radius: 8px;
             padding: 20px;
             margin-top: 30px;
