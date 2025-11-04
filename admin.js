@@ -381,19 +381,27 @@ const initialData =
                 // Configure buttons based on options
                 if (options && options.type === 'confirm') {
                     cancelBtn.style.display = 'inline-block';
-                    confirmBtn.textContent = options.confirmText || 'OK';
+                    confirmBtn.textContent = options.confirmText || 'Confirm';
                     cancelBtn.textContent = options.cancelText || 'Cancel';
                 } else {
                     // Alert style - only OK button
                     cancelBtn.style.display = 'none';
-                    confirmBtn.textContent = options && options.okText ? options.okText : 'OK';
+                    confirmBtn.textContent = options && options.okText ? options.okText : 'Got it';
                 }
                 
-                // Set button styles
+                // Set button styles with defaults
                 if (options && options.confirmStyle) {
                     confirmBtn.className = 'btn ' + options.confirmStyle;
                 } else {
-                    confirmBtn.className = 'btn btn-primary';
+                    // Default to primary for alerts, or use provided style
+                    confirmBtn.className = options && options.type === 'confirm' ? 'btn btn-primary' : 'btn btn-primary';
+                }
+                
+                // Set cancel button style
+                if (options && options.cancelStyle) {
+                    cancelBtn.className = 'btn ' + options.cancelStyle;
+                } else {
+                    cancelBtn.className = 'btn btn-secondary';
                 }
                 
                 modal.classList.add('active');
@@ -443,8 +451,8 @@ const initialData =
         });
         
         // Wrapper functions for easy replacement
-        async function showAlert(message, title) {
-            await showDialogModal(title || 'Information', message, { type: 'alert' });
+        async function showAlert(message, title, options) {
+            await showDialogModal(title || 'Information', message, Object.assign({ type: 'alert' }, options || {}));
         }
         
         async function showConfirm(message, title, options) {
@@ -788,9 +796,10 @@ const initialData =
             const confirmed = await showConfirm('⚠️ Warning: Reloading from Google Sheets will override all changes you\'ve made in this admin panel.\n\n' +
                                     'Any unsaved changes will be lost.\n\n' +
                                     'Do you want to continue?', 'Warning', {
-                                    confirmText: 'Yes, Reload',
-                                    cancelText: 'Cancel',
-                                    confirmStyle: 'btn-warning'
+                                    confirmText: 'Yes, Reload from Sheets',
+                                    cancelText: 'Keep My Changes',
+                                    confirmStyle: 'btn-warning',
+                                    cancelStyle: 'btn-secondary'
                                 });
             if (!confirmed) {
                 return;
@@ -885,10 +894,11 @@ const initialData =
             // Show confirmation dialog asking if they want to download CSV backup first
             const wantBackup = await showConfirm('⚠️ You are about to replace ALL data in Google Sheets.\n\n' +
                                  'Would you like to download a CSV backup first?\n\n' +
-                                 'Click "Download Backup" to download backup, or "Skip" to continue without backup.', 'Backup Recommendation', {
-                                 confirmText: 'Download Backup',
-                                 cancelText: 'Skip',
-                                 confirmStyle: 'btn-success'
+                                 'It\'s recommended to download a backup before overwriting.', 'Backup Recommendation', {
+                                 confirmText: 'Download CSV Backup',
+                                 cancelText: 'Skip Backup',
+                                 confirmStyle: 'btn-success',
+                                 cancelStyle: 'btn-secondary'
                              });
             
             if (wantBackup) {
@@ -903,9 +913,10 @@ const initialData =
                                     `You are about to replace all data in Google Sheets with ${data.listings.length} listing(s).\n\n` +
                                     'This action cannot be undone.\n\n' +
                                     'Do you want to proceed?', 'Confirm Overwrite', {
-                                    confirmText: 'Yes, Overwrite',
+                                    confirmText: 'Yes, Overwrite Sheets',
                                     cancelText: 'Cancel',
-                                    confirmStyle: 'btn-danger'
+                                    confirmStyle: 'btn-danger',
+                                    cancelStyle: 'btn-secondary'
                                 });
             if (!confirmed) {
                 return; // User cancelled
@@ -963,15 +974,24 @@ const initialData =
                 
                 if (result.success) {
                     updateSyncStatus(true, `✅ Replaced all data in Google Sheets with ${data.listings.length} listings`);
-                    await showAlert(`✅ Successfully saved all ${data.listings.length} listings to Google Sheets!`, 'Success');
+                    await showAlert(`✅ Successfully saved all ${data.listings.length} listings to Google Sheets!`, 'Success', {
+                        okText: 'Great!',
+                        confirmStyle: 'btn-success'
+                    });
                 } else {
                     updateSyncStatus(false, '❌ Save failed');
-                    await showAlert('❌ Error saving to Google Sheets: ' + (result.error || 'Unknown error'), 'Error');
+                    await showAlert('❌ Error saving to Google Sheets: ' + (result.error || 'Unknown error'), 'Error', {
+                        okText: 'OK',
+                        confirmStyle: 'btn-danger'
+                    });
                 }
             } catch (error) {
                 console.error('Error saving to Google Sheets:', error);
                 updateSyncStatus(false, '❌ Save failed');
-                await showAlert('❌ Error saving to Google Sheets: ' + error.message, 'Error');
+                await showAlert('❌ Error saving to Google Sheets: ' + error.message, 'Error', {
+                    okText: 'OK',
+                    confirmStyle: 'btn-danger'
+                });
             }
         }
         
@@ -1209,7 +1229,10 @@ const initialData =
             const listing = data.listings.find(function(l) { return l.id === id; });
             
             if (!listing) {
-                await showAlert('Listing not found!', 'Error');
+                await showAlert('Listing not found!', 'Error', {
+                    okText: 'OK',
+                    confirmStyle: 'btn-danger'
+                });
                 return;
             }
             
@@ -1276,7 +1299,10 @@ const initialData =
                     } catch (error) {
                         console.error('Error deleting from Google Sheets:', error);
                         updateSyncStatus(false, '❌ Delete failed');
-                        await showAlert('⚠️ Failed to delete from Google Sheets: ' + error.message + '\n\nDeleted locally only.', 'Delete Failed');
+                        await showAlert('⚠️ Failed to delete from Google Sheets: ' + error.message + '\n\nDeleted locally only.', 'Delete Failed', {
+                            okText: 'OK',
+                            confirmStyle: 'btn-warning'
+                        });
                         
                         // Still delete locally
                         data.listings = data.listings.filter(function(l) { return l.id !== id; });
@@ -1284,7 +1310,10 @@ const initialData =
                 } else {
                     // No Google Sheets configured - delete locally only
                     data.listings = data.listings.filter(function(l) { return l.id !== id; });
-                    await showAlert('Deleted "' + listing.name + '" (Local only - configure Google Sheets to sync)', 'Deleted');
+                    await showAlert('Deleted "' + listing.name + '" (Local only - configure Google Sheets to sync)', 'Deleted', {
+                        okText: 'Got it',
+                        confirmStyle: 'btn-info'
+                    });
                 }
                 
                 renderListings();
@@ -1341,14 +1370,23 @@ const initialData =
                             const index = data.listings.findIndex(function(l) { return l.id === editingId; });
                             if (index >= 0) {
                                 data.listings[index] = listing;
-                    await showAlert('"' + listing.name + '" has been updated locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.', 'Updated');
+                    await showAlert('"' + listing.name + '" has been updated locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.', 'Updated', {
+                        okText: 'Got it',
+                        confirmStyle: 'btn-success'
+                    });
                         } else {
                             data.listings.push(listing);
-                    await showAlert('"' + listing.name + '" has been added locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.', 'Added');
+                    await showAlert('"' + listing.name + '" has been added locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.', 'Added', {
+                        okText: 'Got it',
+                        confirmStyle: 'btn-success'
+                    });
                 }
                     } else {
                         data.listings.push(listing);
-                await showAlert('"' + listing.name + '" has been added locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.', 'Added');
+                await showAlert('"' + listing.name + '" has been added locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.', 'Added', {
+                    okText: 'Got it',
+                    confirmStyle: 'btn-success'
+                });
             }
             
             // Update the display and close modal
@@ -1361,10 +1399,11 @@ const initialData =
         }
         
         async function exportData() {
-            const format = await showConfirm('Export as JSON data file?\n\nClick "JSON Export" for JSON data file\nClick "Cancel" for full HTML admin backup', 'Export Options', {
-                confirmText: 'JSON Export',
-                cancelText: 'HTML Backup',
-                confirmStyle: 'btn-primary'
+            const format = await showConfirm('Choose export format:\n\n• JSON Export: Data only (JSON file)\n• HTML Backup: Full admin panel (standalone HTML)', 'Export Options', {
+                confirmText: 'Export as JSON',
+                cancelText: 'Export as HTML',
+                confirmStyle: 'btn-primary',
+                cancelStyle: 'btn-info'
             });
             
             if (format) {
@@ -1376,7 +1415,10 @@ const initialData =
                 link.download = 'adventure-directory-data-' + new Date().toISOString().split('T')[0] + '.json';
                 link.click();
                 URL.revokeObjectURL(url);
-                await showAlert('JSON data exported! Check your downloads folder.', 'Export Complete');
+                await showAlert('JSON data exported! Check your downloads folder.', 'Export Complete', {
+                    okText: 'Got it',
+                    confirmStyle: 'btn-success'
+                });
             } else {
                 const htmlContent = document.documentElement.outerHTML;
                 const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
@@ -1386,7 +1428,10 @@ const initialData =
                 link.download = 'adventure-directory-admin-backup-' + new Date().toISOString().split('T')[0] + '.html';
                 link.click();
                 URL.revokeObjectURL(url);
-                await showAlert('Full admin backup exported! You can open this HTML file anytime to continue editing.', 'Export Complete');
+                await showAlert('Full admin backup exported! You can open this HTML file anytime to continue editing.', 'Export Complete', {
+                    okText: 'Got it',
+                    confirmStyle: 'btn-success'
+                });
             }
         }
         
@@ -1399,7 +1444,10 @@ const initialData =
             link.download = 'data-' + new Date().toISOString().split('T')[0] + '.json';
             link.click();
             URL.revokeObjectURL(url);
-            await showAlert('JSON file downloaded! This contains all your listing data.', 'Download Complete');
+            await showAlert('JSON file downloaded! This contains all your listing data.', 'Download Complete', {
+                okText: 'Got it',
+                confirmStyle: 'btn-success'
+            });
         }
         
         // Download JSON backup (same as quickExportJSON but with different naming)
@@ -1518,15 +1566,19 @@ const initialData =
                 updateTypeDropdown();
                 input.value = '';
             } else {
-                await showAlert('This type already exists.', 'Duplicate');
+                await showAlert('This type already exists.', 'Duplicate', {
+                    okText: 'OK',
+                    confirmStyle: 'btn-warning'
+                });
             }
         }
         
         async function removeType(index) {
-            const confirmed = await showConfirm('Are you sure you want to remove "' + data.filterOptions.types[index] + '"? This will not affect existing listings.', 'Remove Type', {
-                confirmText: 'Remove',
-                cancelText: 'Cancel',
-                confirmStyle: 'btn-danger'
+            const confirmed = await showConfirm('Are you sure you want to remove "' + data.filterOptions.types[index] + '"?\n\nThis will remove it from the filter options, but will not affect existing listings.', 'Remove Type', {
+                confirmText: 'Remove Type',
+                cancelText: 'Keep It',
+                confirmStyle: 'btn-danger',
+                cancelStyle: 'btn-secondary'
             });
             if (confirmed) {
                 data.filterOptions.types.splice(index, 1);
@@ -1548,15 +1600,19 @@ const initialData =
                 updateAreaDropdown();
                 input.value = '';
             } else {
-                await showAlert('This area already exists.', 'Duplicate');
+                await showAlert('This area already exists.', 'Duplicate', {
+                    okText: 'OK',
+                    confirmStyle: 'btn-warning'
+                });
             }
         }
         
         async function removeArea(index) {
-            const confirmed = await showConfirm('Are you sure you want to remove "' + data.filterOptions.areas[index] + '"? This will not affect existing listings.', 'Remove Area', {
-                confirmText: 'Remove',
-                cancelText: 'Cancel',
-                confirmStyle: 'btn-danger'
+            const confirmed = await showConfirm('Are you sure you want to remove "' + data.filterOptions.areas[index] + '"?\n\nThis will remove it from the filter options, but will not affect existing listings.', 'Remove Area', {
+                confirmText: 'Remove Area',
+                cancelText: 'Keep It',
+                confirmStyle: 'btn-danger',
+                cancelStyle: 'btn-secondary'
             });
             if (confirmed) {
                 data.filterOptions.areas.splice(index, 1);
@@ -1578,15 +1634,19 @@ const initialData =
                 updateAmenitiesCheckboxes();
                 input.value = '';
             } else {
-                await showAlert('This amenity already exists.', 'Duplicate');
+                await showAlert('This amenity already exists.', 'Duplicate', {
+                    okText: 'OK',
+                    confirmStyle: 'btn-warning'
+                });
             }
         }
         
         async function removeAmenity(index) {
-            const confirmed = await showConfirm('Are you sure you want to remove "' + data.filterOptions.amenities[index] + '"? This will not affect existing listings.', 'Remove Amenity', {
-                confirmText: 'Remove',
-                cancelText: 'Cancel',
-                confirmStyle: 'btn-danger'
+            const confirmed = await showConfirm('Are you sure you want to remove "' + data.filterOptions.amenities[index] + '"?\n\nThis will remove it from the filter options, but will not affect existing listings.', 'Remove Amenity', {
+                confirmText: 'Remove Amenity',
+                cancelText: 'Keep It',
+                confirmStyle: 'btn-danger',
+                cancelStyle: 'btn-secondary'
             });
             if (confirmed) {
                 data.filterOptions.amenities.splice(index, 1);
@@ -1983,7 +2043,10 @@ const initialData =
             
             textarea.select();
             document.execCommand('copy');
-            await showAlert('Copied to clipboard!', 'Success');
+            await showAlert('Copied to clipboard!', 'Success', {
+                okText: 'Got it',
+                confirmStyle: 'btn-success'
+            });
         }
         
         function renderDataTable() {
@@ -2064,9 +2127,15 @@ const initialData =
             
             // Changes saved locally only - user must click "Save All to Google Sheets" to sync
             if (changeCount > 0) {
-                await showAlert('Table updated! ' + changeCount + ' field(s) changed locally.\n\n💾 Click "Save All to Google Sheets" to sync changes.', 'Updated');
+                await showAlert('Table updated! ' + changeCount + ' field(s) changed locally.\n\n💾 Click "Save All to Google Sheets" to sync changes.', 'Updated', {
+                    okText: 'Got it',
+                    confirmStyle: 'btn-success'
+                });
             } else {
-                await showAlert('No changes detected.', 'Info');
+                await showAlert('No changes detected.', 'Info', {
+                    okText: 'OK',
+                    confirmStyle: 'btn-info'
+                });
             }
         }
         
@@ -2147,7 +2216,10 @@ const initialData =
             } catch (error) {
                 console.error('Error downloading CSV:', error);
                 updateSyncStatus(false, '❌ CSV download failed');
-                await showAlert('Error downloading CSV: ' + error.message, 'Error');
+                await showAlert('Error downloading CSV: ' + error.message, 'Error', {
+                    okText: 'OK',
+                    confirmStyle: 'btn-danger'
+                });
             }
         }
         
@@ -2165,7 +2237,10 @@ const initialData =
                 
                 reader.onerror = function(error) {
                     console.error('File read error:', error);
-                    await showAlert('Error reading file: ' + error, 'Error');
+                    await showAlert('Error reading file: ' + error, 'Error', {
+                        okText: 'OK',
+                        confirmStyle: 'btn-danger'
+                    });
                 };
                 
                 reader.onload = function(e) {
@@ -2226,14 +2301,18 @@ const initialData =
                         console.log('Parsed listings:', newListings.length);
                         
                         if (newListings.length === 0) {
-                            await showAlert('No valid listings found in CSV file.', 'Error');
+                            await showAlert('No valid listings found in CSV file.', 'Error', {
+                                okText: 'OK',
+                                confirmStyle: 'btn-danger'
+                            });
                             return;
                         }
                         
-                        const confirmed = await showConfirm('Upload ' + newListings.length + ' listings? This will replace all current listings.', 'Upload CSV', {
-                            confirmText: 'Upload',
-                            cancelText: 'Cancel',
-                            confirmStyle: 'btn-warning'
+                        const confirmed = await showConfirm('Upload ' + newListings.length + ' listings from CSV?\n\n⚠️ This will replace all current listings with the CSV data.', 'Upload CSV', {
+                            confirmText: 'Yes, Replace All',
+                            cancelText: 'Cancel Upload',
+                            confirmStyle: 'btn-warning',
+                            cancelStyle: 'btn-secondary'
                         });
                         if (confirmed) {
                             data.listings = newListings;
@@ -2247,7 +2326,10 @@ const initialData =
                             }
                             
                             // CSV imported locally only - user must click "Save All to Google Sheets" to sync
-                            await showAlert('CSV uploaded successfully! ' + newListings.length + ' listings imported locally.\n\n💾 Click "Save All to Google Sheets" to sync changes.', 'Upload Complete');
+                            await showAlert('CSV uploaded successfully! ' + newListings.length + ' listings imported locally.\n\n💾 Click "Save All to Google Sheets" to sync changes.', 'Upload Complete', {
+                                okText: 'Got it',
+                                confirmStyle: 'btn-success'
+                            });
                         }
                         
                         // Reset file input
@@ -2255,7 +2337,10 @@ const initialData =
                         
                     } catch (parseError) {
                         console.error('Error parsing CSV:', parseError);
-                        await showAlert('Error parsing CSV file: ' + parseError.message, 'Error');
+                        await showAlert('Error parsing CSV file: ' + parseError.message, 'Error', {
+                            okText: 'OK',
+                            confirmStyle: 'btn-danger'
+                        });
                     }
                 };
                 
@@ -2263,7 +2348,10 @@ const initialData =
                 
             } catch (error) {
                 console.error('Error in handleCSVUpload:', error);
-                await showAlert('Error uploading CSV: ' + error.message, 'Error');
+                await showAlert('Error uploading CSV: ' + error.message, 'Error', {
+                    okText: 'OK',
+                    confirmStyle: 'btn-danger'
+                });
             }
         }
         
