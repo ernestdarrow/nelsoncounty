@@ -692,6 +692,12 @@ const initialData =
         
         // Reload data from Google Sheets (manual refresh)
         async function reloadFromSheets() {
+            const confirmed = confirm('⚠️ Warning: Reloading from Google Sheets will override all changes you\'ve made in this admin panel.\n\n' +
+                                    'Any unsaved changes will be lost.\n\n' +
+                                    'Do you want to continue?');
+            if (!confirmed) {
+                return;
+            }
             updateSyncStatus(true, '🔄 Reloading...');
             await loadDataFromGoogleSheets();
         }
@@ -779,8 +785,23 @@ const initialData =
                 return;
             }
             
-            // Show confirmation dialog with backup recommendation
-            const confirmed = await showBackupConfirmation(data.listings.length);
+            // Show confirmation dialog asking if they want to download CSV backup first
+            const wantBackup = confirm('⚠️ You are about to replace ALL data in Google Sheets.\n\n' +
+                                      'Would you like to download a CSV backup first?\n\n' +
+                                      'Click OK to download backup, or Cancel to skip.');
+            
+            if (wantBackup) {
+                // Download CSV backup
+                downloadCSV();
+                // Wait a moment for download to start
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            // Now ask for confirmation to overwrite
+            const confirmed = confirm('⚠️ Final Confirmation\n\n' +
+                                    `You are about to replace all data in Google Sheets with ${data.listings.length} listing(s).\n\n` +
+                                    'This action cannot be undone.\n\n' +
+                                    'Do you want to proceed?');
             if (!confirmed) {
                 return; // User cancelled
             }
