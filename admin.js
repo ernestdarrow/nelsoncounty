@@ -984,7 +984,7 @@ const initialData =
             renderListings(filtered);
         }
         
-        function filterAdminByType(type) {
+        window.filterAdminByType = function filterAdminByType(type) {
             currentAdminTypeFilter = type;
             
             // Update button active states
@@ -1138,44 +1138,42 @@ const initialData =
                             
                             const responseText = await response.text();
                             result = responseText ? JSON.parse(responseText) : { success: true };
-                        } catch (e) {
-                            result = { success: true };
+                        } catch (corsError) {
+                            // Use no-cors mode as fallback
+                            try {
+                                await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                                    method: 'POST',
+                                    mode: 'no-cors',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: postData
+                                });
+                                result = { success: true };
+                                console.log('Using no-cors mode for delete, assuming success');
+                            } catch (e) {
+                                result = { success: false, error: 'Failed to connect' };
+                            }
                         }
-                    } catch (corsError) {
-                        // Use no-cors mode as fallback
-                        try {
-                            await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                                method: 'POST',
-                                mode: 'no-cors',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: postData
-                            });
-                            result = { success: true };
-                            console.log('Using no-cors mode for delete, assuming success');
-                        } catch (e) {
-                            result = { success: false, error: 'Failed to connect' };
-                        }
-                    }
-                    if (result.success) {
-                        // Update local data
-                        data.listings = data.listings.filter(function(l) { return l.id !== id; });
-                        updateSyncStatus(true, '✅ Deleted from Google Sheets');
                         
-                        // Reload from Google Sheets to sync
-                        setTimeout(() => loadDataFromGoogleSheets(), 1000);
-                    } else {
-                        throw new Error(result.error || 'Delete failed');
+                        if (result.success) {
+                            // Update local data
+                            data.listings = data.listings.filter(function(l) { return l.id !== id; });
+                            updateSyncStatus(true, '✅ Deleted from Google Sheets');
+                            
+                            // Reload from Google Sheets to sync
+                            setTimeout(() => loadDataFromGoogleSheets(), 1000);
+                        } else {
+                            throw new Error(result.error || 'Delete failed');
+                        }
+                    } catch (error) {
+                        console.error('Error deleting from Google Sheets:', error);
+                        updateSyncStatus(false, '❌ Delete failed');
+                        alert('⚠️ Failed to delete from Google Sheets: ' + error.message + '\n\nDeleted locally only.');
+                        
+                        // Still delete locally
+                        data.listings = data.listings.filter(function(l) { return l.id !== id; });
                     }
-                } catch (error) {
-                    console.error('Error deleting from Google Sheets:', error);
-                    updateSyncStatus(false, '❌ Delete failed');
-                    alert('⚠️ Failed to delete from Google Sheets: ' + error.message + '\n\nDeleted locally only.');
-                    
-                    // Still delete locally
-                    data.listings = data.listings.filter(function(l) { return l.id !== id; });
-                }
                 } else {
                     // No Google Sheets configured - delete locally only
                     data.listings = data.listings.filter(function(l) { return l.id !== id; });
@@ -1251,7 +1249,7 @@ const initialData =
             closeModal();
         }
         
-        function closeModal() {
+        window.closeModal = function closeModal() {
             document.getElementById('listingModal').classList.remove('active');
         }
         
@@ -1315,7 +1313,7 @@ const initialData =
             if (e.target === this) closeModal();
         });
         
-        function switchTab(tab) {
+        window.switchTab = function switchTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(function(btn) { btn.classList.remove('active'); });
             document.querySelectorAll('.tab-content').forEach(function(content) { content.classList.remove('active'); });
             
