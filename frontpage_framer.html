@@ -1119,23 +1119,26 @@
         }
         
         .show-sidebar-btn {
-            position: fixed;
-            left: 20px;
-            top: 15px;
-            background: white;
-            color: var(--text-primary);
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
+            position: fixed !important;
+            left: 20px !important;
+            top: 15px !important;
+            background: white !important;
+            color: var(--text-primary) !important;
+            border: none !important;
+            width: 50px !important;
+            height: 50px !important;
+            border-radius: 50% !important;
             display: none;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
             transition: all 0.3s;
-            padding: 0;
+            padding: 0 !important;
+            margin: 0 !important;
             z-index: 2000 !important; /* Very high z-index to stay on top */
+            pointer-events: auto !important;
+            transform: none !important;
         }
         .show-sidebar-btn:hover {
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
@@ -1151,11 +1154,54 @@
             display: flex !important;
             visibility: visible !important;
             opacity: 1 !important;
+            position: fixed !important;
+            left: 20px !important;
+            top: 15px !important;
+            z-index: 2000 !important;
         }
         
-        /* Ensure show-sidebar-btn is visible even if sidebar is hidden */
+        /* Ensure show-sidebar-btn is never affected by grid or expanding cards */
         .show-sidebar-btn {
-            z-index: 2000 !important; /* Very high z-index to stay on top */
+            z-index: 2000 !important; /* Very high z-index to stay on top of expanded cards (1001) */
+            position: fixed !important; /* Always fixed to viewport, not affected by parent layouts */
+            left: 20px !important;
+            top: 15px !important;
+            /* Prevent any parent transforms or layouts from affecting this */
+            transform: none !important;
+            margin: 0 !important;
+            /* Ensure it's not clipped by parent containers */
+            clip-path: none !important;
+            clip: auto !important;
+        }
+        
+        /* Prevent grid or expanding cards from affecting button */
+        .preview-grid,
+        .flip-card.expanded,
+        .preview-main {
+            position: relative; /* Keep containers relative, but button stays fixed */
+        }
+        
+        /* Ensure preview-main doesn't clip the button */
+        .preview-main {
+            overflow: visible !important; /* Allow button to be visible outside container */
+        }
+        
+        /* Override any transforms or positioning that might affect the button */
+        .preview-main:has(.show-sidebar-btn) .show-sidebar-btn,
+        .preview-main .show-sidebar-btn {
+            position: fixed !important;
+            left: 20px !important;
+            top: 15px !important;
+            transform: none !important;
+            margin: 0 !important;
+            /* Ensure visibility even when cards expand */
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        /* Make sure expanded cards don't cover the button */
+        .flip-card.expanded {
+            z-index: 1001 !important; /* Lower than button's 2000 */
         }
         
         .preview-filters { background: var(--bg-secondary); padding: 0; border-radius: 0; box-shadow: none; max-height: 100vh; display: flex; flex-direction: column; }
