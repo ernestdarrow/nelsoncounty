@@ -12,8 +12,8 @@
         window.g_id_onload = null;
     </script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- External Stylesheet for Admin Panel -->
-    <link rel="stylesheet" href="https://ernestdarrow.github.io/nelsoncounty/admin.css">
+    <!-- Local Stylesheet for Admin Panel -->
+    <link rel="stylesheet" href="admin.css">
     
     <!-- Quick check: If auth is disabled, hide login immediately -->
     <script>
@@ -319,8 +319,6 @@
             <div class="preview-content-wrapper">
                 <aside class="preview-sidebar">
                     <div class="preview-filters">
-                        <h3>Filters</h3>
-                        
                         <div class="filter-content">
                             <div class="filter-section search-section">
                                 <div class="preview-search">
@@ -648,7 +646,7 @@
             }, 1000);
         });
     </script>
-    <script src="admin.js"></script>
+    <script src="https://ernestdarrow.github.io/nelsoncounty/admin.js"></script>
     
     <script>
         // Fallback: If admin.js fails to load, show error after 2 seconds
