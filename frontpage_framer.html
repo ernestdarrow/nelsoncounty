@@ -133,7 +133,7 @@
         }
         html {
             overflow-x: hidden;
-            overflow-y: visible;
+            overflow-y: auto;
             height: auto;
             min-height: 100%;
             position: relative;
@@ -147,14 +147,10 @@
             margin: 0;
             padding: 0;
             overflow-x: hidden;
-            overflow-y: visible;
+            overflow-y: auto;
             height: auto;
             min-height: 100%;
             position: relative;
-        }
-        /* Prevent iframe document from creating its own scroll - let parent window scroll */
-        html, body {
-            overflow: visible !important;
         }
         /* Only allow scrolling on specific elements that need it */
         .preview-sidebar .filter-content,
@@ -1067,7 +1063,7 @@
             overflow-x: clip;
         }
         
-        .preview-sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 0; max-height: 100vh; left: 0; align-self: flex-start; transition: all 0.3s; }
+        .preview-sidebar { width: 280px; flex-shrink: 0; position: relative; top: 0; max-height: 100vh; left: 0; align-self: flex-start; transition: all 0.3s; z-index: 1000; }
         .preview-sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; }
         
         .sidebar-header {
@@ -1549,7 +1545,7 @@
         
         /* Top Search Bar */
         .top-search-container {
-            position: sticky;
+            position: relative;
             top: 0;
             z-index: 100;
             background: linear-gradient(
@@ -5280,49 +5276,33 @@ function handleStickyInIframe() {
                 const currentSidebar = document.querySelector('.preview-sidebar');
                 const currentSearchContainer = document.querySelector('.top-search-container');
                 
-                // Handle sidebar - use fixed positioning to keep it sticky in iframe
-                // Since iframe doesn't scroll, we use fixed to stick to viewport
+                // Use fixed positioning - sticky doesn't work when parent window scrolls
                 if (currentSidebar && currentSidebar.isConnected) {
                     const isCollapsed = currentSidebar.classList.contains('collapsed');
                     
                     if (!isCollapsed) {
-                        // Always use fixed positioning in iframe context to keep sidebar visible
-                        // Use setProperty with !important to override CSS
-                        currentSidebar.style.setProperty('position', 'fixed', 'important');
-                        currentSidebar.style.setProperty('top', '0', 'important');
-                        currentSidebar.style.setProperty('left', '0', 'important');
-                        currentSidebar.style.setProperty('height', '100vh', 'important');
-                        currentSidebar.style.setProperty('max-height', '100vh', 'important');
-                        currentSidebar.style.setProperty('overflow-y', 'auto', 'important');
-                        currentSidebar.style.setProperty('z-index', '1000', 'important');
+                        // Force fixed positioning to keep sidebar visible
+                        currentSidebar.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 280px !important; height: 100vh !important; max-height: 100vh !important; overflow-y: auto !important; z-index: 1000 !important;';
                         // Ensure main content accounts for fixed sidebar
                         const mainContent = document.querySelector('.preview-main');
                         if (mainContent) {
-                            const sidebarWidth = 280;
-                            // Always add margin to account for fixed sidebar
-                            mainContent.style.setProperty('margin-left', sidebarWidth + 'px', 'important');
+                            mainContent.style.setProperty('margin-left', '280px', 'important');
                         }
                     }
                 }
                 
-                // Handle search container - use fixed positioning to keep it sticky in iframe
-                // Since iframe doesn't scroll, we use fixed to stick to viewport
+                // Use fixed positioning for search bar
                 if (currentSearchContainer && currentSearchContainer.isConnected) {
-                    const mainContent = document.querySelector('.preview-main');
                     const sidebar = document.querySelector('.preview-sidebar');
                     const sidebarWidth = sidebar && !sidebar.classList.contains('collapsed') ? 280 : 0;
+                    const searchHeight = currentSearchContainer.offsetHeight || 80;
                     
-                    // Always use fixed positioning in iframe context to keep search bar visible
-                    // Use setProperty with !important to override CSS
-                    currentSearchContainer.style.setProperty('position', 'fixed', 'important');
-                    currentSearchContainer.style.setProperty('top', '0', 'important');
-                    currentSearchContainer.style.setProperty('left', sidebarWidth + 'px', 'important');
-                    currentSearchContainer.style.setProperty('width', 'calc(100% - ' + sidebarWidth + 'px)', 'important');
-                    currentSearchContainer.style.setProperty('z-index', '1001', 'important');
+                    // Force fixed positioning to keep search bar visible
+                    currentSearchContainer.style.cssText = 'position: fixed !important; top: 0 !important; left: ' + sidebarWidth + 'px !important; width: calc(100% - ' + sidebarWidth + 'px) !important; z-index: 1001 !important;';
+                    
                     // Ensure main content accounts for fixed search bar
+                    const mainContent = document.querySelector('.preview-main');
                     if (mainContent) {
-                        const searchHeight = currentSearchContainer.offsetHeight || 80;
-                        // Always add padding to account for fixed search bar
                         mainContent.style.setProperty('padding-top', searchHeight + 'px', 'important');
                     }
                 }
