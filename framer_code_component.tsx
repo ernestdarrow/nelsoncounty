@@ -46,8 +46,11 @@ export default function AdventureDirectory() {
         width: '100%',
         height: '800px',
         border: 'none',
-        minHeight: '400px'
+        minHeight: '400px',
+        overflow: 'hidden',
+        scrolling: 'no'
       }}
+      scrolling="no"
       title="Adventure Directory"
     />
   )

@@ -131,6 +131,13 @@
         html, body {
             max-width: 100vw;
         }
+        html {
+            overflow-x: hidden;
+            overflow-y: visible;
+            height: auto;
+            min-height: 100%;
+            position: relative;
+        }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
             background: var(--bg-primary); 
@@ -139,6 +146,20 @@
             width: 100%;
             margin: 0;
             padding: 0;
+            overflow-x: hidden;
+            overflow-y: visible;
+            height: auto;
+            min-height: 100%;
+            position: relative;
+        }
+        /* Prevent iframe document from creating its own scroll - let parent window scroll */
+        html, body {
+            overflow: visible !important;
+        }
+        /* Only allow scrolling on specific elements that need it */
+        .preview-sidebar .filter-content,
+        .modal-content {
+            overflow-y: auto;
         }
         
         /* SVG Icon Library */
