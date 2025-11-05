@@ -1656,7 +1656,7 @@ function renderPreview(filteredListings) {
         }
         
         back.innerHTML = 
-            '<div class="back-content" style="padding: 30px; height: 100%; display: flex; flex-direction: column; overflow-y: auto;">' +
+            '<div class="back-content" style="padding: 30px; display: flex; flex-direction: column; min-height: 100%;">' +
             '<h3 class="back-title" style="font-size: 26px; margin-bottom: 15px; color: var(--text-primary); font-weight: 700; line-height: 1.2;">' + escapeHtml(fixEncoding(listing.name)) + '</h3>' +
             (listing.image1 || listing.image2 ? '<div class="two-up">' +
                 (listing.image1 ? '<img src="' + listing.image1 + '" onerror="this.onerror=null; this.src=FALLBACK_IMG;">' : '') +
@@ -1687,8 +1687,8 @@ function renderPreview(filteredListings) {
             '</div>' : '') +
             '<a href="https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(listing.address) + '" target="_blank" style="margin-top: 8px; background: #ffffff; color: var(--theme-primary); padding: 14px; text-align: center; border-radius: 12px; text-decoration: none; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 8px var(--theme-primary-light); border: 2px solid var(--theme-primary); transition: all 0.3s;" onclick="event.stopPropagation();" onmouseover="this.style.background=\'#f7faf9\';" onmouseout="this.style.background=\'#ffffff\';">' +
             '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">' +
-            '<path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A2 2 0 013 15.382V5a2 2 0 012-2h10.382a2 2 0 011.894 1.316L20 9" />' +
-            '<path stroke-linecap="round" stroke-linejoin="round" d="M16 12l-4 4m0 0l-4-4m4 4V8" />' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />' +
             '</svg>' +
             'Get Directions' +
             '</a>' +

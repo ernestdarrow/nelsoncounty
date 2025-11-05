@@ -2112,7 +2112,34 @@
             transform: scale(0.98);
         }
         .flip-card-front { position: relative; opacity: 1; transform: scale(1); display: flex; flex-direction: column; overflow: hidden; }
-        .flip-card-back { position: absolute; top: 0; left: 0; display: flex; flex-direction: column; opacity: 0; transform: scale(0.96); pointer-events: none; overflow: hidden; }
+        .flip-card-back { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%;
+            height: 100%;
+            display: flex; 
+            flex-direction: column; 
+            opacity: 0; 
+            transform: scale(0.96); 
+            pointer-events: none; 
+            overflow-y: auto; 
+            overflow-x: hidden; 
+            -webkit-overflow-scrolling: touch;
+        }
+        .flip-card-back::-webkit-scrollbar {
+            width: 6px;
+        }
+        .flip-card-back::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .flip-card-back::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+        .flip-card-back::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
         .flip-card.flipped .flip-card-front { opacity: 0; transform: scale(0.96); pointer-events: none; }
         .flip-card.flipped .flip-card-back { opacity: 1; transform: scale(1); pointer-events: auto; }
         
@@ -2334,11 +2361,11 @@
         .flip-card.expanded .flip-card-back { height: 100%; inset: 0; }
 
         /* Back layout prioritizing imagery and title when expanded */
-        .flip-card.expanded .flip-card-back .back-content { padding: 24px; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+        .flip-card.expanded .flip-card-back .back-content { padding: 24px; height: 100%; display: flex; flex-direction: column; }
         .flip-card.expanded .flip-card-back .back-hero { width: 100%; height: 40vh; border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
         .flip-card.expanded .flip-card-back .back-hero img { width: 100%; height: 100%; object-fit: cover; }
         .flip-card.expanded .flip-card-back .back-title { font-size: 28px; font-weight: 800; line-height: 1.2; color: var(--text-primary); margin-bottom: 12px; }
-        .flip-card.expanded .flip-card-back .back-body { flex: 1; overflow: auto; padding-right: 6px; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+        .flip-card.expanded .flip-card-back .back-body { flex: 1; padding-right: 6px; }
         .flip-card.expanded .flip-card-back .two-up { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
         .flip-card.expanded .flip-card-back .two-up img { width: 100%; height: 28vh; object-fit: cover; border-radius: 10px; }
         /* If there's only one image in the two-up container, make it span both columns */
