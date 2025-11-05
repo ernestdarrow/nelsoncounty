@@ -4370,16 +4370,51 @@ function reportContentHeight() {
         console.log('📏 Reporting height:', heightWithBuffer, 'px', '(visible cards:', document.querySelectorAll('.flip-card:not([style*="display: none"])').length, ')');
         
         // Send height to parent window via postMessage
-        if (window.parent && window.parent !== window) {
-            window.parent.postMessage({
-                type: 'resize',
-                height: heightWithBuffer
-            }, '*');
+        // Try multiple methods to ensure it works in Framer
+        try {
+            if (window.parent && window.parent !== window.self) {
+                // Send with wildcard origin for maximum compatibility
+                const message = {
+                    type: 'resize',
+                    height: heightWithBuffer,
+                    source: 'adventure-directory'
+                };
+                console.log('Sending postMessage to parent:', message);
+                window.parent.postMessage(message, '*');
+            }
+            
+            // Also try posting to the parent's parent (in case of nested iframes)
+            if (window.parent && window.parent.parent && window.parent.parent !== window.parent) {
+                const message = {
+                    type: 'resize',
+                    height: heightWithBuffer,
+                    source: 'adventure-directory'
+                };
+                console.log('Sending postMessage to parent.parent:', message);
+                window.parent.parent.postMessage(message, '*');
+            }
+            
+            // Try top window as well
+            if (window.top && window.top !== window.self) {
+                const message = {
+                    type: 'resize',
+                    height: heightWithBuffer,
+                    source: 'adventure-directory'
+                };
+                console.log('Sending postMessage to top:', message);
+                window.top.postMessage(message, '*');
+            }
+        } catch (e) {
+            console.log('Could not send postMessage:', e);
         }
         
         // Also try to set iframe height directly if we're in an iframe
-        if (window.frameElement) {
-            window.frameElement.style.height = heightWithBuffer + 'px';
+        try {
+            if (window.frameElement) {
+                window.frameElement.style.height = heightWithBuffer + 'px';
+            }
+        } catch (e) {
+            // Cross-origin restrictions may prevent this
         }
     } catch (e) {
         // Silently fail if postMessage is blocked or parent is not accessible
@@ -5165,116 +5200,124 @@ function toggleSidebar() {
 // Detect if we're in an iframe (Framer embed)
 const isInIframe = window.self !== window.top;
 
+// Listen for height requests from parent
+window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'requestHeight') {
+        // Parent is requesting height update
+        reportContentHeight();
+    }
+});
+
 // Handle sticky positioning for iframe context
 function handleStickyInIframe() {
-    const sidebar = document.querySelector('.preview-sidebar');
-    const searchContainer = document.querySelector('.top-search-container');
-    
-    if (!sidebar && !searchContainer) {
-        console.log('Sidebar or search container not found');
-        return;
-    }
-    
-    console.log('Setting up sticky fix for iframe context');
-    
-    function updateSticky() {
-        const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+    try {
+        const sidebar = document.querySelector('.preview-sidebar');
+        const searchContainer = document.querySelector('.top-search-container');
         
-        // Always use fixed positioning when scrolled
-        // Handle sidebar
-        if (sidebar) {
-            if (scrollTop > 10) {
-                sidebar.style.setProperty('position', 'fixed', 'important');
-                sidebar.style.setProperty('top', '0', 'important');
-                sidebar.style.setProperty('left', '0', 'important');
-                sidebar.style.setProperty('height', '100vh', 'important');
-                sidebar.style.setProperty('max-height', '100vh', 'important');
-                sidebar.style.setProperty('overflow-y', 'auto', 'important');
-                sidebar.style.setProperty('z-index', '1000', 'important');
-            } else {
-                // At top, use sticky
-                sidebar.style.removeProperty('position');
-                sidebar.style.removeProperty('top');
-                sidebar.style.removeProperty('left');
-                sidebar.style.removeProperty('height');
-                sidebar.style.removeProperty('max-height');
-                sidebar.style.removeProperty('z-index');
-            }
+        if (!sidebar && !searchContainer) {
+            return; // Silently return if elements not found
         }
         
-        // Handle search container
-        if (searchContainer) {
-            if (scrollTop > 10) {
-                const sidebarWidth = sidebar && !sidebar.classList.contains('collapsed') ? 280 : 0;
-                const availableWidth = window.innerWidth - sidebarWidth - 60; // 60px for padding
+        let isUpdating = false; // Prevent concurrent updates
+        
+        // Always use fixed positioning in iframe (sticky doesn't work reliably)
+        function updateSticky() {
+            // Prevent concurrent calls
+            if (isUpdating) return;
+            
+            try {
+                isUpdating = true;
                 
-                searchContainer.style.setProperty('position', 'fixed', 'important');
-                searchContainer.style.setProperty('top', '0', 'important');
-                searchContainer.style.setProperty('left', sidebarWidth + 'px', 'important');
-                searchContainer.style.setProperty('width', availableWidth + 'px', 'important');
-                searchContainer.style.setProperty('z-index', '1001', 'important');
-            } else {
-                // At top, use sticky
-                searchContainer.style.removeProperty('position');
-                searchContainer.style.removeProperty('top');
-                searchContainer.style.removeProperty('left');
-                searchContainer.style.removeProperty('width');
-                searchContainer.style.setProperty('z-index', '100', 'important');
+                // Re-query elements in case DOM changed
+                const currentSidebar = document.querySelector('.preview-sidebar');
+                const currentSearchContainer = document.querySelector('.top-search-container');
+                
+                // Handle sidebar - always fixed when in iframe
+                if (currentSidebar && currentSidebar.isConnected) {
+                    const isCollapsed = currentSidebar.classList.contains('collapsed');
+                    if (!isCollapsed) {
+                        currentSidebar.style.position = 'fixed';
+                        currentSidebar.style.top = '0';
+                        currentSidebar.style.left = '0';
+                        currentSidebar.style.height = '100vh';
+                        currentSidebar.style.maxHeight = '100vh';
+                        currentSidebar.style.overflowY = 'auto';
+                        currentSidebar.style.zIndex = '1000';
+                    }
+                }
+                
+                // Handle search container - always fixed when in iframe
+                if (currentSearchContainer && currentSearchContainer.isConnected) {
+                    const currentSidebar = document.querySelector('.preview-sidebar');
+                    const sidebarWidth = currentSidebar && !currentSidebar.classList.contains('collapsed') ? 280 : 0;
+                    const availableWidth = Math.max(300, window.innerWidth - sidebarWidth - 60); // 60px for padding, min 300px
+                    
+                    currentSearchContainer.style.position = 'fixed';
+                    currentSearchContainer.style.top = '0';
+                    currentSearchContainer.style.left = sidebarWidth + 'px';
+                    currentSearchContainer.style.width = availableWidth + 'px';
+                    currentSearchContainer.style.zIndex = '1001';
+                }
+            } catch (e) {
+                // Silently fail - don't log errors that might break Framer
+                // console.error('Error updating sticky:', e);
+            } finally {
+                isUpdating = false;
             }
         }
-    }
-    
-    // Update on scroll with throttling
-    let scrollTimeout;
-    let lastScrollTop = 0;
-    window.addEventListener('scroll', function() {
-        const currentScrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
         
-        // Only update if scroll position changed significantly
-        if (Math.abs(currentScrollTop - lastScrollTop) > 5) {
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(function() {
+        // Update on scroll (throttled)
+        let scrollTimeout;
+        window.addEventListener('scroll', function() {
+            try {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(updateSticky, 16); // ~60fps
+            } catch (e) {
+                // Ignore errors
+            }
+        }, { passive: true });
+        
+        // Update on resize (throttled)
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            try {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(updateSticky, 100);
+            } catch (e) {
+                // Ignore errors
+            }
+        }, { passive: true });
+        
+        // Initial update with delay to ensure DOM is ready
+        setTimeout(function() {
+            try {
                 updateSticky();
-                lastScrollTop = currentScrollTop;
-            }, 5);
-        }
-    }, { passive: true });
-    
-    // Update on resize (sidebar might collapse/expand)
-    window.addEventListener('resize', function() {
-        updateSticky();
-    }, { passive: true });
-    
-    // Initial update after a small delay to ensure DOM is ready
-    setTimeout(function() {
-        updateSticky();
-    }, 100);
-    
-    // Watch for sidebar collapse/expand
-    if (sidebar) {
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.attributeName === 'class') {
-                    setTimeout(updateSticky, 50);
-                }
-            });
-        });
-        observer.observe(sidebar, { attributes: true });
+            } catch (e) {
+                // Ignore errors
+            }
+        }, 200);
         
-        // Also watch for style changes
-        const styleObserver = new MutationObserver(function() {
-            setTimeout(updateSticky, 50);
-        });
-        styleObserver.observe(sidebar, { attributes: true, attributeFilter: ['style', 'class'] });
-    }
-    
-    // Also update when content changes (filters, etc.)
-    const contentObserver = new MutationObserver(function() {
-        setTimeout(updateSticky, 100);
-    });
-    const mainContent = document.querySelector('.preview-main');
-    if (mainContent) {
-        contentObserver.observe(mainContent, { childList: true, subtree: true });
+        // Watch for sidebar collapse/expand (simplified, with error handling)
+        if (sidebar) {
+            try {
+                const observer = new MutationObserver(function() {
+                    try {
+                        setTimeout(updateSticky, 50);
+                    } catch (e) {
+                        // Ignore errors
+                    }
+                });
+                observer.observe(sidebar, { 
+                    attributes: true, 
+                    attributeFilter: ['class'] 
+                });
+            } catch (e) {
+                // MutationObserver failed, continue without it
+            }
+        }
+    } catch (e) {
+        // Fail silently - don't break the page if sticky setup fails
+        // console.error('Error setting up sticky:', e);
     }
 }
 
