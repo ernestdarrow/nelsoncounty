@@ -37,10 +37,10 @@ export default function AdventureDirectory() {
       // Constrain iframe to viewport height so content scrolls inside
       // This allows position: sticky to work properly
       const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800
-      // Use viewport height as max, but allow content-driven height if smaller
-      const finalHeight = Math.min(viewportHeight * 0.9, Math.max(400, iframeHeight))
+      // Use full viewport height (or slightly more) to eliminate gap at bottom
+      const finalHeight = Math.max(viewportHeight, Math.max(400, iframeHeight))
       iframeRef.current.style.height = finalHeight + 'px'
-      iframeRef.current.style.maxHeight = viewportHeight * 0.9 + 'px'
+      iframeRef.current.style.maxHeight = viewportHeight * 1.1 + 'px' // Allow slightly more than viewport
       iframeRef.current.style.overflow = 'hidden'
       // Use CSS scroll-snap for smoother native behavior
       iframeRef.current.style.scrollMarginTop = '0px'
@@ -50,6 +50,7 @@ export default function AdventureDirectory() {
   }, [iframeHeight])
 
   // Monitor scroll but only recenter when scrolling stops - allows free scrolling during active scroll
+  // Don't snap if iframe bottom is visible (user has scrolled to bottom)
   useEffect(() => {
     if (!iframeRef.current || typeof window === 'undefined') return
 
@@ -73,9 +74,15 @@ export default function AdventureDirectory() {
 
         const rect = iframeRef.current.getBoundingClientRect()
         const iframeTop = rect.top
+        const iframeBottom = rect.bottom
+        const viewportHeight = window.innerHeight
 
-        // Only recenter if scrolled way past (more than ALLOWED_PAST) AND scrolling has stopped
-        if (iframeTop < -ALLOWED_PAST) {
+        // Don't snap if iframe bottom is visible (user has scrolled to bottom of iframe)
+        // Only snap if scrolling past the top AND bottom is not visible
+        const bottomIsVisible = iframeBottom <= viewportHeight + 50 // Allow 50px threshold
+        
+        if (!bottomIsVisible && iframeTop < -ALLOWED_PAST) {
+          // Only recenter if scrolled way past top AND bottom is not visible
           isRecentering = true
           iframeRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
           
@@ -106,7 +113,7 @@ export default function AdventureDirectory() {
         height: '800px',
         border: 'none',
         minHeight: '400px',
-        maxHeight: '100vh',
+        maxHeight: '110vh', // Allow iframe to extend slightly beyond viewport
         overflow: 'hidden'
       }}
       title="Adventure Directory"
