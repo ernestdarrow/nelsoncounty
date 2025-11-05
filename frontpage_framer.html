@@ -1047,6 +1047,16 @@
         }
         
         .preview-sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 0; max-height: 100vh; left: 0; align-self: flex-start; transition: all 0.3s; }
+        /* Force fixed positioning in iframe context */
+        html:not(:root) .preview-sidebar,
+        body:has(iframe) .preview-sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            z-index: 1000 !important;
+        }
         .preview-sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; }
         
         .sidebar-header {
@@ -2302,17 +2312,21 @@
             height: 30px !important;
         }
         
-        /* Overlay behind flipped card */
+        /* Overlay behind flipped card - constrained to viewport */
         .flip-overlay {
             display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 999;
-            backdrop-filter: blur(4px);
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            background: rgba(0, 0, 0, 0.7) !important;
+            z-index: 999 !important;
+            backdrop-filter: blur(4px) !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
         .flip-overlay.active {
             display: block;
@@ -2375,64 +2389,75 @@
             }
         }
         
-        /* Expanded card modal-like view (responsive sizes) - constrained to viewport */
+        /* Expanded card modal-like view - uses CSS variables set by JavaScript */
         .flip-card.expanded { 
-            position: fixed; 
-            top: 50%; 
-            left: 50%; 
-            width: 94vw; 
-            height: 85vh; 
-            max-height: 85vh; 
-            z-index: 1001; 
-            transform: translate(-50%, -50%) !important; 
-            overflow: hidden;
-            box-sizing: border-box;
+            position: fixed !important; 
+            top: 0 !important;
+            left: 0 !important;
+            width: var(--viewport-width, 100vw) !important;
+            height: var(--viewport-height, 100vh) !important;
+            max-width: var(--viewport-width, 100vw) !important;
+            max-height: var(--viewport-height, 100vh) !important;
+            z-index: 1001 !important; 
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
         .flip-card.expanded .flip-card-inner { 
-            height: 100%; 
-            max-height: 100%;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            width: 90vw !important;
+            max-width: 1100px !important;
+            height: 80vh !important;
+            max-height: 80vh !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+            box-sizing: border-box !important;
+        }
+        @media (min-width: 768px) {
+            .flip-card.expanded .flip-card-inner {
+                width: 70vw !important;
+                height: 75vh !important;
+                max-height: 75vh !important;
+            }
+        }
+        @media (min-width: 1200px) {
+            .flip-card.expanded .flip-card-inner {
+                width: 50vw !important;
+                max-width: 1100px !important;
+                height: 75vh !important;
+                max-height: 75vh !important;
+            }
         }
         .flip-card.expanded .flip-card-front { opacity: 0; pointer-events: none; }
         .flip-card.expanded .flip-card-back { 
             opacity: 1; 
-            transform: scale(1); 
+            transform: scale(1) !important; 
             pointer-events: auto; 
-            height: 100%; 
-            max-height: 100%;
-            inset: 0; 
-            overflow: hidden;
-            position: relative;
+            height: 100% !important; 
+            max-height: 100% !important;
+            min-height: 0 !important;
+            position: relative !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
         }
-        .flip-card.expanded:hover { transform: translate(-50%, -50%) !important; }
-        
-        @media (min-width: 768px) {
-            .flip-card.expanded { 
-                width: 70vw; 
-                height: 75vh; 
-                max-height: 75vh;
-            }
-        }
-        @media (min-width: 1200px) {
-            .flip-card.expanded { 
-                width: 50vw; 
-                height: 75vh; 
-                max-height: 75vh;
-                max-width: 1100px; 
-            }
+        .flip-card.expanded:hover { 
+            transform: none !important;
         }
 
         /* Back layout prioritizing imagery and title when expanded - constrained to card height, not viewport */
         .flip-card.expanded .flip-card-back .back-content { 
-            padding: 20px 20px 40px 20px; 
-            height: 100%; 
-            max-height: 100%;
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden;
-            box-sizing: border-box;
+            padding: 20px 20px 40px 20px !important; 
+            height: 100% !important; 
+            max-height: 100% !important;
+            min-height: 0 !important;
+            display: flex !important; 
+            flex-direction: column !important; 
+            overflow: hidden !important;
+            box-sizing: border-box !important;
         }
         .flip-card.expanded .flip-card-back .back-title { 
             font-size: 24px; 
@@ -2444,8 +2469,8 @@
         }
         .flip-card.expanded .flip-card-back .back-hero { 
             width: 100%; 
-            height: 25%; 
-            max-height: 25%;
+            height: 180px; 
+            max-height: 180px;
             min-height: 0;
             border-radius: 12px; 
             overflow: hidden; 
@@ -2471,8 +2496,8 @@
             gap: 10px; 
             margin-bottom: 12px; 
             flex-shrink: 0;
-            height: 15%;
-            max-height: 15%;
+            height: 120px;
+            max-height: 120px;
         }
         .flip-card.expanded .flip-card-back .two-up img { 
             width: 100%; 
@@ -2679,8 +2704,8 @@
         /* Framer-specific overrides to ensure proper container behavior */
         .preview-container {
             width: 100%;
-            height: 100%;
             min-height: 100vh;
+            position: relative;
         }
         /* Ensure the component works within Framer's responsive framework */
         body {
@@ -4069,10 +4094,8 @@ function closeAllFlippedCards() {
 
 // Filter by badge click
 function filterByBadge(event, filterType, value) {
+    event.preventDefault();
     event.stopPropagation();
-    
-    // Close all flipped cards and remove overlay when filtering
-    closeAllFlippedCards();
     
     if (filterType === 'type') {
         // For badge clicks, set single type (replaces current selection)
@@ -4100,9 +4123,6 @@ function filterByBadge(event, filterType, value) {
 // Filter by amenity click
 function filterByAmenity(event, amenity) {
     event.stopPropagation();
-    
-    // Close all flipped cards and remove overlay when filtering
-    closeAllFlippedCards();
     
     const amenityFilter = document.getElementById('previewAmenityFilter');
     const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
@@ -4174,6 +4194,15 @@ function filterPreview() {
     }
     
     renderPreview(filtered);
+    
+    // Report height after filtering - wait longer for layout to settle
+    setTimeout(function() {
+        reportContentHeight();
+        // Also report again after a bit more delay to catch any late-rendering elements
+        setTimeout(function() {
+            reportContentHeight();
+        }, 300);
+    }, 200);
 }
 
 // Clear all filters
@@ -4206,6 +4235,11 @@ function clearPreviewFilters() {
     
     if (data) {
         renderPreview(data.listings);
+        
+        // Report height after clearing filters
+        setTimeout(function() {
+            reportContentHeight();
+        }, 150);
     }
 }
 
@@ -4240,6 +4274,11 @@ function filterByListingName(listingName) {
     
     renderPreview(filtered);
     
+    // Report height after filtering to specific listing
+    setTimeout(function() {
+        reportContentHeight();
+    }, 150);
+    
     // Scroll to the specific card after a brief delay to let it render
     setTimeout(function() {
         const previewGrid = document.getElementById('previewGrid');
@@ -4259,6 +4298,95 @@ function filterByListingName(listingName) {
 }
 
 // Main render function
+// Function to report content height to parent window (for Framer embed)
+function reportContentHeight() {
+    try {
+        // Measure from top of document to bottom of last visible element
+        const previewGrid = document.getElementById('previewGrid');
+        const previewHeader = document.querySelector('.preview-header');
+        const previewMain = document.querySelector('.preview-main');
+        
+        let height = 0;
+        
+        if (previewGrid) {
+            // Get all visible cards in the grid (not display:none)
+            const cards = Array.from(previewGrid.querySelectorAll('.flip-card')).filter(function(card) {
+                const style = window.getComputedStyle(card);
+                return style.display !== 'none' && style.visibility !== 'hidden';
+            });
+            
+            if (cards.length > 0) {
+                // Get the bottom of the last visible card
+                const lastCard = cards[cards.length - 1];
+                const lastCardRect = lastCard.getBoundingClientRect();
+                
+                // Get the top of the document
+                const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+                
+                // Calculate height from top of document to bottom of last card
+                height = lastCardRect.bottom + scrollTop;
+                
+                // Add header height if it exists and is above the grid
+                if (previewHeader) {
+                    const headerRect = previewHeader.getBoundingClientRect();
+                    if (headerRect.top < previewGrid.getBoundingClientRect().top) {
+                        // Header is above grid, already included in calculation
+                    } else {
+                        // Header might be separate, add it
+                        height = Math.max(height, headerRect.bottom + scrollTop);
+                    }
+                }
+            } else {
+                // No cards visible - measure grid container itself
+                const gridRect = previewGrid.getBoundingClientRect();
+                const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+                height = gridRect.bottom + scrollTop;
+                
+                if (previewHeader) {
+                    const headerRect = previewHeader.getBoundingClientRect();
+                    height = Math.max(height, headerRect.bottom + scrollTop);
+                }
+            }
+        } else if (previewMain) {
+            // Fallback: measure main container
+            const mainRect = previewMain.getBoundingClientRect();
+            const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+            height = mainRect.bottom + scrollTop;
+        } else {
+            // Ultimate fallback - use body/document height
+            const body = document.body;
+            const html = document.documentElement;
+            height = Math.max(
+                body.scrollHeight,
+                body.offsetHeight,
+                html.scrollHeight,
+                html.offsetHeight
+            );
+        }
+        
+        // Add a buffer (30px) for safety
+        const heightWithBuffer = Math.ceil(height) + 30;
+        
+        console.log('📏 Reporting height:', heightWithBuffer, 'px', '(visible cards:', document.querySelectorAll('.flip-card:not([style*="display: none"])').length, ')');
+        
+        // Send height to parent window via postMessage
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                type: 'resize',
+                height: heightWithBuffer
+            }, '*');
+        }
+        
+        // Also try to set iframe height directly if we're in an iframe
+        if (window.frameElement) {
+            window.frameElement.style.height = heightWithBuffer + 'px';
+        }
+    } catch (e) {
+        // Silently fail if postMessage is blocked or parent is not accessible
+        console.log('Could not report height to parent:', e);
+    }
+}
+
 function renderPreview(filteredListings) {
     if (!data) {
         console.error('❌ renderPreview called but data is null/undefined');
@@ -4351,61 +4479,41 @@ function renderPreview(filteredListings) {
         if (index < 3 || index >= listings.length - 3) {
             console.log(`🎨 Rendering card ${index + 1}/${listings.length}:`, listing.name);
         }
-        const card = document.createElement('div');
+        // Create slug from listing name or use listing.slug if it exists
+        const slug = listing.slug || listing.name.toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+        
+        // Create card as a link to CMS page
+        const card = document.createElement('a');
         card.className = 'flip-card';
+        card.href = '/nelson-county/' + slug; // Link to CMS page using slug
+        card.setAttribute('data-listing-id', listing.id);
+        card.style.textDecoration = 'none';
+        card.style.color = 'inherit';
+        card.style.display = 'block';
         
-        // Smooth flip + expand on click
+        // Prevent navigation when clicking on filter badges or any interactive elements
         card.addEventListener('click', function(e) {
-            // Only prevent if clicking on interactive elements
-            if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('a') || e.target.closest('button')) {
-                return;
+            // Stop navigation if clicking on:
+            // - Badge elements (type, area, featured)
+            // - Scroll arrows
+            // - Any element with onclick that filters
+            // - Any element with data-type, data-area attributes
+            const target = e.target;
+            const isBadge = target.closest('.badge-type, .badge-area, .badge-featured, .badge');
+            const isScrollArrow = target.closest('.scroll-arrow');
+            const hasFilterOnClick = target.closest('[onclick*="filter"], [onclick*="Filter"]');
+            const hasFilterData = target.closest('[data-type], [data-area]');
+            
+            if (isBadge || isScrollArrow || hasFilterOnClick || hasFilterData) {
+                e.preventDefault();
+                e.stopPropagation();
+                // Let the badge's own click handler run (which will call filterByBadge)
+                return false;
             }
-            
-            // Prevent flip if clicking inside the scrollable back content
-            const backCard = e.target.closest('.flip-card-back');
-            if (backCard && e.target !== backCard && backCard.scrollHeight > backCard.clientHeight) {
-                const scrollableContent = backCard.querySelector('div[style*="overflow-y: auto"]');
-                if (scrollableContent && (e.target === scrollableContent || scrollableContent.contains(e.target))) {
-                    return;
-                }
-            }
-            
-            document.querySelectorAll('.flip-card.flipped').forEach(function(otherCard) {
-                if (otherCard !== card) {
-                    otherCard.classList.remove('flipped');
-                }
-            });
-            
-            // Toggle flip state
-            const isFlipped = card.classList.contains('flipped');
-            card.classList.toggle('flipped');
-            
-            // Toggle expanded modal-like view and overlay
-            const overlay = document.querySelector('.flip-overlay') || (function(){
-                const el = document.createElement('div');
-                el.className = 'flip-overlay';
-                document.body.appendChild(el);
-                return el;
-            })();
-            
-            if (!isFlipped) {
-                // Expanding
-                overlay.classList.add('active');
-                card.classList.add('expanded');
-                overlay.onclick = function() {
-                    overlay.classList.remove('active');
-                    card.classList.remove('expanded');
-                    card.classList.remove('flipped');
-                };
-            } else {
-                // Collapsing
-                overlay.classList.remove('active');
-                card.classList.remove('expanded');
-            }
-        }, { passive: true });
-        
-        const inner = document.createElement('div');
-        inner.className = 'flip-card-inner';
+            // Otherwise, let the link navigate normally - don't interfere with default behavior
+        });
         
         const front = document.createElement('div');
         front.className = 'flip-card-front';
@@ -4481,6 +4589,7 @@ function renderPreview(filteredListings) {
             rightArrow.className = 'scroll-arrow scroll-arrow-right';
             
             rightArrow.addEventListener('click', function(e) {
+                e.preventDefault();
                 e.stopPropagation();
                 currentIndex = (currentIndex + 1) % totalImages;
                 // Get the container width at click time
@@ -4512,81 +4621,25 @@ function renderPreview(filteredListings) {
         contentDiv.innerHTML = 
             '<h3 style="font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--text-primary); line-height: 1.2;">' + escapeHtml(fixedName) + '</h3>' +
             '<div style="display: flex; gap: 8px; margin-bottom: 10px;">' +
-            '<span class="badge-type ' + getIconClass(listing.type) + '" data-type="' + escapeHtml(listing.type) + '" onclick="filterByBadge(event, \'type\', \'' + escapeHtml(listing.type) + '\')">' + escapeHtml(fixedType) + '</span>' +
-            '<span class="badge-area" data-area="' + escapeHtml(listing.area) + '" onclick="filterByBadge(event, \'area\', \'' + escapeHtml(listing.area) + '\')">' + escapeHtml(fixedArea) + '</span>' +
+            '<span class="badge-type ' + getIconClass(listing.type) + '" data-type="' + escapeHtml(listing.type) + '" onclick="event.preventDefault(); event.stopPropagation(); filterByBadge(event, \'type\', \'' + escapeHtml(listing.type) + '\'); return false;">' + escapeHtml(fixedType) + '</span>' +
+            '<span class="badge-area" data-area="' + escapeHtml(listing.area) + '" onclick="event.preventDefault(); event.stopPropagation(); filterByBadge(event, \'area\', \'' + escapeHtml(listing.area) + '\'); return false;">' + escapeHtml(fixedArea) + '</span>' +
             '</div>' +
             '<p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5;">' + escapeHtml(fixedDescription) + '</p>';
         front.appendChild(contentDiv);
         
-        const back = document.createElement('div');
-        back.className = 'flip-card-back';
-        
-        // Build amenities HTML if available
-        let amenitiesHTML = '';
-        if (listing.amenities && listing.amenities.length > 0) {
-            amenitiesHTML = 
-                '<div style="margin-top: 15px; padding-top: 15px; padding-bottom: 20px; border-top: 1px solid var(--border-color);">' +
-                '<div style="font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Amenities</div>' +
-                '<div style="display: flex; flex-wrap: wrap; gap: 6px;">' +
-                listing.amenities.map(function(amenity) {
-                    return '<span class="amenity" onclick="filterByAmenity(event, \'' + amenity + '\')" style="cursor: pointer;">' + amenity + '</span>';
-                }).join('') +
-                '</div>' +
-                '</div>';
-        }
-        
-        back.innerHTML = 
-            '<div class="back-content" style="padding: 30px 30px 50px 30px; display: flex; flex-direction: column;">' +
-            '<h3 class="back-title" style="font-size: 26px; margin-bottom: 15px; color: var(--text-primary); font-weight: 700; line-height: 1.2;">' + escapeHtml(fixEncoding(listing.name)) + '</h3>' +
-            (listing.image1 || listing.image2 ? '<div class="two-up">' +
-                (listing.image1 ? '<img src="' + listing.image1 + '" onerror="this.onerror=null; this.src=FALLBACK_IMG;">' : '') +
-                (listing.image2 ? '<img src="' + listing.image2 + '" onerror="this.onerror=null; this.src=FALLBACK_IMG;">' : '') +
-            '</div>' : '') +
-            '<div class="back-body">' +
-            '<div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">' +
-            '<span class="badge-type ' + getIconClass(listing.type) + '" onclick="filterByBadge(event, \'type\', \'' + listing.type + '\')">' + listing.type + '</span>' +
-            '<span class="badge-area" onclick="filterByBadge(event, \'area\', \'' + listing.area + '\')">' + listing.area + '</span>' +
-            (listing.featured ? '<span class="badge-featured" onclick="filterByBadge(event, \'featured\', \'true\')">Featured</span>' : '') +
-            '</div>' +
-            '<p style="font-size: 13px; color: var(--text-primary); line-height: 1.4; margin-bottom: 15px;">' + escapeHtml(fixEncoding(listing.description)) + '</p>' +
-            amenitiesHTML +
-            '<div style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px;">' +
-            '<div style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-secondary);">' +
-            '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; flex-shrink: 0; color: #D65052;">' +
-            '<path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />' +
-            '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />' +
-            '</svg>' +
-            '<span style="line-height: 1.5;">' + escapeHtml(fixEncoding(listing.address)) + '</span>' +
-            '</div>' +
-            (listing.phone ? 
-            '<div style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-secondary);">' +
-            '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; flex-shrink: 0; color: var(--theme-primary);">' +
-            '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />' +
-            '</svg>' +
-            '<a href="tel:' + listing.phone.replace(/[^0-9+]/g, '') + '" style="color: var(--text-secondary); text-decoration: none;" onclick="event.stopPropagation();">' + listing.phone + '</a>' +
-            '</div>' : '') +
-            '<a href="https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(listing.address) + '" target="_blank" style="margin-top: 8px; background: #ffffff; color: var(--theme-primary); padding: 14px; text-align: center; border-radius: 12px; text-decoration: none; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 8px var(--theme-primary-light); border: 2px solid var(--theme-primary); transition: all 0.3s;" onclick="event.stopPropagation();" onmouseover="this.style.background=\'#f7faf9\';" onmouseout="this.style.background=\'#ffffff\';">' +
-            '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">' +
-            '<path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />' +
-            '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />' +
-            '</svg>' +
-            'Get Directions' +
-            '</a>' +
-            '<a href="' + listing.website + '" target="_blank" style="margin-top: 8px; background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-primary-hover) 100%); color: white; padding: 14px; text-align: center; border-radius: 12px; text-decoration: none; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 8px var(--theme-primary-light); transition: all 0.3s;" onclick="event.stopPropagation();" onmouseover="this.style.background=\'linear-gradient(135deg, var(--theme-primary-hover) 0%, var(--theme-primary) 100%)\'; this.style.boxShadow=\'0 4px 12px var(--theme-primary-light)\'; this.style.transform=\'translateY(-2px)\';" onmouseout="this.style.background=\'linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-primary-hover) 100%)\'; this.style.boxShadow=\'0 2px 8px var(--theme-primary-light)\'; this.style.transform=\'translateY(0)\';">' +
-            '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">' +
-            '<path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />' +
-            '</svg>' +
-            'View Website' +
-            '</a>' +
-            '</div>' +
-            '</div>' +
-            '</div>';
-        
-        inner.appendChild(front);
-        inner.appendChild(back);
-        card.appendChild(inner);
+        card.appendChild(front);
         grid.appendChild(card);
     });
+    
+    // Report content height to parent (for Framer embed)
+    // Wait for images and layout to settle
+    setTimeout(function() {
+        reportContentHeight();
+        // Report again after images load
+        setTimeout(function() {
+            reportContentHeight();
+        }, 500);
+    }, 200);
     
     // Adjust title sizes based on actual card width
     function adjustTitleSizes() {
@@ -5109,10 +5162,139 @@ function toggleSidebar() {
     }
 }
 
+// Detect if we're in an iframe (Framer embed)
+const isInIframe = window.self !== window.top;
+
+// Handle sticky positioning for iframe context
+function handleStickyInIframe() {
+    const sidebar = document.querySelector('.preview-sidebar');
+    const searchContainer = document.querySelector('.top-search-container');
+    
+    if (!sidebar && !searchContainer) {
+        console.log('Sidebar or search container not found');
+        return;
+    }
+    
+    console.log('Setting up sticky fix for iframe context');
+    
+    function updateSticky() {
+        const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+        
+        // Always use fixed positioning when scrolled
+        // Handle sidebar
+        if (sidebar) {
+            if (scrollTop > 10) {
+                sidebar.style.setProperty('position', 'fixed', 'important');
+                sidebar.style.setProperty('top', '0', 'important');
+                sidebar.style.setProperty('left', '0', 'important');
+                sidebar.style.setProperty('height', '100vh', 'important');
+                sidebar.style.setProperty('max-height', '100vh', 'important');
+                sidebar.style.setProperty('overflow-y', 'auto', 'important');
+                sidebar.style.setProperty('z-index', '1000', 'important');
+            } else {
+                // At top, use sticky
+                sidebar.style.removeProperty('position');
+                sidebar.style.removeProperty('top');
+                sidebar.style.removeProperty('left');
+                sidebar.style.removeProperty('height');
+                sidebar.style.removeProperty('max-height');
+                sidebar.style.removeProperty('z-index');
+            }
+        }
+        
+        // Handle search container
+        if (searchContainer) {
+            if (scrollTop > 10) {
+                const sidebarWidth = sidebar && !sidebar.classList.contains('collapsed') ? 280 : 0;
+                const availableWidth = window.innerWidth - sidebarWidth - 60; // 60px for padding
+                
+                searchContainer.style.setProperty('position', 'fixed', 'important');
+                searchContainer.style.setProperty('top', '0', 'important');
+                searchContainer.style.setProperty('left', sidebarWidth + 'px', 'important');
+                searchContainer.style.setProperty('width', availableWidth + 'px', 'important');
+                searchContainer.style.setProperty('z-index', '1001', 'important');
+            } else {
+                // At top, use sticky
+                searchContainer.style.removeProperty('position');
+                searchContainer.style.removeProperty('top');
+                searchContainer.style.removeProperty('left');
+                searchContainer.style.removeProperty('width');
+                searchContainer.style.setProperty('z-index', '100', 'important');
+            }
+        }
+    }
+    
+    // Update on scroll with throttling
+    let scrollTimeout;
+    let lastScrollTop = 0;
+    window.addEventListener('scroll', function() {
+        const currentScrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+        
+        // Only update if scroll position changed significantly
+        if (Math.abs(currentScrollTop - lastScrollTop) > 5) {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(function() {
+                updateSticky();
+                lastScrollTop = currentScrollTop;
+            }, 5);
+        }
+    }, { passive: true });
+    
+    // Update on resize (sidebar might collapse/expand)
+    window.addEventListener('resize', function() {
+        updateSticky();
+    }, { passive: true });
+    
+    // Initial update after a small delay to ensure DOM is ready
+    setTimeout(function() {
+        updateSticky();
+    }, 100);
+    
+    // Watch for sidebar collapse/expand
+    if (sidebar) {
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'class') {
+                    setTimeout(updateSticky, 50);
+                }
+            });
+        });
+        observer.observe(sidebar, { attributes: true });
+        
+        // Also watch for style changes
+        const styleObserver = new MutationObserver(function() {
+            setTimeout(updateSticky, 50);
+        });
+        styleObserver.observe(sidebar, { attributes: true, attributeFilter: ['style', 'class'] });
+    }
+    
+    // Also update when content changes (filters, etc.)
+    const contentObserver = new MutationObserver(function() {
+        setTimeout(updateSticky, 100);
+    });
+    const mainContent = document.querySelector('.preview-main');
+    if (mainContent) {
+        contentObserver.observe(mainContent, { childList: true, subtree: true });
+    }
+}
+
 // Initialize on DOM load
 document.addEventListener('DOMContentLoaded', function() {
+    // Disable browser scroll restoration to prevent unwanted scrolling on navigation
+    if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+    }
+    
+    // Handle sticky positioning for iframe context
+    handleStickyInIframe();
+    
     // Initialize map
     initMap();
+    
+    // Report initial height after page loads
+    setTimeout(function() {
+        reportContentHeight();
+    }, 500);
     
     // Type filter buttons - allow multiple selections (toggle on/off)
     document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
@@ -5172,6 +5354,15 @@ document.addEventListener('DOMContentLoaded', function() {
             
             filterPreview();
         });
+    });
+    
+    // Report height on window resize
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            reportContentHeight();
+        }, 250);
     });
 });
 
