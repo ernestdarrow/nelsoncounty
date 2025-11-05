@@ -4195,6 +4195,73 @@ function filterPreview() {
     
     renderPreview(filtered);
     
+    // Scroll to top - try multiple approaches
+    function scrollToTop() {
+        // Method 1: Direct window/document scroll (instant)
+        window.scrollTo(0, 0);
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        
+        // Method 2: Find and scroll scrollable containers
+        const scrollableElements = document.querySelectorAll('*');
+        scrollableElements.forEach(function(el) {
+            const style = window.getComputedStyle(el);
+            if (style.overflow === 'auto' || style.overflow === 'scroll' || 
+                style.overflowY === 'auto' || style.overflowY === 'scroll') {
+                try {
+                    el.scrollTop = 0;
+                } catch (e) {}
+            }
+        });
+        
+        // Method 3: Scroll to top elements
+        const searchContainer = document.querySelector('.top-search-container');
+        const mainContent = document.querySelector('.preview-main');
+        const grid = document.getElementById('previewGrid');
+        const body = document.body;
+        const html = document.documentElement;
+        
+        if (searchContainer) {
+            searchContainer.scrollIntoView({ behavior: 'instant', block: 'start' });
+        }
+        if (mainContent) {
+            mainContent.scrollIntoView({ behavior: 'instant', block: 'start' });
+        }
+        if (grid) {
+            grid.scrollIntoView({ behavior: 'instant', block: 'start' });
+        }
+        
+        // Method 4: Try parent iframe
+        try {
+            if (window.frameElement) {
+                window.frameElement.scrollIntoView({ behavior: 'instant', block: 'start' });
+            }
+            if (window.parent && window.parent !== window) {
+                window.parent.scrollTo(0, 0);
+            }
+        } catch (e) {}
+    }
+    
+    // Execute immediately
+    scrollToTop();
+    
+    // Execute again after render
+    requestAnimationFrame(function() {
+        scrollToTop();
+        setTimeout(function() {
+            scrollToTop();
+            // Also try smooth scroll after instant
+            setTimeout(function() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                const searchContainer = document.querySelector('.top-search-container');
+                if (searchContainer) {
+                    searchContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 50);
+        }, 100);
+    });
+    
     // Report height after filtering - wait longer for layout to settle
     setTimeout(function() {
         reportContentHeight();
@@ -4235,6 +4302,64 @@ function clearPreviewFilters() {
     
     if (data) {
         renderPreview(data.listings);
+        
+        // Scroll to top - use same comprehensive function
+        function scrollToTop() {
+            window.scrollTo(0, 0);
+            window.scrollTo({ top: 0, behavior: 'instant' });
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+            
+            // Find and scroll scrollable containers
+            const scrollableElements = document.querySelectorAll('*');
+            scrollableElements.forEach(function(el) {
+                const style = window.getComputedStyle(el);
+                if (style.overflow === 'auto' || style.overflow === 'scroll' || 
+                    style.overflowY === 'auto' || style.overflowY === 'scroll') {
+                    try {
+                        el.scrollTop = 0;
+                    } catch (e) {}
+                }
+            });
+            
+            const searchContainer = document.querySelector('.top-search-container');
+            const mainContent = document.querySelector('.preview-main');
+            const grid = document.getElementById('previewGrid');
+            
+            if (searchContainer) {
+                searchContainer.scrollIntoView({ behavior: 'instant', block: 'start' });
+            }
+            if (mainContent) {
+                mainContent.scrollIntoView({ behavior: 'instant', block: 'start' });
+            }
+            if (grid) {
+                grid.scrollIntoView({ behavior: 'instant', block: 'start' });
+            }
+            
+            try {
+                if (window.frameElement) {
+                    window.frameElement.scrollIntoView({ behavior: 'instant', block: 'start' });
+                }
+                if (window.parent && window.parent !== window) {
+                    window.parent.scrollTo(0, 0);
+                }
+            } catch (e) {}
+        }
+        
+        scrollToTop();
+        requestAnimationFrame(function() {
+            scrollToTop();
+            setTimeout(function() {
+                scrollToTop();
+                setTimeout(function() {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    const searchContainer = document.querySelector('.top-search-container');
+                    if (searchContainer) {
+                        searchContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 50);
+            }, 100);
+        });
         
         // Report height after clearing filters
         setTimeout(function() {

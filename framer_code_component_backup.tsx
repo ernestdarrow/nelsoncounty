@@ -1,10 +1,9 @@
-import React, { useState, useRef, useEffect } from "react"
-
+// Backup version - try this if the import version doesn't work
 export default function AdventureDirectory() {
-  const [iframeHeight, setIframeHeight] = useState(800)
-  const iframeRef = useRef(null)
+  const [iframeHeight, setIframeHeight] = React.useState(800)
+  const iframeRef = React.useRef(null)
 
-  useEffect(() => {
+  React.useEffect(() => {
     function handleMessage(event) {
       if (event.data && event.data.type === 'resize') {
         const height = event.data.height
@@ -17,23 +16,22 @@ export default function AdventureDirectory() {
     return () => window.removeEventListener('message', handleMessage)
   }, [])
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (iframeRef.current) {
       iframeRef.current.style.height = iframeHeight + 'px'
     }
   }, [iframeHeight])
 
-  return (
-    <iframe
-      ref={iframeRef}
-      src="https://ernestdarrow.github.io/nelsoncounty/frontpage_framer.html"
-      style={{
-        width: '100%',
-        height: '800px',
-        border: 'none',
-        minHeight: '400px'
-      }}
-      title="Adventure Directory"
-    />
-  )
+  return React.createElement('iframe', {
+    ref: iframeRef,
+    src: 'https://ernestdarrow.github.io/nelsoncounty/frontpage_framer.html',
+    style: {
+      width: '100%',
+      height: '800px',
+      border: 'none',
+      minHeight: '400px'
+    },
+    title: 'Adventure Directory'
+  })
 }
+
