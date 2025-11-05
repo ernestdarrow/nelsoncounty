@@ -134,8 +134,7 @@
         html {
             overflow-x: hidden;
             overflow-y: auto;
-            height: auto;
-            min-height: 100%;
+            height: 100%;
             position: relative;
         }
         body { 
@@ -148,8 +147,7 @@
             padding: 0;
             overflow-x: hidden;
             overflow-y: auto;
-            height: auto;
-            min-height: 100%;
+            height: 100%;
             position: relative;
         }
         /* Only allow scrolling on specific elements that need it */
@@ -1063,7 +1061,19 @@
             overflow-x: clip;
         }
         
-        .preview-sidebar { width: 280px; flex-shrink: 0; position: relative; top: 0; max-height: 100vh; left: 0; align-self: flex-start; transition: all 0.3s; z-index: 1000; }
+        .preview-sidebar { 
+            width: 280px; 
+            flex-shrink: 0; 
+            position: sticky !important; 
+            top: 0 !important; 
+            max-height: 100vh !important; 
+            left: 0; 
+            align-self: flex-start; 
+            transition: all 0.3s; 
+            z-index: 1000 !important;
+            height: 100vh;
+            overflow-y: auto;
+        }
         .preview-sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; }
         
         .sidebar-header {
@@ -1545,9 +1555,9 @@
         
         /* Top Search Bar */
         .top-search-container {
-            position: relative;
-            top: 0;
-            z-index: 100;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 1001 !important;
             background: linear-gradient(
                 to bottom,
                 var(--bg-primary) 0%,
@@ -5254,139 +5264,11 @@ window.addEventListener('message', function(event) {
     }
 });
 
-// Handle sticky positioning for iframe context - robust version
+// Simplified - CSS handles sticky positioning natively
+// No JavaScript needed when iframe scrolls internally
 function handleStickyInIframe() {
-    try {
-        let isUpdating = false;
-        let rafId = null;
-        let lastUpdate = 0;
-        const UPDATE_INTERVAL = 16; // ~60fps
-        
-        // Force update function - applies fixed positioning aggressively
-        function forceStickyUpdate() {
-            if (isUpdating) return;
-            
-            try {
-                isUpdating = true;
-                
-                // Re-query elements every time (in case DOM changed)
-                const currentSidebar = document.querySelector('.preview-sidebar');
-                const currentSearchContainer = document.querySelector('.top-search-container');
-                const mainContent = document.querySelector('.preview-main');
-                
-                if (!currentSidebar && !currentSearchContainer) {
-                    isUpdating = false;
-                    return;
-                }
-                
-                // Handle sidebar - force fixed positioning
-                if (currentSidebar && currentSidebar.isConnected) {
-                    const isCollapsed = currentSidebar.classList.contains('collapsed');
-                    
-                    if (!isCollapsed) {
-                        // Apply fixed positioning with all necessary properties
-                        currentSidebar.style.setProperty('position', 'fixed', 'important');
-                        currentSidebar.style.setProperty('top', '0px', 'important');
-                        currentSidebar.style.setProperty('left', '0px', 'important');
-                        currentSidebar.style.setProperty('width', '280px', 'important');
-                        currentSidebar.style.setProperty('height', '100vh', 'important');
-                        currentSidebar.style.setProperty('max-height', '100vh', 'important');
-                        currentSidebar.style.setProperty('overflow-y', 'auto', 'important');
-                        currentSidebar.style.setProperty('z-index', '1000', 'important');
-                        currentSidebar.style.setProperty('margin', '0', 'important');
-                        currentSidebar.style.setProperty('padding', '', 'important');
-                        
-                        // Ensure main content has margin for sidebar
-                        if (mainContent) {
-                            mainContent.style.setProperty('margin-left', '280px', 'important');
-                        }
-                    }
-                }
-                
-                // Handle search container - force fixed positioning
-                if (currentSearchContainer && currentSearchContainer.isConnected) {
-                    const sidebar = document.querySelector('.preview-sidebar');
-                    const sidebarWidth = sidebar && !sidebar.classList.contains('collapsed') ? 280 : 0;
-                    const searchHeight = Math.max(currentSearchContainer.offsetHeight, 80);
-                    
-                    // Apply fixed positioning with all necessary properties
-                    currentSearchContainer.style.setProperty('position', 'fixed', 'important');
-                    currentSearchContainer.style.setProperty('top', '0px', 'important');
-                    currentSearchContainer.style.setProperty('left', sidebarWidth + 'px', 'important');
-                    currentSearchContainer.style.setProperty('width', 'calc(100% - ' + sidebarWidth + 'px)', 'important');
-                    currentSearchContainer.style.setProperty('z-index', '1001', 'important');
-                    currentSearchContainer.style.setProperty('margin', '0', 'important');
-                    
-                    // Ensure main content has padding for search bar
-                    if (mainContent) {
-                        mainContent.style.setProperty('padding-top', searchHeight + 'px', 'important');
-                    }
-                }
-                
-            } catch (e) {
-                // Silently fail
-            } finally {
-                isUpdating = false;
-            }
-        }
-        
-        // Continuous update loop using requestAnimationFrame
-        function continuousUpdate() {
-            const now = performance.now();
-            if (now - lastUpdate >= UPDATE_INTERVAL) {
-                forceStickyUpdate();
-                lastUpdate = now;
-            }
-            rafId = requestAnimationFrame(continuousUpdate);
-        }
-        
-        // Start continuous updates
-        continuousUpdate();
-        
-        // Also update on scroll (as backup)
-        window.addEventListener('scroll', function() {
-            forceStickyUpdate();
-        }, { passive: true, capture: true });
-        
-        // Update on resize
-        window.addEventListener('resize', function() {
-            forceStickyUpdate();
-        }, { passive: true });
-        
-        // Update on DOM mutations
-        try {
-            const observer = new MutationObserver(function() {
-                forceStickyUpdate();
-            });
-            
-            // Observe the entire document for changes
-            observer.observe(document.body || document.documentElement, {
-                childList: true,
-                subtree: true,
-                attributes: true,
-                attributeFilter: ['class', 'style']
-            });
-        } catch (e) {
-            // MutationObserver failed, continue without it
-        }
-        
-        // Initial update immediately and then again after a short delay
-        forceStickyUpdate();
-        setTimeout(forceStickyUpdate, 50);
-        setTimeout(forceStickyUpdate, 200);
-        setTimeout(forceStickyUpdate, 500);
-        
-        // Store cleanup function globally so it can be called if needed
-        window._cleanupSticky = function() {
-            if (rafId) {
-                cancelAnimationFrame(rafId);
-                rafId = null;
-            }
-        };
-        
-    } catch (e) {
-        // Fail silently
-    }
+    // No-op - CSS handles everything with position: sticky
+    // This function exists for backwards compatibility
 }
 
 // Initialize on DOM load
