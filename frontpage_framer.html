@@ -4225,6 +4225,10 @@ function filterPreview() {
     // Report height after filtering - wait longer for layout to settle
     setTimeout(function() {
         reportContentHeight();
+        // Re-apply sticky positioning after render
+        if (typeof handleStickyInIframe === 'function') {
+            handleStickyInIframe();
+        }
         // Also report again after a bit more delay to catch any late-rendering elements
         setTimeout(function() {
             reportContentHeight();
@@ -4281,6 +4285,10 @@ function clearPreviewFilters() {
         // Report height after clearing filters
         setTimeout(function() {
             reportContentHeight();
+            // Re-apply sticky positioning after render
+            if (typeof handleStickyInIframe === 'function') {
+                handleStickyInIframe();
+            }
         }, 150);
     }
 }
@@ -5279,21 +5287,20 @@ function handleStickyInIframe() {
                     
                     if (!isCollapsed) {
                         // Always use fixed positioning in iframe context to keep sidebar visible
-                        currentSidebar.style.position = 'fixed';
-                        currentSidebar.style.top = '0';
-                        currentSidebar.style.left = '0';
-                        currentSidebar.style.height = '100vh';
-                        currentSidebar.style.maxHeight = '100vh';
-                        currentSidebar.style.overflowY = 'auto';
-                        currentSidebar.style.zIndex = '1000';
+                        // Use setProperty with !important to override CSS
+                        currentSidebar.style.setProperty('position', 'fixed', 'important');
+                        currentSidebar.style.setProperty('top', '0', 'important');
+                        currentSidebar.style.setProperty('left', '0', 'important');
+                        currentSidebar.style.setProperty('height', '100vh', 'important');
+                        currentSidebar.style.setProperty('max-height', '100vh', 'important');
+                        currentSidebar.style.setProperty('overflow-y', 'auto', 'important');
+                        currentSidebar.style.setProperty('z-index', '1000', 'important');
                         // Ensure main content accounts for fixed sidebar
                         const mainContent = document.querySelector('.preview-main');
                         if (mainContent) {
                             const sidebarWidth = 280;
                             // Always add margin to account for fixed sidebar
-                            if (mainContent.style.marginLeft !== sidebarWidth + 'px') {
-                                mainContent.style.marginLeft = sidebarWidth + 'px';
-                            }
+                            mainContent.style.setProperty('margin-left', sidebarWidth + 'px', 'important');
                         }
                     }
                 }
@@ -5306,18 +5313,17 @@ function handleStickyInIframe() {
                     const sidebarWidth = sidebar && !sidebar.classList.contains('collapsed') ? 280 : 0;
                     
                     // Always use fixed positioning in iframe context to keep search bar visible
-                    currentSearchContainer.style.position = 'fixed';
-                    currentSearchContainer.style.top = '0';
-                    currentSearchContainer.style.left = sidebarWidth + 'px';
-                    currentSearchContainer.style.width = 'calc(100% - ' + sidebarWidth + 'px)';
-                    currentSearchContainer.style.zIndex = '1001';
+                    // Use setProperty with !important to override CSS
+                    currentSearchContainer.style.setProperty('position', 'fixed', 'important');
+                    currentSearchContainer.style.setProperty('top', '0', 'important');
+                    currentSearchContainer.style.setProperty('left', sidebarWidth + 'px', 'important');
+                    currentSearchContainer.style.setProperty('width', 'calc(100% - ' + sidebarWidth + 'px)', 'important');
+                    currentSearchContainer.style.setProperty('z-index', '1001', 'important');
                     // Ensure main content accounts for fixed search bar
                     if (mainContent) {
                         const searchHeight = currentSearchContainer.offsetHeight || 80;
                         // Always add padding to account for fixed search bar
-                        if (mainContent.style.paddingTop !== searchHeight + 'px') {
-                            mainContent.style.paddingTop = searchHeight + 'px';
-                        }
+                        mainContent.style.setProperty('padding-top', searchHeight + 'px', 'important');
                     }
                 }
             } catch (e) {
