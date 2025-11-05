@@ -44,10 +44,11 @@ export default function AdventureDirectory() {
   // Handle iframe setup after mount
   React.useEffect(() => {
     // Guard all window/DOM access - only runs in browser
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || typeof document === 'undefined') return
     if (!iframeRef.current) return
     
     const iframe = iframeRef.current
+    if (!iframe || typeof iframe.addEventListener !== 'function') return
     
     // Set initial height
     try {
@@ -56,22 +57,70 @@ export default function AdventureDirectory() {
       // Ignore errors during SSR
     }
     
-    // Try to access iframe content (may be blocked by CORS)
-    try {
-      iframe.addEventListener('load', () => {
-        // Give it a moment to load, then request height update
+    // Handle iframe load event
+    const handleLoad = () => {
+      // Only run in browser environment
+      if (typeof window === 'undefined') return
+      
+      try {
+        // Request height update when iframe loads
         setTimeout(() => {
-          if (iframe.contentWindow && typeof window !== 'undefined') {
+          if (iframeRef.current?.contentWindow && typeof window !== 'undefined') {
             try {
-              iframe.contentWindow.postMessage({ type: 'requestHeight' }, '*')
+              iframeRef.current.contentWindow.postMessage({ type: 'requestHeight' }, '*')
             } catch (e) {
-              // CORS might prevent access, that's okay
+              // Ignore errors
             }
           }
-        }, 1000)
-      })
+        }, 500)
+        
+        // Also set up a periodic check as fallback
+        const interval = setInterval(() => {
+          if (iframeRef.current?.contentWindow && typeof window !== 'undefined') {
+            try {
+              iframeRef.current.contentWindow.postMessage({ type: 'requestHeight' }, '*')
+            } catch (e) {
+              clearInterval(interval)
+            }
+          }
+        }, 2000)
+        
+        // Clear interval after 30 seconds
+        setTimeout(() => {
+          if (typeof window !== 'undefined') {
+            clearInterval(interval)
+          }
+        }, 30000)
+      } catch (e) {
+        // Ignore errors
+      }
+    }
+    
+    // Add load event listener
+    try {
+      iframe.addEventListener('load', handleLoad)
+      
+      // If iframe already loaded, call handler immediately
+      // Guard against SSR - only check if window exists
+      if (typeof window !== 'undefined') {
+        try {
+          if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+            handleLoad()
+          }
+        } catch (e) {
+          // CORS might prevent access, that's okay - just continue
+        }
+      }
     } catch (e) {
       // CORS might prevent access, that's okay
+    }
+    
+    return () => {
+      try {
+        iframe.removeEventListener('load', handleLoad)
+      } catch (e) {
+        // Ignore cleanup errors
+      }
     }
   }, [iframeHeight])
 
@@ -88,39 +137,6 @@ export default function AdventureDirectory() {
       }}
       loading="lazy"
       title="Adventure Directory"
-      onLoad={() => {
-        // Only run in browser environment
-        if (typeof window === 'undefined') return
-        
-        try {
-          // Request height update when iframe loads
-          setTimeout(() => {
-            if (iframeRef.current?.contentWindow) {
-              try {
-                iframeRef.current.contentWindow.postMessage({ type: 'requestHeight' }, '*')
-              } catch (e) {
-                // Ignore errors
-              }
-            }
-          }, 500)
-          
-          // Also set up a periodic check as fallback
-          const interval = setInterval(() => {
-            if (iframeRef.current?.contentWindow) {
-              try {
-                iframeRef.current.contentWindow.postMessage({ type: 'requestHeight' }, '*')
-              } catch (e) {
-                clearInterval(interval)
-              }
-            }
-          }, 2000)
-          
-          // Clear interval after 30 seconds
-          setTimeout(() => clearInterval(interval), 30000)
-        } catch (e) {
-          // Ignore errors
-        }
-      }}
     />
   )
 }
