@@ -2143,22 +2143,14 @@ const initialData =
             updateStats();
             populateAdminFilters();
             
-            // Add event listeners to quick filter buttons
-            document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
+            // Add event listeners to quick filter buttons in admin tab
+            document.querySelectorAll('#adminTab .type-filter-btn').forEach(function(btn) {
+                // Remove any existing onclick handlers to avoid conflicts
+                btn.onclick = null;
+                
                 btn.addEventListener('click', function() {
-                    // Remove active class from all buttons
-                    document.querySelectorAll('.type-filter-btn').forEach(function(b) {
-                        b.classList.remove('active');
-                    });
-                    
-                    // Add active class to clicked button
-                    this.classList.add('active');
-                    
-                    // Set the current type filter
-                    currentTypeFilter = this.dataset.type;
-                    
-                    // Apply filter
-                    filterPreview();
+                    const type = this.dataset.type || '';
+                    filterAdminByType(type);
                 });
             });
         });
