@@ -5272,51 +5272,51 @@ function handleStickyInIframe() {
                 const currentSidebar = document.querySelector('.preview-sidebar');
                 const currentSearchContainer = document.querySelector('.top-search-container');
                 
-                // Handle sidebar - use sticky positioning (works better than fixed)
+                // Handle sidebar - use fixed positioning to keep it sticky in iframe
+                // Since iframe doesn't scroll, we use fixed to stick to viewport
                 if (currentSidebar && currentSidebar.isConnected) {
                     const isCollapsed = currentSidebar.classList.contains('collapsed');
+                    
                     if (!isCollapsed) {
-                        // Use sticky instead of fixed - it stays in the flow and works better
-                        currentSidebar.style.position = 'sticky';
+                        // Always use fixed positioning in iframe context to keep sidebar visible
+                        currentSidebar.style.position = 'fixed';
                         currentSidebar.style.top = '0';
-                        currentSidebar.style.left = '';
+                        currentSidebar.style.left = '0';
                         currentSidebar.style.height = '100vh';
                         currentSidebar.style.maxHeight = '100vh';
                         currentSidebar.style.overflowY = 'auto';
                         currentSidebar.style.zIndex = '1000';
+                        // Ensure main content accounts for fixed sidebar
+                        const mainContent = document.querySelector('.preview-main');
+                        if (mainContent) {
+                            const sidebarWidth = 280;
+                            // Always add margin to account for fixed sidebar
+                            if (mainContent.style.marginLeft !== sidebarWidth + 'px') {
+                                mainContent.style.marginLeft = sidebarWidth + 'px';
+                            }
+                        }
                     }
                 }
                 
-                // Handle search container - use fixed positioning when scrolled
+                // Handle search container - use fixed positioning to keep it sticky in iframe
+                // Since iframe doesn't scroll, we use fixed to stick to viewport
                 if (currentSearchContainer && currentSearchContainer.isConnected) {
-                    const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
                     const mainContent = document.querySelector('.preview-main');
                     const sidebar = document.querySelector('.preview-sidebar');
                     const sidebarWidth = sidebar && !sidebar.classList.contains('collapsed') ? 280 : 0;
                     
-                    if (scrollTop > 0) {
-                        // When scrolled, use fixed positioning
-                        currentSearchContainer.style.position = 'fixed';
-                        currentSearchContainer.style.top = '0';
-                        currentSearchContainer.style.left = sidebarWidth + 'px';
-                        currentSearchContainer.style.width = 'calc(100% - ' + sidebarWidth + 'px)';
-                        currentSearchContainer.style.zIndex = '1001';
-                        // Ensure main content accounts for fixed search bar
-                        if (mainContent) {
-                            const searchHeight = currentSearchContainer.offsetHeight || 80;
-                            if (!mainContent.style.paddingTop || mainContent.style.paddingTop === '0px') {
-                                mainContent.style.paddingTop = searchHeight + 'px';
-                            }
-                        }
-                    } else {
-                        // At top, use sticky
-                        currentSearchContainer.style.position = 'sticky';
-                        currentSearchContainer.style.top = '0';
-                        currentSearchContainer.style.left = '';
-                        currentSearchContainer.style.width = '';
-                        currentSearchContainer.style.zIndex = '100';
-                        if (mainContent) {
-                            mainContent.style.paddingTop = '';
+                    // Always use fixed positioning in iframe context to keep search bar visible
+                    currentSearchContainer.style.position = 'fixed';
+                    currentSearchContainer.style.top = '0';
+                    currentSearchContainer.style.left = sidebarWidth + 'px';
+                    currentSearchContainer.style.width = 'calc(100% - ' + sidebarWidth + 'px)';
+                    currentSearchContainer.style.zIndex = '1001';
+                    // Ensure main content accounts for fixed search bar
+                    if (mainContent) {
+                        const searchHeight = currentSearchContainer.offsetHeight || 80;
+                        // Always add padding to account for fixed search bar
+                        if (mainContent.style.paddingTop !== searchHeight + 'px') {
+                            mainContent.style.paddingTop = searchHeight + 'px';
                         }
                     }
                 }
