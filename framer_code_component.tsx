@@ -6,7 +6,11 @@ export default function AdventureDirectory() {
   const iframeRef = React.useRef<HTMLIFrameElement>(null)
   const [iframeHeight, setIframeHeight] = React.useState(800) // Initial height
 
+  // Only run browser-specific code after component mounts (useEffect runs only in browser)
   React.useEffect(() => {
+    // Guard all window access - only runs in browser, not during SSR
+    if (typeof window === 'undefined') return
+    
     const handleMessage = (event: MessageEvent) => {
       try {
         // Accept messages from the iframe source
@@ -29,33 +33,47 @@ export default function AdventureDirectory() {
 
     // Listen for messages from the iframe
     window.addEventListener('message', handleMessage)
-    
-    // Also set up a listener on the iframe's contentWindow if accessible
-    if (iframeRef.current) {
-      const iframe = iframeRef.current
-      
-      // Set initial height
-      iframe.style.height = `${iframeHeight}px`
-      
-      // Try to access iframe content (may be blocked by CORS)
-      try {
-        iframe.addEventListener('load', () => {
-          // Give it a moment to load, then request height update
-          setTimeout(() => {
-            if (iframe.contentWindow) {
-              iframe.contentWindow.postMessage({ type: 'requestHeight' }, '*')
-            }
-          }, 1000)
-        })
-      } catch (e) {
-        // CORS might prevent access, that's okay
-      }
-    }
 
     return () => {
-      window.removeEventListener('message', handleMessage)
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('message', handleMessage)
+      }
     }
   }, [])
+  
+  // Handle iframe setup after mount
+  React.useEffect(() => {
+    // Guard all window/DOM access - only runs in browser
+    if (typeof window === 'undefined') return
+    if (!iframeRef.current) return
+    
+    const iframe = iframeRef.current
+    
+    // Set initial height
+    try {
+      iframe.style.height = `${iframeHeight}px`
+    } catch (e) {
+      // Ignore errors during SSR
+    }
+    
+    // Try to access iframe content (may be blocked by CORS)
+    try {
+      iframe.addEventListener('load', () => {
+        // Give it a moment to load, then request height update
+        setTimeout(() => {
+          if (iframe.contentWindow && typeof window !== 'undefined') {
+            try {
+              iframe.contentWindow.postMessage({ type: 'requestHeight' }, '*')
+            } catch (e) {
+              // CORS might prevent access, that's okay
+            }
+          }
+        }, 1000)
+      })
+    } catch (e) {
+      // CORS might prevent access, that's okay
+    }
+  }, [iframeHeight])
 
   return (
     <iframe
@@ -71,6 +89,9 @@ export default function AdventureDirectory() {
       loading="lazy"
       title="Adventure Directory"
       onLoad={() => {
+        // Only run in browser environment
+        if (typeof window === 'undefined') return
+        
         try {
           // Request height update when iframe loads
           setTimeout(() => {
