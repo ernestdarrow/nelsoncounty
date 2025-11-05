@@ -136,6 +136,7 @@
             overflow-y: auto;
             height: 100%;
             position: relative;
+            scroll-padding-top: 0;
         }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
@@ -149,6 +150,12 @@
             overflow-y: auto;
             height: 100%;
             position: relative;
+            scroll-padding-top: 0;
+        }
+        /* Ensure iframe content starts at top - add padding to account for sticky elements */
+        .preview-container {
+            padding-top: 0;
+            scroll-margin-top: 0;
         }
         /* Only allow scrolling on specific elements that need it */
         .preview-sidebar .filter-content,
@@ -554,7 +561,10 @@
             max-width: 100vw; 
             margin: 0; 
             padding: 0; 
+            padding-top: 0;
             transition: background-color 0.3s, color 0.3s;
+            scroll-margin-top: 0;
+            scroll-padding-top: 0;
         }
         
         .preview-controls {
