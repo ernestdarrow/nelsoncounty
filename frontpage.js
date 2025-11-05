@@ -1656,7 +1656,7 @@ function renderPreview(filteredListings) {
         }
         
         back.innerHTML = 
-            '<div class="back-content" style="padding: 30px; display: flex; flex-direction: column; min-height: 100%;">' +
+            '<div class="back-content" style="padding: 30px 30px 50px 30px; display: flex; flex-direction: column; min-height: 100%;">' +
             '<h3 class="back-title" style="font-size: 26px; margin-bottom: 15px; color: var(--text-primary); font-weight: 700; line-height: 1.2;">' + escapeHtml(fixEncoding(listing.name)) + '</h3>' +
             (listing.image1 || listing.image2 ? '<div class="two-up">' +
                 (listing.image1 ? '<img src="' + listing.image1 + '" onerror="this.onerror=null; this.src=FALLBACK_IMG;">' : '') +
