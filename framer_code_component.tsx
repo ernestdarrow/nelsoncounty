@@ -42,85 +42,53 @@ export default function AdventureDirectory() {
       iframeRef.current.style.height = finalHeight + 'px'
       iframeRef.current.style.maxHeight = viewportHeight * 0.9 + 'px'
       iframeRef.current.style.overflow = 'hidden'
-      // Add scroll margin to ensure iframe scrolls into view properly
+      // Use CSS scroll-snap for smoother native behavior
       iframeRef.current.style.scrollMarginTop = '0px'
       iframeRef.current.style.scrollSnapAlign = 'start'
+      iframeRef.current.style.scrollSnapStop = 'always'
     }
   }, [iframeHeight])
 
-  // Listen to parent window scroll and ensure iframe snaps to top when scrolling near it
+  // Minimal, passive approach - only snap when user stops scrolling near iframe
+  // This is less intrusive and feels more natural
   useEffect(() => {
     if (!iframeRef.current || typeof window === 'undefined') return
 
-    let scrollTimeout: number | null = null
-    let isScrolling = false
+    let scrollEndTimeout: number | null = null
 
-    const handleScroll = () => {
+    const handleScrollEnd = () => {
       if (!iframeRef.current) return
 
       const rect = iframeRef.current.getBoundingClientRect()
-      const viewportTop = 0
       const iframeTop = rect.top
-      const iframeBottom = rect.bottom
       
-      // If scrolling down and iframe top is above viewport but bottom is below
-      // OR if scrolling up and iframe is partially visible
-      // Snap iframe to top of viewport
-      if (iframeTop < viewportTop + 100 && iframeBottom > viewportTop + 100) {
-        // Iframe is near top but not aligned - snap it
-        if (!isScrolling) {
-          isScrolling = true
-          iframeRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
-          
-          // Reset flag after scroll completes
-          setTimeout(() => {
-            isScrolling = false
-          }, 500)
-        }
+      // Very narrow threshold - only snap if iframe is very close to top (within 50px)
+      // This allows scrolling past it or stopping right before it without snapping
+      // Only activates when very clearly near the top edge
+      if (iframeTop > 0 && iframeTop < 50 && rect.bottom > 200) {
+        // Very gentle snap - only when very close to top
+        iframeRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
     }
 
-    // Throttle scroll events
-    const throttledScroll = () => {
-      if (scrollTimeout) return
-      scrollTimeout = setTimeout(() => {
-        handleScroll()
-        scrollTimeout = null
-      }, 50)
+    const handleScroll = () => {
+      // Clear existing timeout
+      if (scrollEndTimeout) {
+        clearTimeout(scrollEndTimeout)
+      }
+      
+      // Wait for scroll to completely stop (longer delay = less intrusive)
+      scrollEndTimeout = setTimeout(() => {
+        handleScrollEnd()
+        scrollEndTimeout = null
+      }, 300) // Longer delay = only snap when user has clearly stopped
     }
 
-    window.addEventListener('scroll', throttledScroll, { passive: true })
-    
-    // Also use IntersectionObserver as backup
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.boundingClientRect.top > 50) {
-            // If iframe is entering viewport but not at top, scroll it there
-            if (!isScrolling && iframeRef.current) {
-              isScrolling = true
-              iframeRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
-              setTimeout(() => {
-                isScrolling = false
-              }, 500)
-            }
-          }
-        })
-      },
-      {
-        threshold: [0, 0.1, 0.5],
-        rootMargin: '0px 0px 0px 0px'
-      }
-    )
-
-    observer.observe(iframeRef.current)
+    window.addEventListener('scroll', handleScroll, { passive: true })
 
     return () => {
-      window.removeEventListener('scroll', throttledScroll)
-      if (scrollTimeout) clearTimeout(scrollTimeout)
-      if (iframeRef.current) {
-        observer.unobserve(iframeRef.current)
-      }
+      window.removeEventListener('scroll', handleScroll)
+      if (scrollEndTimeout) clearTimeout(scrollEndTimeout)
     }
   }, [])
 
