@@ -1135,7 +1135,7 @@
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
             transition: all 0.3s;
             padding: 0;
-            z-index: 200;
+            z-index: 2000 !important; /* Very high z-index to stay on top */
         }
         .show-sidebar-btn:hover {
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
@@ -1144,8 +1144,18 @@
         .show-sidebar-btn svg {
             display: block;
         }
-        .preview-sidebar.collapsed ~ .preview-main .show-sidebar-btn {
-            display: flex;
+        /* Show sidebar button when sidebar is collapsed - make sure it's always visible */
+        .preview-sidebar.collapsed ~ .preview-main .show-sidebar-btn,
+        .preview-sidebar.collapsed + * .show-sidebar-btn,
+        body:has(.preview-sidebar.collapsed) .show-sidebar-btn {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        /* Ensure show-sidebar-btn is visible even if sidebar is hidden */
+        .show-sidebar-btn {
+            z-index: 2000 !important; /* Very high z-index to stay on top */
         }
         
         .preview-filters { background: var(--bg-secondary); padding: 0; border-radius: 0; box-shadow: none; max-height: 100vh; display: flex; flex-direction: column; }
@@ -5243,15 +5253,31 @@ function toggleTypeFilters() {
 function toggleSidebar() {
     var sidebar = document.querySelector('.preview-sidebar');
     var toggleIcon = document.getElementById('sidebarToggleIcon');
+    var showSidebarBtn = document.querySelector('.show-sidebar-btn');
     
     if (sidebarVisible) {
         sidebar.classList.add('collapsed');
         sidebarVisible = false;
+        
+        // Force show-sidebar button to be visible
+        if (showSidebarBtn) {
+            showSidebarBtn.style.display = 'flex';
+            showSidebarBtn.style.visibility = 'visible';
+            showSidebarBtn.style.opacity = '1';
+            showSidebarBtn.style.zIndex = '2000';
+        }
     } else {
         sidebar.classList.remove('collapsed');
         // Change back to X icon when opened
-        toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>';
+        if (toggleIcon) {
+            toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>';
+        }
         sidebarVisible = true;
+        
+        // Hide show-sidebar button when sidebar is visible
+        if (showSidebarBtn) {
+            showSidebarBtn.style.display = 'none';
+        }
     }
 }
 
