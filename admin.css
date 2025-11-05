@@ -226,7 +226,18 @@
         .badge-type { background: var(--badge-type-bg); color: var(--badge-type-color); }
         .badge-area { background: var(--badge-area-bg); color: var(--badge-area-color); }
         
-        .listing-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px; }
+        .listing-desc { 
+            font-size: 14px; 
+            color: var(--text-secondary); 
+            line-height: 1.5; 
+            margin-bottom: 12px; 
+            display: -webkit-box;
+            -webkit-line-clamp: 5;
+            line-clamp: 5;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         .listing-amenities { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
         .amenity { padding: 3px 8px; background: var(--bg-hover); border-radius: 4px; font-size: 11px; color: var(--text-secondary); border: 1px solid var(--border-color); }
         

@@ -903,7 +903,7 @@ const initialData =
                     '<span class="badge badge-type ' + getIconClass(listing.type) + '">' + listing.type + '</span>' +
                     '<span class="badge badge-area">' + listing.area + '</span>' +
                     '</div>' +
-                    '<p class="listing-desc">' + listing.description.substring(0, 120) + '...</p>' +
+                    '<p class="listing-desc">' + listing.description + '</p>' +
                     '<div class="listing-amenities">' +
                     listing.amenities.slice(0, 4).map(function(a) { return '<span class="amenity">' + a + '</span>'; }).join('') +
                     (listing.amenities.length > 4 ? '<span class="amenity">+' + (listing.amenities.length - 4) + ' more</span>' : '') +
