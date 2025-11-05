@@ -5274,11 +5274,77 @@ window.addEventListener('message', function(event) {
     }
 });
 
-// Simplified - CSS handles sticky positioning natively
-// No JavaScript needed when iframe scrolls internally
+// Make search bar fixed to top of browser window when scrolling
 function handleStickyInIframe() {
-    // No-op - CSS handles everything with position: sticky
-    // This function exists for backwards compatibility
+    try {
+        const searchContainer = document.querySelector('.top-search-container');
+        if (!searchContainer) return;
+
+        let scrollTimeout = null;
+        const SCROLL_THRESHOLD = 100; // Start fixing after scrolling 100px
+
+        const handleScroll = function() {
+            const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+            const rect = searchContainer.getBoundingClientRect();
+            const sidebar = document.querySelector('.preview-sidebar');
+            const sidebarWidth = sidebar && !sidebar.classList.contains('collapsed') ? 280 : 0;
+            
+            // Calculate if search bar should be fixed based on scroll position
+            // Fixed when scrolled past threshold OR when search bar would scroll out of view
+            if (scrollTop > SCROLL_THRESHOLD || rect.top < 0) {
+                // Make it fixed to top of window
+                searchContainer.style.setProperty('position', 'fixed', 'important');
+                searchContainer.style.setProperty('top', '0px', 'important');
+                searchContainer.style.setProperty('left', sidebarWidth + 'px', 'important');
+                searchContainer.style.setProperty('width', 'calc(100% - ' + sidebarWidth + 'px)', 'important');
+                searchContainer.style.setProperty('z-index', '1001', 'important');
+                
+                // Ensure main content has padding to account for fixed search bar
+                const mainContent = document.querySelector('.preview-main');
+                if (mainContent) {
+                    const searchHeight = searchContainer.offsetHeight || 80;
+                    mainContent.style.setProperty('padding-top', searchHeight + 'px', 'important');
+                }
+            } else {
+                // Use sticky positioning when near top
+                searchContainer.style.removeProperty('position');
+                searchContainer.style.removeProperty('top');
+                searchContainer.style.removeProperty('left');
+                searchContainer.style.removeProperty('width');
+                searchContainer.style.setProperty('z-index', '1001', 'important');
+                
+                // Remove padding from main content
+                const mainContent = document.querySelector('.preview-main');
+                if (mainContent) {
+                    mainContent.style.removeProperty('padding-top');
+                }
+            }
+        };
+
+        // Throttle scroll events
+        const throttledScroll = function() {
+            if (scrollTimeout) return;
+            scrollTimeout = setTimeout(function() {
+                handleScroll();
+                scrollTimeout = null;
+            }, 16); // ~60fps
+        };
+
+        window.addEventListener('scroll', throttledScroll, { passive: true });
+        window.addEventListener('resize', handleScroll, { passive: true });
+        
+        // Initial check
+        handleScroll();
+
+        // Return cleanup (though function doesn't return in this context)
+        return function() {
+            window.removeEventListener('scroll', throttledScroll);
+            window.removeEventListener('resize', handleScroll);
+            if (scrollTimeout) clearTimeout(scrollTimeout);
+        };
+    } catch (e) {
+        // Silently fail
+    }
 }
 
 // Initialize on DOM load

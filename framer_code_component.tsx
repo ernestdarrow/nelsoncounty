@@ -49,39 +49,44 @@ export default function AdventureDirectory() {
     }
   }, [iframeHeight])
 
-  // Minimal, passive approach - only snap when user stops scrolling near iframe
-  // This is less intrusive and feels more natural
+  // Monitor scroll but only recenter when scrolling stops - allows free scrolling during active scroll
   useEffect(() => {
     if (!iframeRef.current || typeof window === 'undefined') return
 
     let scrollEndTimeout: number | null = null
-
-    const handleScrollEnd = () => {
-      if (!iframeRef.current) return
-
-      const rect = iframeRef.current.getBoundingClientRect()
-      const iframeTop = rect.top
-      
-      // Very narrow threshold - only snap if iframe is very close to top (within 50px)
-      // This allows scrolling past it or stopping right before it without snapping
-      // Only activates when very clearly near the top edge
-      if (iframeTop > 0 && iframeTop < 50 && rect.bottom > 200) {
-        // Very gentle snap - only when very close to top
-        iframeRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }
-    }
+    let isRecentering = false
+    let lastScrollY = window.scrollY
+    const ALLOWED_PAST = 400 // Allow scrolling 400px past top before recentering (much more leeway)
+    const SCROLL_STOP_DELAY = 200 // Wait 200ms after scroll stops before checking
 
     const handleScroll = () => {
+      lastScrollY = window.scrollY
+      
       // Clear existing timeout
       if (scrollEndTimeout) {
         clearTimeout(scrollEndTimeout)
       }
       
-      // Wait for scroll to completely stop (longer delay = less intrusive)
+      // Only check and recenter AFTER scrolling has stopped
       scrollEndTimeout = setTimeout(() => {
-        handleScrollEnd()
+        if (!iframeRef.current || isRecentering) return
+
+        const rect = iframeRef.current.getBoundingClientRect()
+        const iframeTop = rect.top
+
+        // Only recenter if scrolled way past (more than ALLOWED_PAST) AND scrolling has stopped
+        if (iframeTop < -ALLOWED_PAST) {
+          isRecentering = true
+          iframeRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          
+          // Reset flag after recentering completes
+          setTimeout(() => {
+            isRecentering = false
+          }, 500)
+        }
+        
         scrollEndTimeout = null
-      }, 300) // Longer delay = only snap when user has clearly stopped
+      }, SCROLL_STOP_DELAY)
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
