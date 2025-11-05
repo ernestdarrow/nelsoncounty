@@ -403,17 +403,24 @@
             filter: brightness(0) saturate(100%); /* Black icons on hover */
         }
         
+        /* Dark Mode - Make all SVG icons light gray */
+        :root.dark-mode .badge-type::before,
+        :root.dark-mode .type-filter-btn::before {
             filter: brightness(0) invert(0.9); /* Light gray icons in dark mode */
         }
         
+        /* Dark Mode - Hover states turn white, but colored backgrounds still apply */
+        :root.dark-mode .badge-type:hover::before {
             filter: brightness(0) invert(1); /* White on hover */
         }
         
         /* Nav items in dark mode */
+        :root.dark-mode .nav-item svg {
             stroke: var(--text-primary);
         }
         
         /* Card info icons */
+        :root.dark-mode .card-info-icon {
             filter: brightness(0) invert(0.9);
         }
         
@@ -580,9 +587,11 @@
             width: 18px;
             height: 18px;
         }
+        :root.dark-mode body .back-to-admin {
             background: var(--theme-primary);
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
+        :root.dark-mode body .back-to-admin:hover {
             background: var(--theme-primary-hover);
         }
         
@@ -590,69 +599,179 @@
         .preview-header h1 { font-size: 32px; color: var(--text-primary); margin-bottom: 10px; transition: color 0.3s; }
         .preview-header p { font-size: 18px; color: var(--text-secondary); transition: color 0.3s; }
         
+        /* Dark Mode Toggle Switch */
+        .theme-toggle-container {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+            background: var(--card-bg);
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+        .theme-toggle-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .theme-toggle-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .theme-toggle-label svg {
+            width: 18px;
+            height: 18px;
+        }
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .theme-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #e5e7eb;
+            transition: .3s;
+            border-radius: 30px;
+        }
+        .theme-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input:checked + .theme-slider {
+            background-color: var(--theme-primary);
+        }
+        input:checked + .theme-slider:before {
+            transform: translateX(22px);
+        }
+        .theme-slider:hover {
+            background-color: #d1d5db;
+        }
+        input:checked + .theme-slider:hover {
+            background-color: #3d5441;
+        }
         
         /* Dark mode adjustments for toggle */
+        :root.dark-mode body .theme-toggle-container {
             background: #242424;
             border-top-color: #404040;
         }
+        :root.dark-mode body .theme-toggle-label {
             color: #ffffff;
         }
+        :root.dark-mode body .theme-slider {
             background-color: #404040;
         }
+        :root.dark-mode body .theme-slider:hover {
             background-color: #4a4a4a;
         }
         
+        /* Dark Mode Styles */
+        :root.dark-mode body .preview-container { background: #1a1a1a; }
+        :root.dark-mode body .preview-header h1 { color: #ffffff; }
+        :root.dark-mode body .preview-header p { color: #9ca3af; }
         
+        :root.dark-mode body .preview-sidebar { border-right: 1px solid #404040; }
+        :root.dark-mode body .preview-filters { background: #2d2d2d; border-right: 1px solid #404040; }
+        :root.dark-mode body .preview-filters h3 { background: #242424; color: #ffffff; border-bottom: 1px solid #404040; }
         
+        :root.dark-mode body .filter-section.search-section { background: #242424; border-bottom: 2px solid #404040; }
         
+        :root.dark-mode body .type-filter-btn {
             background: #242424;
             border-color: #404040;
             color: #9ca3af;
         }
+        :root.dark-mode body .type-filter-btn svg {
             stroke: #9ca3af;
         }
+        :root.dark-mode body .type-filter-btn:hover {
             background: #2d2d2d;
             border-color: var(--theme-primary);
             color: #ffffff;
         }
+        :root.dark-mode body .type-filter-btn:hover svg {
             stroke: var(--theme-primary);
         }
+        :root.dark-mode body .type-filter-btn.active {
             background: var(--theme-primary);
             border-color: var(--theme-primary);
             color: white;
         }
+        :root.dark-mode body .type-filter-btn.active svg {
             stroke: white;
         }
         
+        :root.dark-mode body .preview-filter-group label { color: #9ca3af; }
+        :root.dark-mode body .preview-filter-group select {
             background-color: #242424;
             border-color: #404040;
             color: #ffffff;
         }
+        :root.dark-mode body .preview-filter-group select:hover,
+        :root.dark-mode body .preview-filter-group select:focus {
             background-color: #2d2d2d;
             border-color: var(--theme-primary);
         }
         
+        :root.dark-mode body .btn-secondary {
             background: #404040;
             color: #ffffff;
             border-color: #404040;
         }
+        :root.dark-mode body .btn-secondary:hover {
             background: #4a4a4a;
         }
         
+        :root.dark-mode body .preview-results { color: #9ca3af; }
         
+        :root.dark-mode body .flip-card-front {
             background: #242424;
             border: 1px solid #404040;
         }
+        :root.dark-mode body .flip-card:hover .flip-card-front {
             border-color: var(--theme-primary);
             box-shadow: 0 12px 24px rgba(0,0,0,0.3);
         }
+        :root.dark-mode body .flip-card-front h3 { color: #ffffff !important; }
+        :root.dark-mode body .flip-card-front p { color: #9ca3af !important; }
         
+        :root.dark-mode body .flip-card-back {
             background: #2d2d2d;
             border: 1px solid #404040;
         }
+        :root.dark-mode body .flip-card:hover .flip-card-back {
             box-shadow: 0 12px 24px rgba(0,0,0,0.3);
         }
+        :root.dark-mode body .flip-card-back h3 { color: #ffffff !important; }
+        :root.dark-mode body .flip-card-back p,
+        :root.dark-mode body .flip-card-back span { color: #9ca3af !important; }
+        :root.dark-mode body .flip-card-back strong { color: #ffffff !important; }
         
+        :root.dark-mode body .filter-content::-webkit-scrollbar-thumb { background: #4a4a4a; }
+        :root.dark-mode body .filter-content::-webkit-scrollbar-thumb:hover { background: #4b5563; }
         
         
         /* Apply icons from centralized library */
@@ -798,16 +917,20 @@
             background-size: 12px 12px !important;
             box-shadow: none !important;
         }
+        :root.dark-mode body .badge-type {
             background-color: var(--theme-primary-light);
             color: #82b894;
         }
+        :root.dark-mode body .badge-type:hover {
             background-color: var(--theme-primary);
             color: white;
         }
+        :root.dark-mode body .badge-area {
             background-color: rgba(214, 80, 82, 0.2);
             color: #f09090;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23f09090' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 10.5a3 3 0 11-6 0 3 3 0 016 0z' /%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z' /%3E%3C/svg%3E");
         }
+        :root.dark-mode body .badge-area:hover {
             background-color: #D65052;
             color: white;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 10.5a3 3 0 11-6 0 3 3 0 016 0z' /%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z' /%3E%3C/svg%3E");
@@ -831,9 +954,11 @@
             color: white;
             transform: scale(1.05);
         }
+        :root.dark-mode body .badge-featured {
             background-color: rgba(59, 130, 246, 0.2);
             color: #93c5fd;
         }
+        :root.dark-mode body .badge-featured:hover {
             background-color: #3b82f6;
             color: white;
         }
@@ -879,12 +1004,16 @@
             padding-top: 6px;
         }
         
+        :root.dark-mode body .card-info-icon {
             background: #404040;
         }
+        :root.dark-mode body .card-info-icon svg {
             stroke: #D65052;
         }
+        :root.dark-mode body a.card-info-item:hover .card-info-icon {
             background: var(--theme-primary);
         }
+        :root.dark-mode body a.card-info-item:hover .card-info-icon svg {
             stroke: white;
         }
         
@@ -970,6 +1099,8 @@
         .filter-content::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
         .filter-content::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
         
+        :root.dark-mode .filter-content::-webkit-scrollbar-thumb { background: #4a4a4a; }
+        :root.dark-mode .filter-content::-webkit-scrollbar-thumb:hover { background: #5a5a5a; }
         
         .filter-section { padding: 15px 20px 15px 10px; }
         .filter-section.search-section { 
@@ -1316,9 +1447,12 @@
         }
         
         /* Dark mode icon filters */
+        :root.dark-mode body .type-filter-btn::before {
             filter: brightness(0) invert(1);
         }
         /* In dark mode, still show colored backgrounds on hover/active */
+        :root.dark-mode body .type-filter-btn:hover::before,
+        :root.dark-mode body .type-filter-btn.active::before {
             filter: brightness(0) invert(1); /* White icon */
         }
         
@@ -2359,13 +2493,17 @@
             color: var(--text-primary);
         }
         
+        :root.dark-mode .deploy-step-number {
             background: linear-gradient(135deg, var(--theme-primary-hover) 0%, var(--theme-primary) 100%);
         }
+        :root.dark-mode .deploy-tips {
             border-color: var(--theme-primary-hover);
             background: #2a2a2a;
         }
+        :root.dark-mode .deploy-tip-header {
             color: var(--theme-primary);
         }
+        :root.dark-mode .deploy-note {
             background: var(--theme-primary-light);
             border-left-color: var(--theme-primary-hover);
         }
