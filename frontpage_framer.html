@@ -4195,72 +4195,21 @@ function filterPreview() {
     
     renderPreview(filtered);
     
-    // Scroll to top - try multiple approaches
-    function scrollToTop() {
-        // Method 1: Direct window/document scroll (instant)
-        window.scrollTo(0, 0);
-        window.scrollTo({ top: 0, behavior: 'instant' });
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-        
-        // Method 2: Find and scroll scrollable containers
-        const scrollableElements = document.querySelectorAll('*');
-        scrollableElements.forEach(function(el) {
-            const style = window.getComputedStyle(el);
-            if (style.overflow === 'auto' || style.overflow === 'scroll' || 
-                style.overflowY === 'auto' || style.overflowY === 'scroll') {
-                try {
-                    el.scrollTop = 0;
-                } catch (e) {}
-            }
-        });
-        
-        // Method 3: Scroll to top elements
-        const searchContainer = document.querySelector('.top-search-container');
-        const mainContent = document.querySelector('.preview-main');
-        const grid = document.getElementById('previewGrid');
-        const body = document.body;
-        const html = document.documentElement;
-        
-        if (searchContainer) {
-            searchContainer.scrollIntoView({ behavior: 'instant', block: 'start' });
-        }
-        if (mainContent) {
-            mainContent.scrollIntoView({ behavior: 'instant', block: 'start' });
-        }
-        if (grid) {
-            grid.scrollIntoView({ behavior: 'instant', block: 'start' });
-        }
-        
-        // Method 4: Try parent iframe
+    // Send scroll-to-top message to parent (Framer component)
+    // Use postMessage directly without checking window.parent/top to avoid CORS errors
+    setTimeout(function() {
         try {
-            if (window.frameElement) {
-                window.frameElement.scrollIntoView({ behavior: 'instant', block: 'start' });
-            }
-            if (window.parent && window.parent !== window) {
-                window.parent.scrollTo(0, 0);
-            }
-        } catch (e) {}
-    }
-    
-    // Execute immediately
-    scrollToTop();
-    
-    // Execute again after render
-    requestAnimationFrame(function() {
-        scrollToTop();
-        setTimeout(function() {
-            scrollToTop();
-            // Also try smooth scroll after instant
-            setTimeout(function() {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                const searchContainer = document.querySelector('.top-search-container');
-                if (searchContainer) {
-                    searchContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            }, 50);
-        }, 100);
-    });
+            // postMessage is safe to call even cross-origin - it just won't be received if no listener
+            window.parent.postMessage({ type: 'scrollToTop', source: 'adventure-directory' }, '*');
+        } catch (e) {
+            // Silently fail - cross-origin restriction
+        }
+        try {
+            window.top.postMessage({ type: 'scrollToTop', source: 'adventure-directory' }, '*');
+        } catch (e) {
+            // Silently fail - cross-origin restriction
+        }
+    }, 100);
     
     // Report height after filtering - wait longer for layout to settle
     setTimeout(function() {
@@ -4303,63 +4252,20 @@ function clearPreviewFilters() {
     if (data) {
         renderPreview(data.listings);
         
-        // Scroll to top - use same comprehensive function
-        function scrollToTop() {
-            window.scrollTo(0, 0);
-            window.scrollTo({ top: 0, behavior: 'instant' });
-            document.documentElement.scrollTop = 0;
-            document.body.scrollTop = 0;
-            
-            // Find and scroll scrollable containers
-            const scrollableElements = document.querySelectorAll('*');
-            scrollableElements.forEach(function(el) {
-                const style = window.getComputedStyle(el);
-                if (style.overflow === 'auto' || style.overflow === 'scroll' || 
-                    style.overflowY === 'auto' || style.overflowY === 'scroll') {
-                    try {
-                        el.scrollTop = 0;
-                    } catch (e) {}
-                }
-            });
-            
-            const searchContainer = document.querySelector('.top-search-container');
-            const mainContent = document.querySelector('.preview-main');
-            const grid = document.getElementById('previewGrid');
-            
-            if (searchContainer) {
-                searchContainer.scrollIntoView({ behavior: 'instant', block: 'start' });
-            }
-            if (mainContent) {
-                mainContent.scrollIntoView({ behavior: 'instant', block: 'start' });
-            }
-            if (grid) {
-                grid.scrollIntoView({ behavior: 'instant', block: 'start' });
-            }
-            
+        // Send scroll-to-top message to parent (Framer component)
+        // Use postMessage directly without checking window.parent/top to avoid CORS errors
+        setTimeout(function() {
             try {
-                if (window.frameElement) {
-                    window.frameElement.scrollIntoView({ behavior: 'instant', block: 'start' });
-                }
-                if (window.parent && window.parent !== window) {
-                    window.parent.scrollTo(0, 0);
-                }
-            } catch (e) {}
-        }
-        
-        scrollToTop();
-        requestAnimationFrame(function() {
-            scrollToTop();
-            setTimeout(function() {
-                scrollToTop();
-                setTimeout(function() {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                    const searchContainer = document.querySelector('.top-search-container');
-                    if (searchContainer) {
-                        searchContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                }, 50);
-            }, 100);
-        });
+                window.parent.postMessage({ type: 'scrollToTop', source: 'adventure-directory' }, '*');
+            } catch (e) {
+                // Silently fail - cross-origin restriction
+            }
+            try {
+                window.top.postMessage({ type: 'scrollToTop', source: 'adventure-directory' }, '*');
+            } catch (e) {
+                // Silently fail - cross-origin restriction
+            }
+        }, 100);
         
         // Report height after clearing filters
         setTimeout(function() {
@@ -4495,51 +4401,23 @@ function reportContentHeight() {
         console.log('📏 Reporting height:', heightWithBuffer, 'px', '(visible cards:', document.querySelectorAll('.flip-card:not([style*="display: none"])').length, ')');
         
         // Send height to parent window via postMessage
-        // Try multiple methods to ensure it works in Framer
+        // Don't check window.parent/top properties - just call postMessage directly to avoid CORS errors
+        const message = {
+            type: 'resize',
+            height: heightWithBuffer,
+            source: 'adventure-directory'
+        };
+        
         try {
-            if (window.parent && window.parent !== window.self) {
-                // Send with wildcard origin for maximum compatibility
-                const message = {
-                    type: 'resize',
-                    height: heightWithBuffer,
-                    source: 'adventure-directory'
-                };
-                console.log('Sending postMessage to parent:', message);
-                window.parent.postMessage(message, '*');
-            }
-            
-            // Also try posting to the parent's parent (in case of nested iframes)
-            if (window.parent && window.parent.parent && window.parent.parent !== window.parent) {
-                const message = {
-                    type: 'resize',
-                    height: heightWithBuffer,
-                    source: 'adventure-directory'
-                };
-                console.log('Sending postMessage to parent.parent:', message);
-                window.parent.parent.postMessage(message, '*');
-            }
-            
-            // Try top window as well
-            if (window.top && window.top !== window.self) {
-                const message = {
-                    type: 'resize',
-                    height: heightWithBuffer,
-                    source: 'adventure-directory'
-                };
-                console.log('Sending postMessage to top:', message);
-                window.top.postMessage(message, '*');
-            }
+            window.parent.postMessage(message, '*');
         } catch (e) {
-            console.log('Could not send postMessage:', e);
+            // Cross-origin restriction - silently fail
         }
         
-        // Also try to set iframe height directly if we're in an iframe
         try {
-            if (window.frameElement) {
-                window.frameElement.style.height = heightWithBuffer + 'px';
-            }
+            window.top.postMessage(message, '*');
         } catch (e) {
-            // Cross-origin restrictions may prevent this
+            // Cross-origin restriction - silently fail
         }
     } catch (e) {
         // Silently fail if postMessage is blocked or parent is not accessible
@@ -5323,7 +5201,15 @@ function toggleSidebar() {
 }
 
 // Detect if we're in an iframe (Framer embed)
-const isInIframe = window.self !== window.top;
+// Check if in iframe without accessing window.top (avoids CORS errors)
+// Try-catch to safely check if we're in an iframe
+let isInIframe = false;
+try {
+    isInIframe = window.self !== window.top;
+} catch (e) {
+    // Cross-origin - assume we're in an iframe if we can't check
+    isInIframe = true;
+}
 
 // Listen for height requests from parent
 window.addEventListener('message', function(event) {
