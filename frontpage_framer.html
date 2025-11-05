@@ -4221,9 +4221,11 @@ function filterPreview() {
     // Report height after filtering - wait longer for layout to settle
     setTimeout(function() {
         reportContentHeight();
-        // Re-apply sticky positioning after render
+        // Re-apply sticky positioning after render - call multiple times to ensure it sticks
         if (typeof handleStickyInIframe === 'function') {
-            handleStickyInIframe();
+            setTimeout(function() {
+                handleStickyInIframe();
+            }, 10);
         }
         // Also report again after a bit more delay to catch any late-rendering elements
         setTimeout(function() {
@@ -5252,120 +5254,138 @@ window.addEventListener('message', function(event) {
     }
 });
 
-// Handle sticky positioning for iframe context
+// Handle sticky positioning for iframe context - robust version
 function handleStickyInIframe() {
     try {
-        const sidebar = document.querySelector('.preview-sidebar');
-        const searchContainer = document.querySelector('.top-search-container');
+        let isUpdating = false;
+        let rafId = null;
+        let lastUpdate = 0;
+        const UPDATE_INTERVAL = 16; // ~60fps
         
-        if (!sidebar && !searchContainer) {
-            return; // Silently return if elements not found
-        }
-        
-        let isUpdating = false; // Prevent concurrent updates
-        
-        // Always use fixed positioning in iframe (sticky doesn't work reliably)
-        function updateSticky() {
-            // Prevent concurrent calls
+        // Force update function - applies fixed positioning aggressively
+        function forceStickyUpdate() {
             if (isUpdating) return;
             
             try {
                 isUpdating = true;
                 
-                // Re-query elements in case DOM changed
+                // Re-query elements every time (in case DOM changed)
                 const currentSidebar = document.querySelector('.preview-sidebar');
                 const currentSearchContainer = document.querySelector('.top-search-container');
+                const mainContent = document.querySelector('.preview-main');
                 
-                // Use fixed positioning - sticky doesn't work when parent window scrolls
+                if (!currentSidebar && !currentSearchContainer) {
+                    isUpdating = false;
+                    return;
+                }
+                
+                // Handle sidebar - force fixed positioning
                 if (currentSidebar && currentSidebar.isConnected) {
                     const isCollapsed = currentSidebar.classList.contains('collapsed');
                     
                     if (!isCollapsed) {
-                        // Force fixed positioning to keep sidebar visible
-                        currentSidebar.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 280px !important; height: 100vh !important; max-height: 100vh !important; overflow-y: auto !important; z-index: 1000 !important;';
-                        // Ensure main content accounts for fixed sidebar
-                        const mainContent = document.querySelector('.preview-main');
+                        // Apply fixed positioning with all necessary properties
+                        currentSidebar.style.setProperty('position', 'fixed', 'important');
+                        currentSidebar.style.setProperty('top', '0px', 'important');
+                        currentSidebar.style.setProperty('left', '0px', 'important');
+                        currentSidebar.style.setProperty('width', '280px', 'important');
+                        currentSidebar.style.setProperty('height', '100vh', 'important');
+                        currentSidebar.style.setProperty('max-height', '100vh', 'important');
+                        currentSidebar.style.setProperty('overflow-y', 'auto', 'important');
+                        currentSidebar.style.setProperty('z-index', '1000', 'important');
+                        currentSidebar.style.setProperty('margin', '0', 'important');
+                        currentSidebar.style.setProperty('padding', '', 'important');
+                        
+                        // Ensure main content has margin for sidebar
                         if (mainContent) {
                             mainContent.style.setProperty('margin-left', '280px', 'important');
                         }
                     }
                 }
                 
-                // Use fixed positioning for search bar
+                // Handle search container - force fixed positioning
                 if (currentSearchContainer && currentSearchContainer.isConnected) {
                     const sidebar = document.querySelector('.preview-sidebar');
                     const sidebarWidth = sidebar && !sidebar.classList.contains('collapsed') ? 280 : 0;
-                    const searchHeight = currentSearchContainer.offsetHeight || 80;
+                    const searchHeight = Math.max(currentSearchContainer.offsetHeight, 80);
                     
-                    // Force fixed positioning to keep search bar visible
-                    currentSearchContainer.style.cssText = 'position: fixed !important; top: 0 !important; left: ' + sidebarWidth + 'px !important; width: calc(100% - ' + sidebarWidth + 'px) !important; z-index: 1001 !important;';
+                    // Apply fixed positioning with all necessary properties
+                    currentSearchContainer.style.setProperty('position', 'fixed', 'important');
+                    currentSearchContainer.style.setProperty('top', '0px', 'important');
+                    currentSearchContainer.style.setProperty('left', sidebarWidth + 'px', 'important');
+                    currentSearchContainer.style.setProperty('width', 'calc(100% - ' + sidebarWidth + 'px)', 'important');
+                    currentSearchContainer.style.setProperty('z-index', '1001', 'important');
+                    currentSearchContainer.style.setProperty('margin', '0', 'important');
                     
-                    // Ensure main content accounts for fixed search bar
-                    const mainContent = document.querySelector('.preview-main');
+                    // Ensure main content has padding for search bar
                     if (mainContent) {
                         mainContent.style.setProperty('padding-top', searchHeight + 'px', 'important');
                     }
                 }
+                
             } catch (e) {
-                // Silently fail - don't log errors that might break Framer
-                // console.error('Error updating sticky:', e);
+                // Silently fail
             } finally {
                 isUpdating = false;
             }
         }
         
-        // Update on scroll (throttled)
-        let scrollTimeout;
-        window.addEventListener('scroll', function() {
-            try {
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(updateSticky, 16); // ~60fps
-            } catch (e) {
-                // Ignore errors
+        // Continuous update loop using requestAnimationFrame
+        function continuousUpdate() {
+            const now = performance.now();
+            if (now - lastUpdate >= UPDATE_INTERVAL) {
+                forceStickyUpdate();
+                lastUpdate = now;
             }
-        }, { passive: true });
-        
-        // Update on resize (throttled)
-        let resizeTimeout;
-        window.addEventListener('resize', function() {
-            try {
-                clearTimeout(resizeTimeout);
-                resizeTimeout = setTimeout(updateSticky, 100);
-            } catch (e) {
-                // Ignore errors
-            }
-        }, { passive: true });
-        
-        // Initial update with delay to ensure DOM is ready
-        setTimeout(function() {
-            try {
-                updateSticky();
-            } catch (e) {
-                // Ignore errors
-            }
-        }, 200);
-        
-        // Watch for sidebar collapse/expand (simplified, with error handling)
-        if (sidebar) {
-            try {
-                const observer = new MutationObserver(function() {
-                    try {
-                        setTimeout(updateSticky, 50);
-                    } catch (e) {
-                        // Ignore errors
-                    }
-                });
-                observer.observe(sidebar, { 
-                    attributes: true, 
-                    attributeFilter: ['class'] 
-                });
-            } catch (e) {
-                // MutationObserver failed, continue without it
-            }
+            rafId = requestAnimationFrame(continuousUpdate);
         }
+        
+        // Start continuous updates
+        continuousUpdate();
+        
+        // Also update on scroll (as backup)
+        window.addEventListener('scroll', function() {
+            forceStickyUpdate();
+        }, { passive: true, capture: true });
+        
+        // Update on resize
+        window.addEventListener('resize', function() {
+            forceStickyUpdate();
+        }, { passive: true });
+        
+        // Update on DOM mutations
+        try {
+            const observer = new MutationObserver(function() {
+                forceStickyUpdate();
+            });
+            
+            // Observe the entire document for changes
+            observer.observe(document.body || document.documentElement, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['class', 'style']
+            });
+        } catch (e) {
+            // MutationObserver failed, continue without it
+        }
+        
+        // Initial update immediately and then again after a short delay
+        forceStickyUpdate();
+        setTimeout(forceStickyUpdate, 50);
+        setTimeout(forceStickyUpdate, 200);
+        setTimeout(forceStickyUpdate, 500);
+        
+        // Store cleanup function globally so it can be called if needed
+        window._cleanupSticky = function() {
+            if (rafId) {
+                cancelAnimationFrame(rafId);
+                rafId = null;
+            }
+        };
+        
     } catch (e) {
-        // Fail silently - don't break the page if sticky setup fails
-        // console.error('Error setting up sticky:', e);
+        // Fail silently
     }
 }
 
