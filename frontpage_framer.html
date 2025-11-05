@@ -15,7 +15,7 @@
     -->
     
     <!-- Google Maps API - Replace with your own key if needed -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDysf1CQM7-kZd_mhDcBIhp92o7Tb6SmAQ&libraries=places&loading=async"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDysf1CQM7-kZd_mhDcBIhp92o7Tb6SmAQ&libraries=places&callback=initMap" async defer></script>
     
     <!-- Embedded CSS -->
     <style>
@@ -1047,16 +1047,6 @@
         }
         
         .preview-sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 0; max-height: 100vh; left: 0; align-self: flex-start; transition: all 0.3s; }
-        /* Force fixed positioning in iframe context */
-        html:not(:root) .preview-sidebar,
-        body:has(iframe) .preview-sidebar {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            height: 100vh !important;
-            max-height: 100vh !important;
-            z-index: 1000 !important;
-        }
         .preview-sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; }
         
         .sidebar-header {
@@ -4853,15 +4843,24 @@ let mapVisible = true;
 let infoWindow = null;
 
 function initMap() {
+    // Check if Google Maps API is loaded
+    if (typeof google === 'undefined' || typeof google.maps === 'undefined' || typeof google.maps.Map === 'undefined') {
+        console.log('Google Maps API not loaded yet, retrying...');
+        // Retry after a short delay
+        setTimeout(initMap, 100);
+        return;
+    }
+    
     if (!map) {
-        // Initialize Google Map centered on Nelson County, VA
-        map = new google.maps.Map(document.getElementById('map'), {
-            center: { lat: 37.8, lng: -79.0 },
-            zoom: 10,
-            mapTypeControl: false,
-            zoomControl: true,
+        try {
+            // Initialize Google Map centered on Nelson County, VA
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 37.8, lng: -79.0 },
+                zoom: 10,
+                mapTypeControl: false,
+                zoomControl: true,
             zoomControlOptions: {
-                position: google.maps.ControlPosition.RIGHT_TOP
+                position: google.maps.ControlPosition ? google.maps.ControlPosition.RIGHT_TOP : 1
             },
             streetViewControl: false,
             fullscreenControl: false,
@@ -5007,6 +5006,15 @@ function initMap() {
         
         // Create single info window to reuse
         infoWindow = new google.maps.InfoWindow();
+        } catch (e) {
+            console.error('Error initializing map:', e);
+            // Retry after a delay if there was an error
+            setTimeout(function() {
+                if (!map) {
+                    initMap();
+                }
+            }, 500);
+        }
     }
 }
 
@@ -5243,13 +5251,14 @@ function handleStickyInIframe() {
                 const currentSidebar = document.querySelector('.preview-sidebar');
                 const currentSearchContainer = document.querySelector('.top-search-container');
                 
-                // Handle sidebar - always fixed when in iframe
+                // Handle sidebar - use sticky positioning (works better than fixed)
                 if (currentSidebar && currentSidebar.isConnected) {
                     const isCollapsed = currentSidebar.classList.contains('collapsed');
                     if (!isCollapsed) {
-                        currentSidebar.style.position = 'fixed';
+                        // Use sticky instead of fixed - it stays in the flow and works better
+                        currentSidebar.style.position = 'sticky';
                         currentSidebar.style.top = '0';
-                        currentSidebar.style.left = '0';
+                        currentSidebar.style.left = '';
                         currentSidebar.style.height = '100vh';
                         currentSidebar.style.maxHeight = '100vh';
                         currentSidebar.style.overflowY = 'auto';
@@ -5257,17 +5266,14 @@ function handleStickyInIframe() {
                     }
                 }
                 
-                // Handle search container - always fixed when in iframe
+                // Handle search container - use sticky positioning
                 if (currentSearchContainer && currentSearchContainer.isConnected) {
-                    const currentSidebar = document.querySelector('.preview-sidebar');
-                    const sidebarWidth = currentSidebar && !currentSidebar.classList.contains('collapsed') ? 280 : 0;
-                    const availableWidth = Math.max(300, window.innerWidth - sidebarWidth - 60); // 60px for padding, min 300px
-                    
-                    currentSearchContainer.style.position = 'fixed';
+                    // Use sticky instead of fixed - it works better in iframes
+                    currentSearchContainer.style.position = 'sticky';
                     currentSearchContainer.style.top = '0';
-                    currentSearchContainer.style.left = sidebarWidth + 'px';
-                    currentSearchContainer.style.width = availableWidth + 'px';
-                    currentSearchContainer.style.zIndex = '1001';
+                    currentSearchContainer.style.left = '';
+                    currentSearchContainer.style.width = '';
+                    currentSearchContainer.style.zIndex = '100';
                 }
             } catch (e) {
                 // Silently fail - don't log errors that might break Framer
@@ -5342,8 +5348,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle sticky positioning for iframe context
     handleStickyInIframe();
     
-    // Initialize map
-    initMap();
+    // Initialize map - wait a bit to ensure Google Maps API is loaded
+    setTimeout(function() {
+        initMap();
+    }, 200);
     
     // Report initial height after page loads
     setTimeout(function() {
