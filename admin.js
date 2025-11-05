@@ -1340,6 +1340,7 @@ const initialData =
                 document.getElementById('codeTab').classList.add('active');
                 header.style.display = 'block';
                 generateCode();
+            }
         }
         
         // ===========================================
