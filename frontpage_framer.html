@@ -1728,6 +1728,7 @@
                 align-items: center;
                 flex-basis: 33.333%;
                 min-width: 33.333%;
+                padding: 0 8px;
             }
             
             
@@ -1883,7 +1884,7 @@
             }
             .mobile-filter-group select {
                 width: 100%;
-                padding: 14px 16px 14px 40px;
+                padding: 14px 10px 14px 40px;
                 border: none;
                 border-radius: 0;
                 font-size: 14px;
@@ -1894,8 +1895,8 @@
                 appearance: none;
                 background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
                 background-repeat: no-repeat;
-                background-position: right 14px center;
-                padding-right: 36px;
+                background-position: right 10px center;
+                padding-right: 28px;
                 box-shadow: none;
                 text-align: left;
                 box-sizing: border-box;
@@ -1938,6 +1939,33 @@
             .mobile-filter-group select:focus {
                 outline: none;
                 background-color: #ffffff;
+            }
+            
+            /* Even tighter configuration for very small screens */
+            @media (max-width: 375px) {
+                .mobile-filter-bar > .mobile-filter-group {
+                    padding: 0 2px 0 4px;
+                }
+                .mobile-filter-group select {
+                    padding: 12px 2px 12px 22px;
+                    padding-right: 2px;
+                    font-size: 12px;
+                }
+                #mobileTypeFilter,
+                #mobileAreaFilter,
+                #mobileAmenityFilter {
+                    padding-left: 22px;
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239333ea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8.76,6.63a1.09,1.09,0,0,1,2,0l2.8,5.53v0L15,8.9a1,1,0,0,1,1.8,0L21,18H3Z'/%3E%3C/svg%3E");
+                    background-position: 4px center;
+                    background-size: 14px 14px;
+                    background-repeat: no-repeat;
+                }
+                #mobileAreaFilter {
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23D65052' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 10.5a3 3 0 11-6 0 3 3 0 016 0z' /%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z' /%3E%3C/svg%3E");
+                }
+                #mobileAmenityFilter {
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23f59e0b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z'/%3E%3C/svg%3E");
+                }
             }
             /* Clear button styling is now above in the mobile-filter-bar section */
         }
