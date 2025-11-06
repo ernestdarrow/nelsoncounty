@@ -12,6 +12,26 @@
     2. Ensure Google Maps API key is valid (or update the key below)
     3. Data will load from GitHub automatically (configured in frontpage.js)
     4. For Framer CMS integration, modify the data source in frontpage.js to use Framer CMS API
+    
+    URL PARAMETER SUPPORT (for cross-origin iframe):
+    To enable URL parameters like ?search=wine to work when this is embedded in Framer,
+    add this code to your Framer page (in a Code Component or Override):
+    
+    <script>
+    window.addEventListener('message', function(event) {
+        if (event.data && event.data.type === 'getUrlParams' && event.data.source === 'adventure-directory') {
+            var params = {};
+            var searchParams = new URLSearchParams(window.location.search);
+            for (var pair of searchParams.entries()) {
+                params[pair[0]] = pair[1];
+            }
+            event.source.postMessage({
+                type: 'urlParamsResponse',
+                params: params
+            }, '*');
+        }
+    });
+    </script>
     -->
     
     <!-- Google Maps API - Replace with your own key if needed -->
@@ -3227,6 +3247,7 @@ function extractFilterOptions(listings) {
 function extractParamsFromReferrer() {
     try {
         var referrer = document.referrer;
+        console.log('🔍 Checking referrer:', referrer);
         if (referrer && referrer.includes('?')) {
             var referrerUrl = new URL(referrer);
             var params = {};
@@ -3237,12 +3258,28 @@ function extractParamsFromReferrer() {
                 console.log('🔗 Extracted parameters from referrer:', params);
                 receivedUrlParams = params;
                 return true;
+            } else {
+                console.log('⚠️ Referrer has ? but no parameters found');
             }
+        } else {
+            console.log('⚠️ Referrer does not contain query parameters:', referrer);
         }
     } catch (e) {
         // Referrer might not be a valid URL or not available
         console.log('⚠️ Could not extract params from referrer:', e);
     }
+    
+    // Also try to request URL from parent via postMessage (works cross-origin)
+    try {
+        console.log('📨 Requesting URL parameters from parent via postMessage...');
+        window.parent.postMessage({ 
+            type: 'getUrlParams',
+            source: 'adventure-directory'
+        }, '*');
+    } catch (e) {
+        console.log('⚠️ Could not send postMessage to parent:', e);
+    }
+    
     return false;
 }
 
@@ -3698,9 +3735,17 @@ loadDataFromGoogleSheets()
         extractParamsFromReferrer();
         
         // Handle URL parameters after data is loaded and rendered
+        // Use longer delay to allow postMessage response from parent
         setTimeout(function() {
             handleUrlParameters();
-        }, 100);
+        }, 500);
+        
+        // Also try again after a longer delay in case postMessage response is slow
+        setTimeout(function() {
+            // Re-check referrer in case it wasn't available immediately
+            extractParamsFromReferrer();
+            handleUrlParameters();
+        }, 1000);
     })
     .catch(error => {
         console.error('❌ Error loading data:', error);
@@ -3721,9 +3766,17 @@ loadDataFromGoogleSheets()
         extractParamsFromReferrer();
         
         // Handle URL parameters after fallback data is loaded
+        // Use longer delay to allow postMessage response from parent
         setTimeout(function() {
             handleUrlParameters();
-        }, 100);
+        }, 500);
+        
+        // Also try again after a longer delay in case postMessage response is slow
+        setTimeout(function() {
+            // Re-check referrer in case it wasn't available immediately
+            extractParamsFromReferrer();
+            handleUrlParameters();
+        }, 1000);
     });
 
 // Function to escape HTML special characters
@@ -5219,6 +5272,16 @@ window.addEventListener('message', function(event) {
             handleUrlParameters();
         }
     }
+    
+    // Handle response to getUrlParams request
+    if (event.data && event.data.type === 'urlParamsResponse' && event.data.params) {
+        console.log('📨 Received URL parameters response from parent:', event.data.params);
+        receivedUrlParams = event.data.params;
+        // Apply filters if data is loaded
+        if (data) {
+            handleUrlParameters();
+        }
+    }
 });
 
 // Make search bar fixed to top of browser window when scrolling
@@ -5388,3 +5451,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
+
