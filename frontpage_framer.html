@@ -1856,9 +1856,9 @@
         
         .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
         
-        /* Wider cards on larger screens */
+        /* 4 cards at 1500px container width */
         @media (min-width: 1400px) {
-            .preview-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+            .preview-grid { grid-template-columns: repeat(4, 1fr); }
         }
         @media (min-width: 1800px) {
             .preview-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
