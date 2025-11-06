@@ -3223,8 +3223,31 @@ function extractFilterOptions(listings) {
     return { types, areas, amenities };
 }
 
+// Extract URL parameters from referrer (works cross-origin for iframe embeds)
+function extractParamsFromReferrer() {
+    try {
+        var referrer = document.referrer;
+        if (referrer && referrer.includes('?')) {
+            var referrerUrl = new URL(referrer);
+            var params = {};
+            referrerUrl.searchParams.forEach(function(value, key) {
+                params[key] = value;
+            });
+            if (Object.keys(params).length > 0) {
+                console.log('🔗 Extracted parameters from referrer:', params);
+                receivedUrlParams = params;
+                return true;
+            }
+        }
+    } catch (e) {
+        // Referrer might not be a valid URL or not available
+        console.log('⚠️ Could not extract params from referrer:', e);
+    }
+    return false;
+}
+
 // Get URL parameters helper
-// Checks: 1) postMessage params (cross-origin), 2) parent window URL (same-origin), 3) current window URL
+// Checks: 1) postMessage params (cross-origin), 2) referrer URL (cross-origin), 3) parent window URL (same-origin), 4) current window URL
 function getUrlParameter(name) {
     // First check if we received this parameter via postMessage (works cross-origin)
     if (receivedUrlParams && receivedUrlParams[name] !== undefined) {
@@ -3241,7 +3264,17 @@ function getUrlParameter(name) {
             searchString = window.parent.location.search;
         }
     } catch (e) {
-        // Cross-origin restriction - can't access parent URL, fall through
+        // Cross-origin restriction - can't access parent URL, try referrer instead
+        var referrer = document.referrer;
+        if (referrer && referrer.includes('?')) {
+            try {
+                var referrerUrl = new URL(referrer);
+                searchString = referrerUrl.search;
+                console.log('🔗 Using referrer URL for parameters:', searchString);
+            } catch (e2) {
+                // Referrer not a valid URL
+            }
+        }
     }
     
     // If no parent or cross-origin, use current window
@@ -3661,6 +3694,9 @@ loadDataFromGoogleSheets()
         console.log('🎯 About to render', data.listings.length, 'listings');
         renderPreview();
         
+        // Extract parameters from referrer (for cross-origin iframe support)
+        extractParamsFromReferrer();
+        
         // Handle URL parameters after data is loaded and rendered
         setTimeout(function() {
             handleUrlParameters();
@@ -3680,6 +3716,9 @@ loadDataFromGoogleSheets()
         // Update head meta from fallback so head isn't stale
         updateHeadFromData(data);
         renderPreview();
+        
+        // Extract parameters from referrer (for cross-origin iframe support)
+        extractParamsFromReferrer();
         
         // Handle URL parameters after fallback data is loaded
         setTimeout(function() {
