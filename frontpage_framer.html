@@ -1481,7 +1481,7 @@
             flex: 1; 
             min-width: 0; 
             max-width: 100%;
-            padding: 0 30px 30px 30px;
+            padding: 0 30px 30px 15px;
         }
         .preview-results { margin-bottom: 20px; font-size: 14px; color: var(--text-secondary); font-weight: 500; }
         .map-collapsed + .preview-results {
@@ -1583,6 +1583,12 @@
                 width: 100% !important;
             }
             .preview-sidebar { 
+                display: none !important;
+            }
+            .show-sidebar-btn,
+            .preview-sidebar.collapsed ~ .preview-main .show-sidebar-btn,
+            .preview-sidebar.collapsed + * .show-sidebar-btn,
+            body:has(.preview-sidebar.collapsed) .show-sidebar-btn {
                 display: none !important;
             }
             .preview-main {
@@ -1955,6 +1961,30 @@
         @media (min-width: 1400px) {
             .preview-grid { grid-template-columns: repeat(4, 1fr); }
         }
+        /* Desktop only: Add one more column when sidebar is collapsed */
+        @media (min-width: 969px) {
+            /* 3 columns when sidebar is collapsed at 400px+ */
+            @media (min-width: 400px) {
+                .preview-sidebar.collapsed ~ .preview-main .preview-grid,
+                body:has(.preview-sidebar.collapsed) .preview-grid {
+                    grid-template-columns: repeat(3, 1fr);
+                }
+            }
+            /* 4 columns when sidebar is collapsed at 680px+ */
+            @media (min-width: 680px) {
+                .preview-sidebar.collapsed ~ .preview-main .preview-grid,
+                body:has(.preview-sidebar.collapsed) .preview-grid {
+                    grid-template-columns: repeat(4, 1fr);
+                }
+            }
+            /* 5 columns when sidebar is collapsed at 1400px+ */
+            @media (min-width: 1400px) {
+                .preview-sidebar.collapsed ~ .preview-main .preview-grid,
+                body:has(.preview-sidebar.collapsed) .preview-grid {
+                    grid-template-columns: repeat(5, 1fr);
+                }
+            }
+        }
         
         /* Map Styles */
         .map-container {
@@ -1976,6 +2006,7 @@
                 box-shadow: none !important;
                 padding: 0 !important;
                 margin: 16px !important;
+                margin-top: 30px !important;
                 position: relative;
             }
             .map-header {
@@ -2004,6 +2035,8 @@
             .map-collapsed .map-toggle-btn {
                 width: auto !important;
                 padding: 10px 14px !important;
+                transform: translateY(-30px) !important;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
             }
             .map-toggle-text {
                 font-size: 12px;
@@ -5104,11 +5137,18 @@ function renderPreview(filteredListings) {
             }, 200);
         };
         window.addEventListener('resize', window.titleSizeResizeHandler);
+        // Store references to allow forcing recalculation
+        window._forceResizeRecalc = function() {
+            // Temporarily modify lastWindowWidth/Height to force handler to run
+            lastWindowWidth = window.innerWidth - 1;
+            lastWindowHeight = window.innerHeight - 1;
+            window.titleSizeResizeHandler();
+        };
     }
 }
 
 // Recalculate image widths for all cards with multiple images
-function adjustImageWidths() {
+function adjustImageWidths(force) {
     const allCards = document.querySelectorAll('.flip-card');
     
     allCards.forEach(function(card) {
@@ -5127,12 +5167,12 @@ function adjustImageWidths() {
                 const expectedWrapperWidth = containerWidth * imageCount;
                 const expectedImageWidth = containerWidth;
                 
-                // Only update if dimensions have actually changed
+                // Only update if dimensions have actually changed, or if forced
                 const currentWrapperWidth = parseFloat(imgWrapper.style.width) || 0;
                 const firstImg = images[0];
                 const currentImageWidth = parseFloat(firstImg.style.width) || 0;
                 
-                if (Math.abs(currentWrapperWidth - expectedWrapperWidth) > 1 || 
+                if (force || Math.abs(currentWrapperWidth - expectedWrapperWidth) > 1 || 
                     Math.abs(currentImageWidth - expectedImageWidth) > 1) {
                     // Update wrapper width
                     imgWrapper.style.width = expectedWrapperWidth + 'px';
@@ -5595,6 +5635,27 @@ function toggleSidebar() {
             showSidebarBtn.style.display = 'none';
         }
     }
+    
+    // Recalculate image widths after sidebar toggle to fit new card sizes
+    // Use the same mechanism as window resize
+    setTimeout(function() {
+        requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+                // Use the force resize function if available, otherwise call directly
+                if (window._forceResizeRecalc) {
+                    window._forceResizeRecalc();
+                } else {
+                    // Fallback: call functions directly
+                    if (typeof adjustImageWidths === 'function') {
+                        adjustImageWidths(true);
+                    }
+                    if (typeof adjustTitleSizes === 'function') {
+                        adjustTitleSizes();
+                    }
+                }
+            });
+        });
+    }, 200);
 }
 
 // Detect if we're in an iframe (Framer embed)
