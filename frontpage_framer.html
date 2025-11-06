@@ -1668,14 +1668,20 @@
             }
         }
         
-        .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .preview-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
         
-        /* 4 cards when browser window is 1500px wide */
-        @media (min-width: 1490px) {
-            .preview-grid { grid-template-columns: repeat(4, 1fr); }
+        /* 2 columns at 800px and wider */
+        @media (min-width: 800px) {
+            .preview-grid { grid-template-columns: repeat(2, 1fr); }
         }
-        @media (min-width: 1800px) {
-            .preview-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+        /* 2 columns continues at 1000px (until 1300px) */
+        /* 3 columns at 1300px and wider */
+        @media (min-width: 1300px) {
+            .preview-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        /* 4 columns at 1400px and wider */
+        @media (min-width: 1400px) {
+            .preview-grid { grid-template-columns: repeat(4, 1fr); }
         }
         
         /* Map Styles */
