@@ -3047,6 +3047,8 @@ console.log('📦 Fallback listings count:', fallbackData?.listings?.length || 0
 let data = null;
 let currentTypeFilter = []; // Changed to array to support multiple selections
 let currentFeaturedOnly = false;
+// Store URL parameters received via postMessage (for cross-origin iframe support)
+let receivedUrlParams = {};
 
 // Helper function to parse CSV text into array of objects
 function parseCSV(csvText) {
@@ -3222,10 +3224,32 @@ function extractFilterOptions(listings) {
 }
 
 // Get URL parameters helper
+// Checks: 1) postMessage params (cross-origin), 2) parent window URL (same-origin), 3) current window URL
 function getUrlParameter(name) {
+    // First check if we received this parameter via postMessage (works cross-origin)
+    if (receivedUrlParams && receivedUrlParams[name] !== undefined) {
+        return receivedUrlParams[name];
+    }
+    
     name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
     var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-    var results = regex.exec(location.search);
+    
+    // Try parent window first (for iframe embeds - same origin only)
+    var searchString = '';
+    try {
+        if (window.parent && window.parent.location && window.parent !== window) {
+            searchString = window.parent.location.search;
+        }
+    } catch (e) {
+        // Cross-origin restriction - can't access parent URL, fall through
+    }
+    
+    // If no parent or cross-origin, use current window
+    if (!searchString) {
+        searchString = location.search;
+    }
+    
+    var results = regex.exec(searchString);
     return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
 }
 
@@ -3317,13 +3341,14 @@ function findListingByIdentifier(idOrSlug) {
     return null;
 }
 
-// Handle URL parameters to filter to specific listing
+// Handle URL parameters to filter to specific listing or apply filters
 function handleUrlParameters() {
     if (!data) return;
     
     var listing = null;
+    var hasFilters = false;
     
-    // Check for ?listing= parameter (can be ID, slug, or name)
+    // Check for ?listing= parameter (can be ID, slug, or name) - takes priority
     var listingParam = getUrlParameter('listing');
     if (listingParam) {
         listing = findListingByIdentifier(listingParam);
@@ -3344,10 +3369,76 @@ function handleUrlParameters() {
         }
     }
     
-    // If we found a listing, filter to it and auto-flip the card
+    // If we found a listing, filter to it and auto-flip the card (skip other filters)
     if (listing) {
         console.log('📍 Found listing from URL parameter:', listing.name);
         filterByListingName(listing.name);
+        return;
+    }
+    
+    // Handle search parameter
+    var searchParam = getUrlParameter('search');
+    if (searchParam) {
+        var searchInput = document.getElementById('previewSearchInput');
+        if (searchInput) {
+            searchInput.value = decodeURIComponent(searchParam);
+            hasFilters = true;
+            console.log('🔍 Setting search from URL:', searchParam);
+        }
+    }
+    
+    // Handle type filter parameter
+    var typeParam = getUrlParameter('type');
+    if (typeParam) {
+        currentTypeFilter = [decodeURIComponent(typeParam)];
+        var mobileTypeFilter = document.getElementById('mobileTypeFilter');
+        if (mobileTypeFilter) mobileTypeFilter.value = typeParam;
+        // Update type filter buttons
+        document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
+            btn.classList.remove('active');
+            if (btn.dataset.type === typeParam) {
+                btn.classList.add('active');
+            }
+        });
+        hasFilters = true;
+        console.log('🏷️ Setting type filter from URL:', typeParam);
+    }
+    
+    // Handle area filter parameter
+    var areaParam = getUrlParameter('area');
+    if (areaParam) {
+        var areaFilter = document.getElementById('previewAreaFilter');
+        var mobileAreaFilter = document.getElementById('mobileAreaFilter');
+        var areaValue = decodeURIComponent(areaParam);
+        if (areaFilter) areaFilter.value = areaValue;
+        if (mobileAreaFilter) mobileAreaFilter.value = areaValue;
+        hasFilters = true;
+        console.log('📍 Setting area filter from URL:', areaParam);
+    }
+    
+    // Handle amenity filter parameter
+    var amenityParam = getUrlParameter('amenity');
+    if (amenityParam) {
+        var amenityFilter = document.getElementById('previewAmenityFilter');
+        var mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
+        var amenityValue = decodeURIComponent(amenityParam);
+        if (amenityFilter) amenityFilter.value = amenityValue;
+        if (mobileAmenityFilter) mobileAmenityFilter.value = amenityValue;
+        hasFilters = true;
+        console.log('⭐ Setting amenity filter from URL:', amenityParam);
+    }
+    
+    // Handle featured filter parameter
+    var featuredParam = getUrlParameter('featured');
+    if (featuredParam && (featuredParam.toLowerCase() === 'true' || featuredParam === '1')) {
+        currentFeaturedOnly = true;
+        hasFilters = true;
+        console.log('⭐ Setting featured filter from URL');
+    }
+    
+    // Apply all filters if any were set
+    if (hasFilters) {
+        filterPreview();
     }
 }
 
@@ -3753,7 +3844,7 @@ function updateStructuredData(listings) {
             return place;
         });
         
-        // Build the full structured data objects
+        // Build the full structured data object
         var structuredData = {
             '@context': 'https://schema.org',
             '@type': 'TouristDestination',
@@ -5056,11 +5147,38 @@ try {
     isInIframe = true;
 }
 
-// Listen for height requests from parent
+// Listen for messages from parent (height requests and filter parameters)
 window.addEventListener('message', function(event) {
     if (event.data && event.data.type === 'requestHeight') {
         // Parent is requesting height update
         reportContentHeight();
+    }
+    
+    // Handle filter parameters sent from parent (for cross-origin iframe support)
+    if (event.data && event.data.type === 'setFilters') {
+        console.log('📨 Received filter parameters via postMessage:', event.data.params);
+        // Store received parameters
+        receivedUrlParams = event.data.params || {};
+        // Apply filters if data is loaded
+        if (data) {
+            handleUrlParameters();
+        }
+    }
+    
+    // Handle URL parameters sent as query string from parent
+    if (event.data && event.data.type === 'setUrlParams' && event.data.search) {
+        console.log('📨 Received URL search string via postMessage:', event.data.search);
+        // Parse the search string and store as parameters
+        var params = {};
+        var searchParams = new URLSearchParams(event.data.search);
+        for (var pair of searchParams.entries()) {
+            params[pair[0]] = pair[1];
+        }
+        receivedUrlParams = params;
+        // Apply filters if data is loaded
+        if (data) {
+            handleUrlParameters();
+        }
     }
 });
 
