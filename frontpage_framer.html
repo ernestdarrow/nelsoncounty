@@ -1545,7 +1545,7 @@
             transform: translateY(-50%);
             width: 22px;
             height: 22px;
-            color: var(--text-secondary);
+            color: #3b82f6;
             pointer-events: none;
             z-index: 1;
         }
@@ -1565,7 +1565,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
         .top-search-container input::placeholder {
-            color: var(--text-secondary);
+            color: #000000;
         }
         
         @media (max-width: 968px) {
@@ -1671,11 +1671,15 @@
                 box-shadow: none;
             }
             
+            .mobile-filter-bar .top-search-container input::placeholder {
+                color: #000000;
+            }
+            
             .mobile-filter-bar .search-icon {
                 left: 12px;
                 width: 22px;
                 height: 22px;
-                color: #9ca3af;
+                color: #3b82f6;
             }
             
             /* Filter section - below search bar */
@@ -1957,6 +1961,41 @@
             margin-bottom: 30px;
             box-shadow: 0 2px 8px var(--shadow), 0 4px 16px var(--shadow);
             transition: all 0.3s;
+        }
+        
+        @media (max-width: 968px) {
+            .map-container {
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 16px !important;
+                position: relative;
+            }
+            .map-header {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                z-index: 1000;
+                margin: 0 !important;
+                justify-content: flex-start;
+            }
+            .map-collapsed .map-header {
+                left: 50%;
+                top: 1px;
+                transform: translateX(-50%);
+                justify-content: center;
+            }
+            .map-header h2 {
+                display: none !important;
+            }
+            .map-toggle-btn {
+                width: 36px;
+                height: 36px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+            }
+            #map {
+                border-radius: 20px;
+                height: 33.333vh !important;
+            }
         }
         .map-collapsed {
             padding: 12px 20px;
@@ -2936,7 +2975,7 @@
                     <!-- Map Container -->
                     <div class="map-container" id="mapContainer">
                         <div class="map-header">
-                            <h2>Map View</h2>
+                            <h2 style="display: none;">Map View</h2>
                             <button class="map-toggle-btn" onclick="toggleMap()">
                                 <svg id="mapToggleIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
