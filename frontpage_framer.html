@@ -1668,7 +1668,7 @@
             }
         }
         
-        .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
         
         /* 4 cards when browser window is 1500px wide */
         @media (min-width: 1490px) {
@@ -2094,7 +2094,7 @@
         }
         
         /* Scale title based on card width */
-        @container card (min-width: 220px) {
+        @container card (min-width: 200px) {
             .flip-card-front h3 { font-size: 17px !important; }
         }
         @container card (min-width: 260px) {
@@ -4482,7 +4482,7 @@ function renderPreview(filteredListings) {
                     fontSize = 20;
                 } else if (cardWidth >= 260) {
                     fontSize = 18;
-                } else if (cardWidth >= 220) {
+                } else if (cardWidth >= 200) {
                     fontSize = 17;
                 }
                 
