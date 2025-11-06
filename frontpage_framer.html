@@ -966,7 +966,7 @@
         
         .show-sidebar-btn {
             position: fixed !important;
-            left: 20px !important;
+            left: max(20px, calc((100vw - 1500px) / 2 + 20px)) !important;
             top: 15px !important;
             background: white !important;
             color: var(--text-primary) !important;
@@ -1001,7 +1001,7 @@
             visibility: visible !important;
             opacity: 1 !important;
             position: fixed !important;
-            left: 20px !important;
+            left: max(20px, calc((100vw - 1500px) / 2 + 20px)) !important;
             top: 15px !important;
             z-index: 2000 !important;
         }
@@ -1010,7 +1010,7 @@
         .show-sidebar-btn {
             z-index: 2000 !important; /* Very high z-index to stay on top of expanded cards (1001) */
             position: fixed !important; /* Always fixed to viewport, not affected by parent layouts */
-            left: 20px !important;
+            left: max(20px, calc((100vw - 1500px) / 2 + 20px)) !important;
             top: 15px !important;
             /* Prevent any parent transforms or layouts from affecting this */
             transform: none !important;
@@ -1036,7 +1036,7 @@
         .preview-main:has(.show-sidebar-btn) .show-sidebar-btn,
         .preview-main .show-sidebar-btn {
             position: fixed !important;
-            left: 20px !important;
+            left: max(20px, calc((100vw - 1500px) / 2 + 20px)) !important;
             top: 15px !important;
             transform: none !important;
             margin: 0 !important;
