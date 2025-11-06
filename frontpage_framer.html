@@ -4335,7 +4335,8 @@ function renderPreview(filteredListings) {
         // Create card as a link to CMS page
         const card = document.createElement('a');
         card.className = 'flip-card';
-        card.href = '/nelson-county/' + slug; // Link to CMS page using slug
+        // Use full URL to Framer CMS since HTML is hosted externally
+        card.href = CMS_BASE_URL + '/nelson-county/' + slug; // Link to CMS page using full URL
         card.setAttribute('data-listing-id', listing.id);
         card.style.textDecoration = 'none';
         card.style.color = 'inherit';
