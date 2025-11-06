@@ -1704,32 +1704,20 @@
             }
         }
         
-        /* Grid prefers more columns with smaller cards */
-        /* Cards resize dynamically but favor more columns */
-        /* Cards should not exceed 350px before adding another column */
-        /* Cards should not be less than 180px before removing a column */
-        .preview-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
-            gap: 20px; 
-            justify-content: start; /* Align grid items to start */
-        }
+        .preview-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
         
-        /* Constrain card max width to encourage more columns when space allows */
-        /* Cards will resize dynamically but won't exceed 350px, forcing new columns */
-        .preview-grid > .flip-card {
-            max-width: 350px;
-            width: 100%;
+        /* 2 columns at 800px and wider */
+        @media (min-width: 800px) {
+            .preview-grid { grid-template-columns: repeat(2, 1fr); }
         }
-        
-        /* On very small screens, allow cards to shrink below 180px */
-        @media (max-width: 400px) {
-            .preview-grid { 
-                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
-            }
-            .preview-grid > .flip-card {
-                max-width: 100%;
-            }
+        /* 2 columns continues at 1000px (until 1300px) */
+        /* 3 columns at 1300px and wider */
+        @media (min-width: 1300px) {
+            .preview-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        /* 4 columns at 1400px and wider */
+        @media (min-width: 1400px) {
+            .preview-grid { grid-template-columns: repeat(4, 1fr); }
         }
         
         /* Map Styles */
