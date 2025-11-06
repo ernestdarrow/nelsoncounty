@@ -2051,6 +2051,17 @@
                 transform: translateX(-50%);
                 justify-content: center;
             }
+            /* On very small screens, move open map button to left and hide listing count */
+            @media (max-width: 461px) {
+                .preview-results {
+                    display: none !important;
+                }
+                .map-collapsed .map-header {
+                    left: 10px;
+                    transform: none;
+                    justify-content: flex-start;
+                }
+            }
             .map-header h2 {
                 display: none !important;
             }
