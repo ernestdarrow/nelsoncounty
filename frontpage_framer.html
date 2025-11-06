@@ -3027,6 +3027,9 @@ const fallbackData = {
   }
 };
 
+// CMS Base URL for images and assets
+const CMS_BASE_URL = 'https://nelson-county.framer.website';
+
 // Google Sheets Configuration
 // Using the published CSV URL from "Publish to web" feature
 const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTjIYDylHAm_j9b4rwGOjfPe0aoPRA1rcqsZ8NZg8ugT97pkM83n87NrDVhx7NU63-whpia-hRscywD/pub?gid=0&single=true&output=csv';
@@ -3816,11 +3819,24 @@ function getIconClass(type) {
 // Fallback placeholder image (SVG data URI) - forest green background with white camera icon
 const FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'%3E%3Crect width='800' height='600' fill='%232d6a4f'/%3E%3Cg transform='translate(400, 300) scale(1)'%3E%3Cpath d='M208,60H178.13477l-14.8125-22.21875A3.99853,3.99853,0,0,0,159.99414,36h-64A3.9985,3.9985,0,0,0,92.666,37.78125L77.85352,60H48A20.02229,20.02229,0,0,0,28,80V192a20.02229,20.02229,0,0,0,20,20H208a20.02229,20.02229,0,0,0,20-20V80A20.02229,20.02229,0,0,0,208,60Zm12,132a12.01312,12.01312,0,0,1-12,12H48a12.01312,12.01312,0,0,1-12-12V80A12.01312,12.01312,0,0,1,48,68H79.99414a3.99853,3.99853,0,0,0,3.32813-1.78125L98.13477,44h59.71875L172.666,66.21875A3.9985,3.9985,0,0,0,175.99414,68H208a12.01312,12.01312,0,0,1,12,12ZM128,92a40,40,0,1,0,40,40A40.04584,40.04584,0,0,0,128,92Zm0,72a32,32,0,1,1,32-32A32.03667,32.03667,0,0,1,128,164Z' fill='white' transform='translate(-128, -128)'/%3E%3C/g%3E%3C/svg%3E";
 
+// Helper function to normalize image URLs - prepends CMS base URL if needed
+function normalizeImageUrl(url) {
+    if (!url) return url;
+    // If already a full URL (starts with http:// or https://) or data URI, return as-is
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+        return url;
+    }
+    // Remove leading slash if present to avoid double slashes
+    const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+    // Prepend CMS base URL
+    return CMS_BASE_URL + '/' + cleanUrl;
+}
+
 // Handle image error - try image2, then fallback
 function handleImageError(img, image1Src, image2Src, fallbackSrc) {
     if (!img.dataset.triedImage2 && image2Src) {
         img.dataset.triedImage2 = 'true';
-        img.src = image2Src;
+        img.src = normalizeImageUrl(image2Src);
     } else {
         img.src = fallbackSrc;
     }
@@ -4362,7 +4378,7 @@ function renderPreview(filteredListings) {
         // Add image1 if it exists
         if (listing.image1) {
             const img1 = document.createElement('img');
-            img1.src = listing.image1;
+            img1.src = normalizeImageUrl(listing.image1);
             img1.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 24px; flex-shrink: 0; scroll-snap-align: start;';
             img1.onerror = function() {
                 this.src = FALLBACK_IMG;
@@ -4373,7 +4389,7 @@ function renderPreview(filteredListings) {
         // Add image2 if it exists
         if (listing.image2) {
             const img2 = document.createElement('img');
-            img2.src = listing.image2;
+            img2.src = normalizeImageUrl(listing.image2);
             img2.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 24px; flex-shrink: 0; scroll-snap-align: start;';
             img2.onerror = function() {
                 this.src = FALLBACK_IMG;
@@ -4870,7 +4886,7 @@ function updateMapMarkers(listings) {
                 
                 // Create popup content
                 var imageHtml = (listing.image1)
-                    ? '<img src="' + listing.image1 + '" onerror="this.onerror=null; this.src=FALLBACK_IMG;" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; display: block; margin: 0; padding: 0;">'
+                    ? '<img src="' + normalizeImageUrl(listing.image1) + '" onerror="this.onerror=null; this.src=FALLBACK_IMG;" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; display: block; margin: 0; padding: 0;">'
                     : '<img src="' + FALLBACK_IMG + '" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; display: block; margin: 0; padding: 0;">';
                 
                 var popupContent = 
