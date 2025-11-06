@@ -1484,6 +1484,9 @@
             padding: 0 30px 30px 30px;
         }
         .preview-results { margin-bottom: 20px; font-size: 14px; color: var(--text-secondary); font-weight: 500; }
+        .map-collapsed + .preview-results {
+            margin-top: 30px;
+        }
         
         /* Top Search Bar */
         .top-search-container {
@@ -1957,10 +1960,15 @@
         .map-container {
             background: var(--card-bg);
             border-radius: 24px;
-            padding: 20px;
+            padding: 0;
+            margin-top: 25px;
             margin-bottom: 30px;
-            box-shadow: 0 2px 8px var(--shadow), 0 4px 16px var(--shadow);
+            box-shadow: none;
             transition: all 0.3s;
+            position: relative;
+        }
+        .map-container.map-collapsed {
+            background: transparent !important;
         }
         
         @media (max-width: 968px) {
@@ -1991,6 +1999,14 @@
                 width: 36px;
                 height: 36px;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+                gap: 6px;
+            }
+            .map-collapsed .map-toggle-btn {
+                width: auto !important;
+                padding: 10px 14px !important;
+            }
+            .map-toggle-text {
+                font-size: 12px;
             }
             #map {
                 border-radius: 20px;
@@ -1998,7 +2014,10 @@
             }
         }
         .map-collapsed {
-            padding: 12px 20px;
+            padding: 0;
+            margin-top: 0;
+            margin-bottom: -20px;
+            background: transparent !important;
         }
         .map-header {
             display: flex;
@@ -2006,11 +2025,21 @@
             align-items: center;
             margin-bottom: 15px;
             transition: all 0.3s;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            margin: 0;
+            justify-content: flex-start;
         }
         .map-collapsed .map-header {
             justify-content: center;
             gap: 12px;
             margin-bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            top: 23px;
         }
         .map-header h2 {
             font-size: 20px;
@@ -2035,18 +2064,39 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
             transition: all 0.3s;
             padding: 0;
+            gap: 8px;
+        }
+        .map-toggle-text {
+            display: none;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .map-collapsed .map-toggle-btn {
+            width: auto;
+            border-radius: 12px;
+            padding: 10px 24px 10px 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            height: auto;
+        }
+        .map-collapsed .map-toggle-text {
+            display: inline;
         }
         .map-toggle-btn:hover {
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
             transform: translateY(-2px);
         }
         .map-toggle-btn svg {
             display: block;
         }
+        .map-collapsed .map-toggle-btn svg {
+            stroke: #22c55e;
+            color: #22c55e;
+        }
         #map {
             height: 500px;
             width: 100%;
-            border-radius: 12px;
+            border-radius: 24px;
             overflow: hidden;
         }
         .map-collapsed #map {
@@ -2980,6 +3030,7 @@
                                 <svg id="mapToggleIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
+                                <span class="map-toggle-text">Open Map</span>
                             </button>
                         </div>
                         <div id="map"></div>
