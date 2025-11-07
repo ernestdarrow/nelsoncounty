@@ -5639,27 +5639,37 @@ function renderPreview(filteredListings) {
                         buttonSize = 14;
                     }
                     
+                    // Calculate proportional line heights based on font sizes
+                    const titleLineHeight = 1.2; // Keep consistent for title
+                    const descLineHeight = 1.4; // Proportional to description size
+                    const infoLineHeight = 0.85; // Keep tight for address/phone/web
+                    const amenityLineHeight = 1.2; // Keep consistent for amenities
+                    
                     // Apply sizes to back elements
                     const backTitle = backContent.querySelector('a[href*="/nelson-county/"]:first-child');
                     if (backTitle) {
                         backTitle.style.fontSize = titleSize + 'px';
+                        backTitle.style.lineHeight = titleLineHeight;
                     }
                     
                     const backDesc = backContent.querySelector('.back-description');
                     if (backDesc) {
                         backDesc.style.fontSize = descSize + 'px';
+                        backDesc.style.lineHeight = descLineHeight;
                     }
                     
                     // Address, phone, website
                     const infoItems = backContent.querySelectorAll('.card-info-item a');
                     infoItems.forEach(function(item) {
                         item.style.fontSize = infoSize + 'px';
+                        item.style.lineHeight = infoLineHeight;
                     });
                     
                     // Amenities
                     const amenities = backContent.querySelectorAll('.amenity');
                     amenities.forEach(function(amenity) {
                         amenity.style.fontSize = amenitySize + 'px';
+                        amenity.style.lineHeight = amenityLineHeight;
                     });
                     
                     // View Details button
