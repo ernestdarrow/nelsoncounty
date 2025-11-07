@@ -1942,21 +1942,35 @@
             }
             
             /* Even tighter configuration for very small screens */
-            @media (max-width: 375px) {
+            @media (max-width: 440px) {
                 .mobile-filter-bar > .mobile-filter-group {
-                    padding: 0 2px 0 4px;
+                    padding: 0 2px 0 6px;
+                }
+                /* Make Type and Area slightly narrower, Amenities slightly wider */
+                .mobile-filter-bar > .mobile-filter-group:nth-child(2),
+                .mobile-filter-bar > .mobile-filter-group:nth-child(3) {
+                    flex: 0 0 31%;
+                    width: 31%;
+                    flex-basis: 31%;
+                    min-width: 31%;
+                }
+                .mobile-filter-bar > .mobile-filter-group:nth-child(4) {
+                    flex: 0 0 38%;
+                    width: 38%;
+                    flex-basis: 38%;
+                    min-width: 38%;
                 }
                 .mobile-filter-group select {
-                    padding: 12px 2px 12px 22px;
+                    padding: 12px 2px 12px 26px;
                     padding-right: 2px;
-                    font-size: 12px;
+                    font-size: 14px;
                 }
                 #mobileTypeFilter,
                 #mobileAreaFilter,
                 #mobileAmenityFilter {
-                    padding-left: 22px;
+                    padding-left: 26px;
                     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239333ea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8.76,6.63a1.09,1.09,0,0,1,2,0l2.8,5.53v0L15,8.9a1,1,0,0,1,1.8,0L21,18H3Z'/%3E%3C/svg%3E");
-                    background-position: 4px center;
+                    background-position: 6px center;
                     background-size: 14px 14px;
                     background-repeat: no-repeat;
                 }
@@ -2998,7 +3012,7 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
                                         </svg>
-                                        All Types
+                                        All Type
                                     </button>
                                     <button class="type-filter-btn" data-type="Brewery">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -3075,7 +3089,7 @@
                             <div class="filter-section">
                                 <div class="preview-filter-group">
                                     <select id="previewAreaFilter" onchange="filterPreview()">
-                                        <option value="">All Areas</option>
+                                        <option value="">All Area</option>
                                     <option value="Afton">Afton</option><option value="Wintergreen">Wintergreen</option><option value="Lovingston">Lovingston</option><option value="Nellysford">Nellysford</option><option value="Montebello">Montebello</option><option value="Arrington">Arrington</option><option value="Roseland">Roseland</option><option value="Seymour">Seymour</option>
                                 </select>
                                 </div>
@@ -3127,12 +3141,12 @@
                         </div>
                         <div class="mobile-filter-group">
                             <select id="mobileTypeFilter" onchange="handleMobileTypeFilter()">
-                                <option value="">Types</option>
+                                <option value="">Type</option>
                             </select>
                         </div>
                         <div class="mobile-filter-group">
                             <select id="mobileAreaFilter" onchange="handleMobileAreaFilter()">
-                                <option value="">Areas</option>
+                                <option value="">Area</option>
                             </select>
                         </div>
                         <div class="mobile-filter-group">
