@@ -4555,6 +4555,29 @@ function closeAllFlippedCards() {
     document.body.style.overflow = '';
 }
 
+// Helper function to add option to dropdown if it doesn't exist
+function ensureDropdownOption(selectElement, value, text) {
+    if (!selectElement || !value) return;
+    
+    // Check if option already exists by checking all options
+    const options = selectElement.querySelectorAll('option');
+    let optionExists = false;
+    for (let i = 0; i < options.length; i++) {
+        if (options[i].value === value) {
+            optionExists = true;
+            break;
+        }
+    }
+    
+    if (!optionExists) {
+        // Create and add new option
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = text || value;
+        selectElement.appendChild(option);
+    }
+}
+
 // Filter by badge click
 function filterByBadge(event, filterType, value) {
     event.preventDefault();
@@ -4564,7 +4587,10 @@ function filterByBadge(event, filterType, value) {
         // For badge clicks, set single type (replaces current selection)
         currentTypeFilter = [value];
         const mobileTypeFilter = document.getElementById('mobileTypeFilter');
-        if (mobileTypeFilter) mobileTypeFilter.value = value;
+        if (mobileTypeFilter) {
+            ensureDropdownOption(mobileTypeFilter, value, value);
+            mobileTypeFilter.value = value;
+        }
         document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
             btn.classList.remove('active');
             if (btn.dataset.type === value) {
@@ -4574,8 +4600,14 @@ function filterByBadge(event, filterType, value) {
     } else if (filterType === 'area') {
         const areaFilter = document.getElementById('previewAreaFilter');
         const mobileAreaFilter = document.getElementById('mobileAreaFilter');
-        if (areaFilter) areaFilter.value = value;
-        if (mobileAreaFilter) mobileAreaFilter.value = value;
+        if (areaFilter) {
+            ensureDropdownOption(areaFilter, value, value);
+            areaFilter.value = value;
+        }
+        if (mobileAreaFilter) {
+            ensureDropdownOption(mobileAreaFilter, value, value);
+            mobileAreaFilter.value = value;
+        }
     } else if (filterType === 'featured') {
         currentFeaturedOnly = true;
     }
@@ -4590,9 +4622,11 @@ function filterByAmenity(event, amenity) {
     const amenityFilter = document.getElementById('previewAmenityFilter');
     const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
     if (amenityFilter) {
+        ensureDropdownOption(amenityFilter, amenity, amenity);
         amenityFilter.value = amenity;
     }
     if (mobileAmenityFilter) {
+        ensureDropdownOption(mobileAmenityFilter, amenity, amenity);
         mobileAmenityFilter.value = amenity;
     }
     
