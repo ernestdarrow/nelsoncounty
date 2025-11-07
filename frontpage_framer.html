@@ -2854,7 +2854,7 @@
             transition: letter-spacing 0.3s ease-in-out;
         }
         .flip-card .flip-card-back .amenity:hover {
-            letter-spacing: 0.5px !important;
+            letter-spacing: 0.2px !important;
         }
         
         /* Hover effects for address, phone, and website - increased letter spacing */
@@ -4992,16 +4992,25 @@ function renderPreview(filteredListings) {
     
     // Populate mobile filter dropdowns
     const mobileTypeFilter = document.getElementById('mobileTypeFilter');
-    if (mobileTypeFilter && mobileTypeFilter.options.length === 1 && data.filterOptions) {
+    if (mobileTypeFilter && data.filterOptions) {
         // Get all types from visible buttons plus expanded ones
         const allTypes = ['Brewery', 'Winery', 'Hiking', 'Restaurant', 'Lodging', 'Outdoor', 
                           'Cidery', 'Indoor Activity', 'Attraction', 'Farm & Orchard'];
-        allTypes.forEach(function(type) {
-            const option = document.createElement('option');
-            option.value = type;
-            option.textContent = type;
-            mobileTypeFilter.appendChild(option);
-        });
+        // Only populate if this is the first time (only placeholder exists)
+        // Otherwise, just ensure all standard types exist without removing dynamic ones
+        if (mobileTypeFilter.options.length === 1) {
+            allTypes.forEach(function(type) {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                mobileTypeFilter.appendChild(option);
+            });
+        } else {
+            // Preserve existing options, just add missing standard types
+            allTypes.forEach(function(type) {
+                ensureDropdownOption(mobileTypeFilter, type, type);
+            });
+        }
     }
     
     const mobileAreaFilter = document.getElementById('mobileAreaFilter');
@@ -5350,10 +5359,10 @@ function renderPreview(filteredListings) {
             const amenitiesDiv = document.createElement('div');
             amenitiesDiv.style.cssText = 'margin-top: 12px; margin-bottom: 15px;';
             
-            // Calculate approximate height for 3 rows
+            // Calculate approximate height for 3 full rows, then 4th row shows "more"
             // Each row is approximately: font-size 12px * line-height 1.2 + padding 4px = ~18px
-            // 3 rows = ~54px, add buffer = 60px
-            const maxHeight = 60;
+            // 3 full rows = ~54px, 4th row (partial) = ~72px, add buffer = 80px
+            const maxHeight = 80;
             
             const amenitiesWrapper = document.createElement('div');
             amenitiesWrapper.className = 'amenities-wrapper';
@@ -5385,36 +5394,27 @@ function renderPreview(filteredListings) {
             
             // Check if content actually overflows and apply max-height only if needed
             setTimeout(function() {
-                // First check if content naturally exceeds 3 rows (60px)
+                // First check if content naturally exceeds 3 full rows plus 4th row for "more" (80px)
                 const naturalHeight = amenitiesContainer.scrollHeight;
-                if (naturalHeight > maxHeight) {
-                    // Apply max-height and overflow only if it actually exceeds
+                // Allow 3 full rows (~54px) plus partial 4th row for "more" text
+                const threeRowsHeight = 54;
+                if (naturalHeight > threeRowsHeight) {
+                    // Apply max-height to allow 3 full rows plus 4th row for "more"
                     amenitiesContainer.style.maxHeight = maxHeight + 'px';
                     amenitiesContainer.style.overflow = 'hidden';
-                    // Count visible amenities by checking which ones are within the maxHeight
-                    const amenitySpans = amenitiesContainer.querySelectorAll('.amenity');
-                    let visibleCount = 0;
-                    let lastVisibleTop = 0;
                     
+                    // Count visible amenities - allow 3 full rows, then show "more" on 4th
+                    const amenitySpans = amenitiesContainer.querySelectorAll('.amenity');
+                    let hiddenCount = 0;
+                    
+                    // Check each amenity to see if it fits within 3 full rows
                     amenitySpans.forEach(function(span) {
                         const rect = span.getBoundingClientRect();
                         const containerRect = amenitiesContainer.getBoundingClientRect();
                         const relativeTop = rect.top - containerRect.top;
                         
-                        if (relativeTop + rect.height <= maxHeight) {
-                            visibleCount++;
-                            lastVisibleTop = relativeTop + rect.height;
-                        }
-                    });
-                    
-                    // Hide amenities that don't fit
-                    let hiddenCount = 0;
-                    amenitySpans.forEach(function(span, index) {
-                        const rect = span.getBoundingClientRect();
-                        const containerRect = amenitiesContainer.getBoundingClientRect();
-                        const relativeTop = rect.top - containerRect.top;
-                        
-                        if (relativeTop + rect.height > maxHeight) {
+                        // If amenity starts below 3 full rows (~54px), hide it
+                        if (relativeTop >= threeRowsHeight) {
                             span.style.display = 'none';
                             hiddenCount++;
                         }
@@ -5435,9 +5435,12 @@ function renderPreview(filteredListings) {
                         amenitiesContainer.appendChild(moreSpan);
                     }
                     
-                    // Show fade overlay when content is truncated
+                    // Show fade overlay only when content is actually truncated
                     if (hiddenCount > 0) {
                         amenitiesFade.style.display = 'block';
+                    } else {
+                        // No hidden amenities, hide fade
+                        amenitiesFade.style.display = 'none';
                     }
                 } else {
                     // Content fits naturally, no need for max-height or fade
@@ -5591,10 +5594,89 @@ function renderPreview(filteredListings) {
         });
     }
     
+    // Adjust all back text sizes based on card width
+    function adjustBackTextSizes() {
+        const cards = document.querySelectorAll('.flip-card');
+        cards.forEach(function(card) {
+            const back = card.querySelector('.flip-card-back');
+            if (back) {
+                const backContent = back.querySelector('div[style*="display: flex"]');
+                if (backContent) {
+                    const cardWidth = card.offsetWidth;
+                    
+                    // Calculate scale factor based on card width
+                    // Base sizes for smallest cards (< 200px)
+                    let titleSize = 13;
+                    let descSize = 14;
+                    let infoSize = 12;
+                    let amenitySize = 12;
+                    let buttonSize = 14;
+                    
+                    // Scale up for larger cards
+                    if (cardWidth >= 350) {
+                        titleSize = 17;
+                        descSize = 18;
+                        infoSize = 16;
+                        amenitySize = 15;
+                        buttonSize = 16;
+                    } else if (cardWidth >= 300) {
+                        titleSize = 16;
+                        descSize = 17;
+                        infoSize = 15;
+                        amenitySize = 14;
+                        buttonSize = 15;
+                    } else if (cardWidth >= 260) {
+                        titleSize = 15;
+                        descSize = 16;
+                        infoSize = 14;
+                        amenitySize = 13;
+                        buttonSize = 15;
+                    } else if (cardWidth >= 200) {
+                        titleSize = 14;
+                        descSize = 15;
+                        infoSize = 13;
+                        amenitySize = 12;
+                        buttonSize = 14;
+                    }
+                    
+                    // Apply sizes to back elements
+                    const backTitle = backContent.querySelector('a[href*="/nelson-county/"]:first-child');
+                    if (backTitle) {
+                        backTitle.style.fontSize = titleSize + 'px';
+                    }
+                    
+                    const backDesc = backContent.querySelector('.back-description');
+                    if (backDesc) {
+                        backDesc.style.fontSize = descSize + 'px';
+                    }
+                    
+                    // Address, phone, website
+                    const infoItems = backContent.querySelectorAll('.card-info-item a');
+                    infoItems.forEach(function(item) {
+                        item.style.fontSize = infoSize + 'px';
+                    });
+                    
+                    // Amenities
+                    const amenities = backContent.querySelectorAll('.amenity');
+                    amenities.forEach(function(amenity) {
+                        amenity.style.fontSize = amenitySize + 'px';
+                    });
+                    
+                    // View Details button
+                    const viewButton = backContent.querySelector('a[href*="/nelson-county/"]:last-child');
+                    if (viewButton && viewButton.textContent === 'View Details') {
+                        viewButton.style.fontSize = buttonSize + 'px';
+                    }
+                }
+            }
+        });
+    }
+    
     // Adjust sizes after render
     setTimeout(function() {
         adjustTitleSizes();
         adjustBackDescriptions();
+        adjustBackTextSizes();
     }, 100);
     
     // Recalculate on window resize (debounced) - only trigger on actual resize, not scroll
@@ -5617,6 +5699,7 @@ function renderPreview(filteredListings) {
                 adjustTitleSizes();
                 adjustImageWidths();
                 adjustBackDescriptions();
+                adjustBackTextSizes();
             }, 200);
         };
         window.addEventListener('resize', window.titleSizeResizeHandler);
