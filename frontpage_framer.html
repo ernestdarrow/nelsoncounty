@@ -2288,6 +2288,128 @@
             max-width: 340px !important;
             overflow: hidden !important;
         }
+        @media (min-width: 969px) {
+            .gm-style .gm-style-iw-c {
+                width: 200px !important;
+                height: 200px !important;
+                padding: 0 !important;
+                border-radius: 12px !important;
+                margin: 0 !important;
+                overflow: hidden !important;
+            }
+            .gm-style-iw-ch {
+                padding: 0 !important;
+                margin: 0 !important;
+                border-radius: 12px !important;
+                overflow: hidden !important;
+            }
+            .gm-style-iw-t {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .gm-style-iw-t > div {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .gm-style .gm-style-iw-d {
+                padding: 0 !important;
+                margin: 0 !important;
+                border-radius: 12px !important;
+                overflow: hidden !important;
+            }
+            .gm-style .gm-style-iw-d > div {
+                margin: 0 !important;
+                padding: 0 !important;
+                border-radius: 12px !important;
+                overflow: hidden !important;
+            }
+            .gm-style .gm-style-iw-d > div > div {
+                margin: 0 !important;
+                padding: 0 !important;
+                border-radius: 12px !important;
+                overflow: hidden !important;
+            }
+            .gm-style .gm-style-iw-d > div > div > div {
+                margin: 0 !important;
+                padding: 0 !important;
+                border-radius: 12px !important;
+                overflow: hidden !important;
+            }
+            .gm-style .gm-style-iw-d > * {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .gm-style-iw button {
+                position: absolute !important;
+                top: 4px !important;
+                right: 4px !important;
+                z-index: 1001 !important;
+                margin: 0 !important;
+            }
+        }
+        @media (max-width: 968px) {
+            .gm-style .gm-style-iw-c {
+                width: 120px !important;
+                height: 120px !important;
+                padding: 0 !important;
+                border-radius: 12px !important;
+                margin: 0 !important;
+                overflow: hidden !important;
+            }
+            .gm-style-iw-ch {
+                padding: 0 !important;
+                margin: 0 !important;
+                border-radius: 12px !important;
+                overflow: hidden !important;
+            }
+            .gm-style-iw-t {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .gm-style-iw-t > div {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .gm-style .gm-style-iw-d {
+                border-radius: 12px !important;
+                overflow: hidden !important;
+            }
+            .gm-style .gm-style-iw-d > div {
+                border-radius: 12px !important;
+                overflow: hidden !important;
+            }
+            .gm-style .gm-style-iw-d > div > div {
+                border-radius: 12px !important;
+                overflow: hidden !important;
+            }
+            .gm-style-iw button {
+                position: absolute !important;
+                top: 4px !important;
+                right: 4px !important;
+                z-index: 1001 !important;
+                margin: 0 !important;
+            }
+            .gm-style .gm-style-iw-d {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .gm-style .gm-style-iw-d > div {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .gm-style .gm-style-iw-d > div > div {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .gm-style .gm-style-iw-d > div > div > div {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .gm-style .gm-style-iw-d > * {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+        }
         .gm-style .gm-style-iw-d {
             overflow: hidden !important;
             padding: 0 !important;
@@ -2307,6 +2429,16 @@
             display: block !important;
             border: none !important;
             outline: none !important;
+        }
+        @media (max-width: 968px) {
+            .gm-style img {
+                margin: 0 !important;
+                padding: 0 !important;
+                border: 0 !important;
+                outline: 0 !important;
+                line-height: 0 !important;
+                vertical-align: top !important;
+            }
         }
         .gm-style-iw button {
             top: 8px !important;
@@ -6109,7 +6241,17 @@ function updateMapMarkers(listings) {
                 
                 // Add click listener to show info window
                 marker.addListener('click', function() {
-                    infoWindow.setContent(popupContent);
+                    // Use square card style for both mobile and desktop
+                    var imageUrl = (listing.image1) ? normalizeImageUrl(listing.image1) : FALLBACK_IMG;
+                    var cardWidth = (window.innerWidth < 969) ? 120 : 200;
+                    var cardHeight = cardWidth; // Square
+                    var fontSize = (window.innerWidth < 969) ? 12 : 14;
+                    var gradientHeight = (window.innerWidth < 969) ? 50 : 60;
+                    var simpleContent = '<div style="padding: 0 !important; margin: 0 !important; text-align: center; cursor: pointer; width: ' + cardWidth + 'px; height: ' + cardHeight + 'px; position: relative; overflow: hidden; border-radius: 12px; line-height: 0; font-size: 0; background-image: url(\'' + imageUrl + '\'); background-size: cover !important; background-position: center center !important; background-repeat: no-repeat !important; display: flex; flex-direction: column; justify-content: flex-end; border: 4px solid #ffffff; outline: 0; box-sizing: border-box; min-width: ' + cardWidth + 'px; min-height: ' + cardHeight + 'px;" onclick="filterByListingName(\'' + escapeHtml(fixEncoding(listing.name)).replace(/'/g, "\\'") + '\'); google.maps.event.trigger(map, \'click\');">' + 
+                        '<div style="position: absolute; bottom: 0; left: 0; right: 0; height: ' + gradientHeight + 'px; background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0)); pointer-events: none; z-index: 1; margin: 0; padding: 0;"></div>' +
+                        '<div style="font-size: ' + fontSize + 'px; font-weight: 600; color: #ffffff; line-height: 1.1; padding: 0 8px 4px 8px; margin: 0; position: relative; z-index: 2; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">' + escapeHtml(fixEncoding(listing.name)) + '</div>' +
+                        '</div>';
+                    infoWindow.setContent(simpleContent);
                     infoWindow.open(map, marker);
                 });
                 
