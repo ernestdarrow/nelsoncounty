@@ -2867,10 +2867,36 @@
         }
         
         /* Title on back - balance ragged lines and control orphans/widows */
-        .flip-card .flip-card-back h3 {
+        .flip-card .flip-card-back h3,
+        .flip-card .flip-card-back a[href*="/nelson-county/"]:first-child {
             orphans: 2;
             widows: 2;
             text-wrap: balance;
+        }
+        
+        /* Title hover effect - darken on hover */
+        .flip-card .flip-card-back a[href*="/nelson-county/"]:first-child {
+            transition: color 0.3s ease-in-out;
+        }
+        .flip-card .flip-card-back a[href*="/nelson-county/"]:first-child:hover {
+            color: #4b5563 !important;
+        }
+        
+        /* Description hover effect - lighten on hover */
+        .flip-card .flip-card-back .back-description {
+            transition: color 0.3s ease-in-out;
+        }
+        .flip-card .flip-card-back .back-description:hover {
+            color: #6b7280 !important;
+        }
+        
+        /* View Details button hover effect */
+        .flip-card .flip-card-back a[href*="/nelson-county/"]:last-child {
+            letter-spacing: 0;
+            transition: letter-spacing 0.3s ease-in-out;
+        }
+        .flip-card .flip-card-back a[href*="/nelson-county/"]:last-child:hover {
+            letter-spacing: 0.5px;
         }
         
         /* Back side image gallery */
@@ -5153,14 +5179,36 @@ function renderPreview(filteredListings) {
         const back = document.createElement('div');
         back.className = 'flip-card-back';
         
+        // Add close button (X icon) in top right corner
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'card-close-btn';
+        closeBtn.style.cssText = 'position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border: none; background: rgba(255, 255, 255, 0.9); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; transition: background 0.2s ease; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);';
+        closeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #6b7280;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+        closeBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            card.classList.remove('flipped');
+        };
+        closeBtn.onmouseenter = function() {
+            this.style.background = 'rgba(255, 255, 255, 1)';
+        };
+        closeBtn.onmouseleave = function() {
+            this.style.background = 'rgba(255, 255, 255, 0.9)';
+        };
+        
         // Build back content
         const backContent = document.createElement('div');
-        backContent.style.cssText = 'padding: 20px; height: 100%; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden;';
+        backContent.style.cssText = 'padding: 20px; height: 100%; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; position: relative;';
         
-        // Title only (no badges on back)
-        const backTitle = document.createElement('h3');
-        backTitle.style.cssText = 'font-size: 13px; font-weight: 500; margin-bottom: 15px; color: #a1a1aa; line-height: 1.2; text-transform: uppercase; letter-spacing: 1px; orphans: 2; widows: 2; text-align: left;';
+        // Title only (no badges on back) - clickable link
+        const backTitle = document.createElement('a');
+        backTitle.href = CMS_BASE_URL + '/nelson-county/' + slug;
+        backTitle.target = '_parent';
+        backTitle.style.cssText = 'font-size: 13px; font-weight: 500; margin-bottom: 15px; color: #a1a1aa; line-height: 1.2; text-transform: uppercase; letter-spacing: 1px; orphans: 2; widows: 2; text-align: left; text-decoration: none; display: block; cursor: pointer; max-width: 90%;';
         backTitle.textContent = fixedName;
+        backTitle.onclick = function(e) {
+            e.stopPropagation(); // Prevent card flip
+        };
         backContent.appendChild(backTitle);
         
         // Full description with fade-out gradient
@@ -5169,10 +5217,15 @@ function renderPreview(filteredListings) {
             descWrapper.className = 'desc-wrapper';
             descWrapper.style.cssText = 'position: relative; margin-bottom: 15px;';
             
-            const backDesc = document.createElement('p');
+            const backDesc = document.createElement('a');
             backDesc.className = 'back-description';
-            backDesc.style.cssText = 'font-size: 14px; color: #000000; line-height: 1.4; margin: 0; display: -webkit-box; -webkit-line-clamp: 7; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;';
+            backDesc.href = CMS_BASE_URL + '/nelson-county/' + slug;
+            backDesc.target = '_parent';
+            backDesc.style.cssText = 'font-size: 14px; color: #000000; line-height: 1.4; margin: 0; display: -webkit-box; -webkit-line-clamp: 7; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; text-decoration: none; cursor: pointer;';
             backDesc.textContent = fixedDescription;
+            backDesc.onclick = function(e) {
+                e.stopPropagation(); // Prevent card flip
+            };
             
             // Add gradient fade overlay (will be shown only if text is truncated)
             const descFade = document.createElement('div');
@@ -5274,7 +5327,7 @@ function renderPreview(filteredListings) {
             
             const amenitiesContainer = document.createElement('div');
             amenitiesContainer.className = 'amenities-container';
-            amenitiesContainer.style.cssText = 'display: flex; flex-wrap: wrap; gap: 6px; max-height: ' + maxHeight + 'px; overflow: hidden; position: relative; z-index: 2;';
+            amenitiesContainer.style.cssText = 'display: flex; flex-wrap: wrap; gap: 6px; position: relative; z-index: 2;';
             
             // Add gradient fade overlay for amenities (will be shown when truncated)
             const amenitiesFade = document.createElement('div');
@@ -5296,9 +5349,14 @@ function renderPreview(filteredListings) {
                 amenitiesContainer.appendChild(amenitySpan);
             });
             
-            // Check if content overflows and add "more" indicator
+            // Check if content actually overflows and apply max-height only if needed
             setTimeout(function() {
-                if (amenitiesContainer.scrollHeight > maxHeight) {
+                // First check if content naturally exceeds 3 rows (60px)
+                const naturalHeight = amenitiesContainer.scrollHeight;
+                if (naturalHeight > maxHeight) {
+                    // Apply max-height and overflow only if it actually exceeds
+                    amenitiesContainer.style.maxHeight = maxHeight + 'px';
+                    amenitiesContainer.style.overflow = 'hidden';
                     // Count visible amenities by checking which ones are within the maxHeight
                     const amenitySpans = amenitiesContainer.querySelectorAll('.amenity');
                     let visibleCount = 0;
@@ -5330,22 +5388,15 @@ function renderPreview(filteredListings) {
                     
                     // Add "more" indicator if there are hidden amenities
                     if (hiddenCount > 0) {
-                        const moreSpan = document.createElement('span');
+                        const moreSpan = document.createElement('a');
                         moreSpan.className = 'amenity amenity-more';
-                        moreSpan.style.cssText = 'font-size: 12px; padding: 2px 6px; background: #f3f4f6; color: var(--text-primary); border-radius: 6px; display: inline-block; margin: 0; line-height: 1.2; cursor: pointer; font-weight: 600;';
+                        moreSpan.href = CMS_BASE_URL + '/nelson-county/' + slug;
+                        moreSpan.target = '_parent';
+                        moreSpan.style.cssText = 'font-size: 12px; padding: 2px 6px; background: #f3f4f6; color: var(--text-primary); border-radius: 6px; display: inline-block; margin: 0; line-height: 1.2; cursor: pointer; font-weight: 600; text-decoration: none;';
                         moreSpan.textContent = '+ ' + hiddenCount + ' more';
                         moreSpan.onclick = function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            // Show all amenities and remove max-height
-                            amenitySpans.forEach(function(span) {
-                                span.style.display = 'inline-block';
-                            });
-                            amenitiesContainer.style.maxHeight = 'none';
-                            moreSpan.style.display = 'none';
-                            // Hide fade overlay when all amenities are shown
-                            amenitiesFade.style.display = 'none';
-                            return false;
+                            e.stopPropagation(); // Prevent card flip, but allow navigation
+                            // Don't prevent default - let the link navigate
                         };
                         amenitiesContainer.appendChild(moreSpan);
                     }
@@ -5355,7 +5406,7 @@ function renderPreview(filteredListings) {
                         amenitiesFade.style.display = 'block';
                     }
                 } else {
-                    // Hide fade overlay if content fits
+                    // Content fits naturally, no need for max-height or fade
                     amenitiesFade.style.display = 'none';
                 }
             }, 50);
@@ -5375,6 +5426,7 @@ function renderPreview(filteredListings) {
         backContent.appendChild(viewLink);
         
         back.appendChild(backContent);
+        back.appendChild(closeBtn);
         
         // Add front and back to inner, then inner to card
         inner.appendChild(front);
@@ -5384,9 +5436,10 @@ function renderPreview(filteredListings) {
         
         // Adjust description line-clamp on back based on title height and card size
         setTimeout(function() {
-            const backTitle = backContent.querySelector('h3');
+            // Title is now an anchor tag, not h3
+            const backTitle = backContent.querySelector('a[href*="/nelson-county/"]');
             const backDesc = backContent.querySelector('.back-description');
-            if (backTitle && backDesc) {
+            if (backTitle && backDesc && backTitle === backContent.firstElementChild) {
                 const titleHeight = backTitle.offsetHeight;
                 const titleLineHeight = parseFloat(window.getComputedStyle(backTitle).lineHeight) || 1.2 * 18;
                 const isTitleSingleLine = titleHeight <= titleLineHeight * 1.5;
@@ -5464,10 +5517,11 @@ function renderPreview(filteredListings) {
             if (back) {
                 const backContent = back.querySelector('div[style*="display: flex"]');
                 if (backContent) {
-                    const backTitle = backContent.querySelector('h3');
+                    // Title is now an anchor tag, not h3
+                    const backTitle = backContent.querySelector('a[href*="/nelson-county/"]');
                     const backDesc = backContent.querySelector('.back-description');
                     const descFade = backContent.querySelector('.desc-fade-overlay');
-                    if (backTitle && backDesc) {
+                    if (backTitle && backDesc && backTitle === backContent.firstElementChild) {
                         const titleHeight = backTitle.offsetHeight;
                         const titleLineHeight = parseFloat(window.getComputedStyle(backTitle).lineHeight) || 1.2 * 18;
                         const isTitleSingleLine = titleHeight <= titleLineHeight * 1.5;
