@@ -4961,6 +4961,7 @@ function renderPreview(filteredListings) {
         card.className = 'flip-card';
         // Use full URL to Framer CMS since HTML is hosted externally
         card.href = CMS_BASE_URL + '/nelson-county/' + slug; // Link to CMS page using full URL
+        card.target = '_parent'; // Break out of iframe to navigate in parent window
         card.setAttribute('data-listing-id', listing.id);
         card.style.textDecoration = 'none';
         card.style.color = 'inherit';
