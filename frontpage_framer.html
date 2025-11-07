@@ -1963,7 +1963,7 @@
                 .mobile-filter-group select {
                     padding: 12px 2px 12px 26px;
                     padding-right: 2px;
-                    font-size: 14px;
+                    font-size: 15px;
                 }
                 #mobileTypeFilter,
                 #mobileAreaFilter,
@@ -1973,6 +1973,10 @@
                     background-position: 6px center;
                     background-size: 14px 14px;
                     background-repeat: no-repeat;
+                }
+                #mobileTypeFilter {
+                    padding-left: 32px;
+                    background-position: 12px center;
                 }
                 #mobileAreaFilter {
                     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23D65052' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 10.5a3 3 0 11-6 0 3 3 0 016 0z' /%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z' /%3E%3C/svg%3E");
@@ -5117,7 +5121,20 @@ function renderPreview(filteredListings) {
             });
             
             // Toggle flip state
+            const wasFlipped = card.classList.contains('flipped');
             card.classList.toggle('flipped');
+            const isNowFlipped = card.classList.contains('flipped');
+            
+            // On mobile, scroll card into view when flipped
+            if (isNowFlipped && !wasFlipped && window.innerWidth < 969) {
+                setTimeout(function() {
+                    card.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center',
+                        inline: 'nearest'
+                    });
+                }, 100); // Small delay to allow flip animation to start
+            }
         });
         
         const front = document.createElement('div');
