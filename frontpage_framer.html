@@ -2866,6 +2866,13 @@
             letter-spacing: 0.5px;
         }
         
+        /* Title on back - balance ragged lines and control orphans/widows */
+        .flip-card .flip-card-back h3 {
+            orphans: 2;
+            widows: 2;
+            text-wrap: balance;
+        }
+        
         /* Back side image gallery */
         .flip-back-images {
             display: flex;
@@ -5152,7 +5159,7 @@ function renderPreview(filteredListings) {
         
         // Title only (no badges on back)
         const backTitle = document.createElement('h3');
-        backTitle.style.cssText = 'font-size: 18px; font-weight: 500; margin-bottom: 15px; color: #9ca3af; line-height: 1.2;';
+        backTitle.style.cssText = 'font-size: 13px; font-weight: 500; margin-bottom: 15px; color: #a1a1aa; line-height: 1.2; text-transform: uppercase; letter-spacing: 1px; orphans: 2; widows: 2; text-align: left;';
         backTitle.textContent = fixedName;
         backContent.appendChild(backTitle);
         
