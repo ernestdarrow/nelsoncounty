@@ -332,6 +332,8 @@ const initialData =
             
             const featuredStr = getField('Featured', ['featured']);
             
+            const galleryValue = getField('imageGallery', ['ImageGallery', 'Image Gallery', 'gallery', 'Gallery']);
+            
             const listing = {
                 id: getField('ID', ['id', 'Id']),
                 name: getField('Title', ['Name', 'name', 'title']) || getField('name'),
@@ -340,6 +342,7 @@ const initialData =
                 description: getField('Description', ['description', 'Desc', 'desc']),
                 image1: getField('Photo', ['photo', 'Image', 'image', 'Image1', 'image1', 'Image 1']),
                 image2: getField('Image2', ['image2', 'Image 2', 'Photo 2', 'photo2', 'Photo2', 'Second Photo', 'Secondary Photo']),
+                imageGallery: galleryValue,
                 website: getField('External Website', ['Website', 'website', 'URL', 'url']),
                 phone: getField('Phone', ['phone']),
                 address: getField('Address', ['address']),
@@ -2177,63 +2180,32 @@ const initialData =
                 
                 reader.onload = function(e) {
                     try {
-                        console.log('File loaded, parsing CSV...');
+                        console.log('File loaded, parsing CSV with header mapping...');
                         const text = e.target.result;
-                        const lines = text.split('\n');
-                        console.log('Total lines:', lines.length);
+                        const parsed = parseCSV(text);
                         
-                        const headers = lines[0].split(',');
-                        console.log('Headers:', headers);
-                        
-                        const newListings = [];
-                        for (let i = 1; i < lines.length; i++) {
-                            if (!lines[i].trim()) continue;
-                            
-                            // Simple CSV parsing (handles quoted fields)
-                            const values = [];
-                            let currentValue = '';
-                            let inQuotes = false;
-                            
-                            for (let j = 0; j < lines[i].length; j++) {
-                                const char = lines[i][j];
-                                if (char === '"') {
-                                    inQuotes = !inQuotes;
-                                } else if (char === ',' && !inQuotes) {
-                                    values.push(currentValue.trim());
-                                    currentValue = '';
-                                } else {
-                                    currentValue += char;
-                                }
-                            }
-                            values.push(currentValue.trim());
-                            
-                            // Clean values
-                            const cleanValues = values.map(function(v) {
-                                return v.replace(/^"/, '').replace(/"$/, '').replace(/""/g, '"');
-                            });
-                            
-                            const listing = {
-                                id: cleanValues[0] || Date.now().toString() + '-' + i,
-                                name: cleanValues[1] || 'Unnamed',
-                                type: cleanValues[2] || 'Brewery',
-                                area: cleanValues[3] || 'Afton',
-                                description: cleanValues[4] || '',
-                                image1: cleanValues[5] || '',
-                                image2: cleanValues[6] || '',
-                                website: cleanValues[7] || '',
-                                phone: cleanValues[8] || '',
-                                address: cleanValues[9] || '',
-                                amenities: cleanValues[10] ? cleanValues[10].split(';').map(function(a) { return a.trim(); }).filter(function(a) { return a; }) : [],
-                                featured: cleanValues[11] === 'true'
-                            };
-                            
-                            newListings.push(listing);
+                        if (!parsed || !parsed.headers || parsed.headers.length === 0) {
+                            alert('CSV file is missing a header row. Please include column names in the first row of the CSV.');
+                            return;
                         }
+                        
+                        console.log('Detected headers:', parsed.headers);
+                        
+                        const newListings = parsed.dataRows
+                            .map(function(row, index) {
+                                const listing = mapCSVRowToListing(row);
+                                if (!listing.name && !listing.id) {
+                                    console.warn('Skipping row', index + 2, '- missing required name/id field', row);
+                                    return null;
+                                }
+                                return listing;
+                            })
+                            .filter(Boolean);
                         
                         console.log('Parsed listings:', newListings.length);
                         
                         if (newListings.length === 0) {
-                            alert('No valid listings found in CSV file.');
+                            alert('No valid listings found in CSV file. Please verify the column names match the expected headers (e.g., "name", "type", "area").');
                             return;
                         }
                         
@@ -2242,9 +2214,35 @@ const initialData =
                                                 'Click OK to upload CSV and replace all current listings\n' +
                                                 'Click Cancel to keep current listings unchanged');
                         if (confirmed) {
+                            const existingFilterOptions = (data && data.filterOptions) ? data.filterOptions : (initialData.filterOptions || { types: [], areas: [], amenities: [] });
+                            
+                            const types = [...new Set(newListings.map(l => l.type).filter(Boolean))].sort();
+                            const areas = [...new Set(newListings.map(l => l.area).filter(Boolean))].sort();
+                            const amenities = [...new Set(newListings.flatMap(l => Array.isArray(l.amenities) ? l.amenities : (typeof l.amenities === 'string' ? l.amenities.split(/[,;]/) : [])).map(a => a && a.trim()).filter(Boolean))].sort();
+                            
+                            const mergedTypes = [...new Set([...(existingFilterOptions.types || []), ...types])].sort();
+                            const mergedAreas = [...new Set([...(existingFilterOptions.areas || []), ...areas])].sort();
+                            const mergedAmenities = [...new Set([...(existingFilterOptions.amenities || []), ...amenities])].sort();
+                            
+                            if (!data) {
+                                data = { listings: [], filterOptions: { types: [], areas: [], amenities: [] } };
+                            }
+                            
                             data.listings = newListings;
+                            data.filterOptions = {
+                                types: mergedTypes,
+                                areas: mergedAreas,
+                                amenities: mergedAmenities
+                            };
+                            
+                            saveFilterOptions();
                             renderDataTable();
                             renderListings();
+                            populateAdminFilters();
+                            updateTypeDropdown();
+                            updateAreaDropdown();
+                            renderAmenitiesCheckboxes();
+                            updateStats();
                             
                             // CSV imported locally only - user must click "Save All to Google Sheets" to sync
                             alert('CSV uploaded successfully! ' + newListings.length + ' listings imported locally.\n\n💾 Click "Save All to Google Sheets" to sync changes.');
