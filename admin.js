@@ -314,45 +314,63 @@ const initialData =
         }
         
         // Map CSV row to listing object
-        function mapCSVRowToListing(row, headers) {
-            const listing = {};
-            
-            headers.forEach(header => {
-                const value = row[header] || '';
-                const headerLower = header.toLowerCase().trim();
-                
-                if (headerLower === 'id' || headerLower === 'slug') {
-                    listing.id = String(value || '');
-                } else if (headerLower === 'title' || headerLower === 'name') {
-                    listing.name = String(value || '');
-                } else if (headerLower === 'type') {
-                    listing.type = String(value || '');
-                } else if (headerLower === 'area') {
-                    listing.area = String(value || '');
-                } else if (headerLower === 'description') {
-                    listing.description = String(value || '');
-                } else if (headerLower === 'photo' || headerLower === 'image1' || headerLower === 'image 1') {
-                    listing.image1 = String(value || '');
-                } else if (headerLower === 'image2' || headerLower === 'image 2') {
-                    listing.image2 = String(value || '');
-                } else if (headerLower === 'external website' || headerLower === 'website' || headerLower === 'url') {
-                    listing.website = String(value || '');
-                } else if (headerLower === 'phone') {
-                    listing.phone = String(value || '');
-                } else if (headerLower === 'address') {
-                    listing.address = String(value || '');
-                } else if (headerLower === 'amenities') {
-                    const amenityStr = String(value || '');
-                    listing.amenities = amenityStr.split(/[,;]/).map(a => a.trim()).filter(a => a);
-                } else if (headerLower === 'featured') {
-                    const featuredVal = String(value || '').toLowerCase();
-                    listing.featured = featuredVal === 'true' || featuredVal === 'yes' || featuredVal === '1';
+        function mapCSVRowToListing(row) {
+            const getField = (fieldName, altNames = []) => {
+                const names = [fieldName, ...altNames];
+                for (const name of names) {
+                    if (row[name] !== undefined && row[name] !== null) {
+                        return String(row[name]).trim();
+                    }
                 }
-            });
+                return '';
+            };
             
-            // Generate ID if missing
+            const parseList = (value) => {
+                if (!value) return [];
+                return value.split(/[,;]/).map(a => a.trim()).filter(Boolean);
+            };
+            
+            const featuredStr = getField('Featured', ['featured']);
+            
+            const listing = {
+                id: getField('ID', ['id', 'Id']),
+                name: getField('Title', ['Name', 'name', 'title']) || getField('name'),
+                type: getField('Type', ['type']),
+                area: getField('Area', ['area']),
+                description: getField('Description', ['description', 'Desc', 'desc']),
+                image1: getField('Photo', ['photo', 'Image', 'image', 'Image1', 'image1', 'Image 1']),
+                image2: getField('Image2', ['image2', 'Image 2', 'Photo 2', 'photo2', 'Photo2', 'Second Photo', 'Secondary Photo']),
+                website: getField('External Website', ['Website', 'website', 'URL', 'url']),
+                phone: getField('Phone', ['phone']),
+                address: getField('Address', ['address']),
+                amenities: parseList(getField('Amenities', ['amenities', 'Amenity'])),
+                amenitiesTags: parseList(getField('Amenities Tags', ['amenities_tags', 'Amenities_Tags', 'Amenity Tags'])),
+                featured: featuredStr === 'TRUE' || featuredStr === 'true' || featuredStr === '1' || featuredStr === 'Yes' || featuredStr === 'yes',
+                slug: getField('slug'),
+                wordpressUrl: getField('wordpressUrl'),
+                authorName: getField('authorName'),
+                authorEmail: getField('authorEmail'),
+                authorUsername: getField('authorUsername'),
+                authorId: getField('authorId'),
+                publishedDate: getField('publishedDate'),
+                modifiedDate: getField('modifiedDate'),
+                status: getField('status'),
+                commentStatus: getField('commentStatus'),
+                pingStatus: getField('pingStatus'),
+                originalCategories: getField('originalCategories'),
+                originalAttributes: getField('originalAttributes'),
+                dataConfidence: getField('dataConfidence'),
+                notes: getField('notes'),
+                descriptionSource: getField('descriptionSource'),
+                amenitiesGuessed: getField('amenitiesGuessed'),
+                missingFields: getField('missingFields'),
+                directionsLink: getField('directionsLink')
+            };
+            
             if (!listing.id && listing.name) {
-                listing.id = listing.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                listing.id = listing.name.toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
             }
             
             return listing;
@@ -620,8 +638,8 @@ const initialData =
                     const parsed = parseCSV(csvText);
                     
                     if (parsed.dataRows && parsed.dataRows.length > 0) {
-                        const listings = parsed.dataRows
-                            .map(row => mapCSVRowToListing(row, parsed.headers))
+                            const listings = parsed.dataRows
+                                .map(row => mapCSVRowToListing(row))
                             .filter(listing => listing.name); // Only keep listings with names
                         
                         // Extract filter options from listings
@@ -895,8 +913,34 @@ const initialData =
                 img.className = 'listing-image';
                 card.appendChild(img);
                 
-                const content = document.createElement('div');
+            const content = document.createElement('div');
                 content.className = 'listing-content';
+            
+            const contactLines = [];
+            if (listing.authorName) {
+                let authorLine = 'Author: ' + listing.authorName;
+                if (listing.authorEmail) {
+                    authorLine += ' (' + listing.authorEmail + ')';
+                }
+                contactLines.push(authorLine);
+            }
+            if (listing.publishedDate) {
+                contactLines.push('Published: ' + listing.publishedDate);
+            }
+            if (listing.modifiedDate) {
+                contactLines.push('Updated: ' + listing.modifiedDate);
+            }
+            if (listing.phone) {
+                contactLines.push('Phone: ' + listing.phone);
+            }
+            if (listing.address) {
+                contactLines.push('Address: ' + listing.address);
+            }
+            if (listing.directionsLink) {
+                contactLines.push('Directions: <a href="' + listing.directionsLink + '" target="_blank" rel="noopener noreferrer">Open Map ↗</a>');
+            }
+            const contactHtml = contactLines.join('<br>');
+
                 content.innerHTML = 
                     '<h3>' + listing.name + '</h3>' +
                     '<div class="listing-meta">' +
@@ -908,10 +952,9 @@ const initialData =
                     listing.amenities.slice(0, 4).map(function(a) { return '<span class="amenity">' + a + '</span>'; }).join('') +
                     (listing.amenities.length > 4 ? '<span class="amenity">+' + (listing.amenities.length - 4) + ' more</span>' : '') +
                     '</div>' +
-                    '<div class="listing-contact">' +
-                    (listing.phone ? 'Phone: ' + listing.phone + '<br>' : '') +
-                    'Address: ' + listing.address +
-                    '</div>';
+                '<div class="listing-contact">' +
+                (contactHtml || 'No contact details provided') +
+                '</div>';
                 
                 const actions = document.createElement('div');
                 actions.className = 'listing-actions';
@@ -974,7 +1017,14 @@ const initialData =
                     listing.type,
                     listing.area,
                     listing.description,
-                    listing.amenities.join(' ')
+                listing.address,
+                listing.authorName,
+                listing.authorEmail,
+                listing.publishedDate,
+                listing.modifiedDate,
+                listing.directionsLink,
+                listing.amenities.join(' '),
+                (listing.amenitiesTags || []).join(' ')
                 ].join(' ').toLowerCase();
                 
                 const matchesSearch = !searchTerm || searchableText.indexOf(searchTerm) > -1;
@@ -1094,6 +1144,16 @@ const initialData =
             document.getElementById('listingWebsite').value = listing.website;
             document.getElementById('listingPhone').value = listing.phone || '';
             document.getElementById('listingAddress').value = listing.address;
+            const authorNameInput = document.getElementById('listingAuthorName');
+            if (authorNameInput) authorNameInput.value = listing.authorName || '';
+            const authorEmailInput = document.getElementById('listingAuthorEmail');
+            if (authorEmailInput) authorEmailInput.value = listing.authorEmail || '';
+            const publishedInput = document.getElementById('listingPublishedDate');
+            if (publishedInput) publishedInput.value = listing.publishedDate || '';
+            const modifiedInput = document.getElementById('listingModifiedDate');
+            if (modifiedInput) modifiedInput.value = listing.modifiedDate || '';
+            const directionsInput = document.getElementById('listingDirectionsLink');
+            if (directionsInput) directionsInput.value = listing.directionsLink || '';
             document.getElementById('listingFeatured').checked = listing.featured || false;
             
             const checkboxes = document.querySelectorAll('#amenitiesCheckboxes input[type="checkbox"]');
@@ -1207,27 +1267,58 @@ const initialData =
         function saveListing(event) {
             event.preventDefault();
             
+            const getValue = function(id) {
+                const el = document.getElementById(id);
+                return el ? el.value : '';
+            };
+            
+            const getChecked = function(id) {
+                const el = document.getElementById(id);
+                return el ? el.checked : false;
+            };
+            
             const checkboxes = document.querySelectorAll('#amenitiesCheckboxes input[type="checkbox"]:checked');
             const selectedAmenities = [];
             checkboxes.forEach(function(cb) { selectedAmenities.push(cb.value); });
             
-            const listing = {
-                id: document.getElementById('editingId').value || Date.now().toString(),
-                name: document.getElementById('listingName').value,
-                type: document.getElementById('listingType').value,
-                area: document.getElementById('listingArea').value,
-                description: document.getElementById('listingDescription').value,
-                image1: document.getElementById('listingImage1').value,
-                image2: document.getElementById('listingImage2').value,
-                website: document.getElementById('listingWebsite').value,
-                phone: document.getElementById('listingPhone').value,
-                address: document.getElementById('listingAddress').value,
-                amenities: selectedAmenities,
-                featured: document.getElementById('listingFeatured').checked
-            };
-            
             const editingId = document.getElementById('editingId').value;
             const isUpdate = !!editingId;
+            const existingListing = isUpdate ? data.listings.find(function(l) { return l.id === editingId; }) : null;
+            const generatedId = editingId || Date.now().toString();
+            
+            const listingUpdates = {
+                id: generatedId,
+                name: getValue('listingName'),
+                type: getValue('listingType'),
+                area: getValue('listingArea'),
+                description: getValue('listingDescription'),
+                image1: getValue('listingImage1'),
+                image2: getValue('listingImage2'),
+                website: getValue('listingWebsite'),
+                phone: getValue('listingPhone'),
+                address: getValue('listingAddress'),
+                amenities: selectedAmenities,
+                featured: getChecked('listingFeatured'),
+                authorName: getValue('listingAuthorName'),
+                authorEmail: getValue('listingAuthorEmail'),
+                publishedDate: getValue('listingPublishedDate'),
+                modifiedDate: getValue('listingModifiedDate'),
+                directionsLink: getValue('listingDirectionsLink')
+            };
+            
+            const listing = Object.assign({}, existingListing || {}, listingUpdates);
+            
+            if (!listing.slug && listing.name) {
+                listing.slug = listing.name.toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+            }
+            
+            if (!listing.amenitiesTags) {
+                listing.amenitiesTags = existingListing && existingListing.amenitiesTags 
+                    ? existingListing.amenitiesTags.slice() 
+                    : [];
+            }
             
             // Save locally only - user must click "Save All to Google Sheets" to sync
                         if (isUpdate) {
@@ -1887,6 +1978,11 @@ const initialData =
                     '<td class="cell-website"><input type="url" value="' + listing.website + '" data-field="website" /></td>' +
                     '<td class="cell-phone"><input type="tel" value="' + (listing.phone || '') + '" data-field="phone" /></td>' +
                     '<td class="cell-address"><input type="text" value="' + listing.address + '" data-field="address" /></td>' +
+                    '<td class="cell-author"><input type="text" value="' + (listing.authorName || '') + '" data-field="authorName" placeholder="Author name" /></td>' +
+                    '<td class="cell-author-email"><input type="email" value="' + (listing.authorEmail || '') + '" data-field="authorEmail" placeholder="name@example.com" /></td>' +
+                    '<td class="cell-date"><input type="date" value="' + (listing.publishedDate || '') + '" data-field="publishedDate" /></td>' +
+                    '<td class="cell-date"><input type="date" value="' + (listing.modifiedDate || '') + '" data-field="modifiedDate" /></td>' +
+                    '<td class="cell-directions"><input type="url" value="' + (listing.directionsLink || '') + '" data-field="directionsLink" placeholder="https://..." /></td>' +
                     '<td class="cell-amenities"><textarea data-field="amenities">' + listing.amenities.join(', ') + '</textarea></td>' +
                     '<td class="cell-featured"><input type="checkbox" ' + (listing.featured ? 'checked' : '') + ' data-field="featured" /></td>' +
                     '<td class="cell-actions">' +
@@ -1979,21 +2075,62 @@ const initialData =
         
         window.downloadCSV = function downloadCSV() {
             try {
-                const headers = ['ID', 'Name', 'Type', 'Area', 'Description', 'Image1', 'Image2', 'Website', 'Phone', 'Address', 'Amenities', 'Featured'];
+                const escapeCsv = function(value) {
+                    const str = value === undefined || value === null ? '' : String(value);
+                    if (str === '') return '';
+                    return '"' + str.replace(/"/g, '""') + '"';
+                };
+                
+                const joinList = function(arr) {
+                    if (!arr || !arr.length) return '';
+                    return arr.join('; ');
+                };
+                
+                const headers = [
+                    'id', 'name', 'type', 'area', 'description',
+                    'image1', 'image2', 'imageGallery', 'website', 'phone', 'address',
+                    'amenities', 'amenities_tags', 'featured', 'slug', 'wordpressUrl',
+                    'authorName', 'authorEmail', 'authorUsername', 'authorId',
+                    'publishedDate', 'modifiedDate', 'status', 'commentStatus', 'pingStatus',
+                    'originalCategories', 'originalAttributes', 'dataConfidence', 'notes',
+                    'descriptionSource', 'amenitiesGuessed', 'missingFields', 'directionsLink'
+                ];
+                
                 const rows = data.listings.map(function(listing) {
                     return [
-                        listing.id,
-                        '"' + (listing.name || '').replace(/"/g, '""') + '"',
-                        listing.type,
-                        listing.area,
-                        '"' + (listing.description || '').replace(/"/g, '""') + '"',
-                        '"' + (listing.image1 || '').replace(/"/g, '""') + '"',
-                        '"' + (listing.image2 || '').replace(/"/g, '""') + '"',
-                        listing.website,
+                        listing.id || '',
+                        escapeCsv(listing.name || ''),
+                        listing.type || '',
+                        listing.area || '',
+                        escapeCsv(listing.description || ''),
+                        escapeCsv(listing.image1 || ''),
+                        escapeCsv(listing.image2 || ''),
+                        escapeCsv(listing.imageGallery || ''),
+                        listing.website || '',
                         listing.phone || '',
-                        '"' + (listing.address || '').replace(/"/g, '""') + '"',
-                        '"' + listing.amenities.join('; ') + '"',
-                        listing.featured ? 'true' : 'false'
+                        escapeCsv(listing.address || ''),
+                        escapeCsv(joinList(listing.amenities || [])),
+                        escapeCsv(joinList(listing.amenitiesTags || [])),
+                        listing.featured ? 'true' : 'false',
+                        listing.slug || '',
+                        listing.wordpressUrl || '',
+                        listing.authorName || '',
+                        listing.authorEmail || '',
+                        listing.authorUsername || '',
+                        listing.authorId || '',
+                        listing.publishedDate || '',
+                        listing.modifiedDate || '',
+                        listing.status || '',
+                        listing.commentStatus || '',
+                        listing.pingStatus || '',
+                        listing.originalCategories || '',
+                        listing.originalAttributes || '',
+                        listing.dataConfidence || '',
+                        escapeCsv(listing.notes || ''),
+                        listing.descriptionSource || '',
+                        listing.amenitiesGuessed || '',
+                        listing.missingFields || '',
+                        listing.directionsLink || ''
                     ].join(',');
                 });
                 
