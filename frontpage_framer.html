@@ -4953,8 +4953,10 @@ function clearPreviewFilters() {
 }
 
 // Filter to show only a specific listing (from map popup)
-function filterByListingName(listingName) {
+function filterByListingName(listingName, autoFlip) {
     if (!data) return;
+    
+    var shouldAutoFlip = (typeof autoFlip === 'undefined') ? true : !!autoFlip;
     
     // Clear all other filters
     const searchInput = document.getElementById('previewSearchInput');
@@ -4980,6 +4982,8 @@ function filterByListingName(listingName) {
     // Show clear button
     const clearBtn = document.getElementById('clearFiltersBtn');
     if (clearBtn) clearBtn.style.display = 'block';
+    const mobileClearBtn = document.getElementById('mobileClearFiltersBtn');
+    if (mobileClearBtn) mobileClearBtn.style.display = 'block';
     
     renderPreview(filtered);
     
@@ -4997,8 +5001,10 @@ function filterByListingName(listingName) {
             if (cards.length > 0) {
                 cards[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
                 
-                // Auto-flip the card to show details when coming from URL parameter
-                setTimeout(function() { cards[0].click(); }, 300);
+                if (shouldAutoFlip) {
+                    // Auto-flip the card to show details when allowed
+                    setTimeout(function() { cards[0].click(); }, 300);
+                }
             } else {
                 previewGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
@@ -6247,9 +6253,9 @@ function updateMapMarkers(listings) {
                     var cardHeight = cardWidth; // Square
                     var fontSize = (window.innerWidth < 969) ? 12 : 14;
                     var gradientHeight = (window.innerWidth < 969) ? 50 : 60;
-                    var simpleContent = '<div style="padding: 0 !important; margin: 0 !important; text-align: center; cursor: pointer; width: ' + cardWidth + 'px; height: ' + cardHeight + 'px; position: relative; overflow: hidden; border-radius: 12px; line-height: 0; font-size: 0; background-image: url(\'' + imageUrl + '\'); background-size: cover !important; background-position: center center !important; background-repeat: no-repeat !important; display: flex; flex-direction: column; justify-content: flex-end; border: 4px solid #ffffff; outline: 0; box-sizing: border-box; min-width: ' + cardWidth + 'px; min-height: ' + cardHeight + 'px;" onclick="filterByListingName(\'' + escapeHtml(fixEncoding(listing.name)).replace(/'/g, "\\'") + '\'); google.maps.event.trigger(map, \'click\');">' + 
+                    var simpleContent = '<div style="padding: 0 !important; margin: 0 !important; text-align: center; cursor: pointer; width: ' + cardWidth + 'px; height: ' + cardHeight + 'px; position: relative; overflow: hidden; border-radius: 12px; line-height: 0; font-size: 0; background-image: url(\'' + imageUrl + '\'); background-size: cover !important; background-position: center center !important; background-repeat: no-repeat !important; display: flex; flex-direction: column; justify-content: flex-end; border: 4px solid #ffffff; outline: 0; box-sizing: border-box; min-width: ' + cardWidth + 'px; min-height: ' + cardHeight + 'px;" onclick="filterByListingName(\'' + escapeHtml(fixEncoding(listing.name)).replace(/'/g, "\\'") + '\', false); google.maps.event.trigger(map, \'click\');">' + 
                         '<div style="position: absolute; bottom: 0; left: 0; right: 0; height: ' + gradientHeight + 'px; background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0)); pointer-events: none; z-index: 1; margin: 0; padding: 0;"></div>' +
-                        '<div style="font-size: ' + fontSize + 'px; font-weight: 600; color: #ffffff; line-height: 1.1; padding: 0 8px 4px 8px; margin: 0; position: relative; z-index: 2; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">' + escapeHtml(fixEncoding(listing.name)) + '</div>' +
+                        '<div style="font-size: ' + fontSize + 'px; font-weight: 600; color: #ffffff; line-height: 1.2; margin: 0; padding: 0 12px; position: absolute; left: 0; right: 0; bottom: 12px; z-index: 2; text-shadow: 0 1px 2px rgba(0,0,0,0.5); box-sizing: border-box;">' + escapeHtml(fixEncoding(listing.name)) + '</div>' +
                         '</div>';
                     infoWindow.setContent(simpleContent);
                     infoWindow.open(map, marker);
