@@ -1230,6 +1230,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             const filtered = data.listings.filter(function(listing) {
                 const searchableText = [
                     listing.name,
+                    listing.slug,
                     listing.type,
                     listing.area,
                     listing.description,
@@ -1346,6 +1347,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             document.getElementById('listingDescription').value = listing.description;
             const detailedDescriptionInput = document.getElementById('listingDetailedDescription');
             if (detailedDescriptionInput) detailedDescriptionInput.value = listing.detailedDescription || '';
+            const slugInput = document.getElementById('listingSlug');
+            if (slugInput) slugInput.value = listing.slug || '';
             document.getElementById('listingImage1').value = listing.image1;
             document.getElementById('listingImage2').value = listing.image2 || '';
             const image3Input = document.getElementById('listingImage3');
@@ -1497,6 +1500,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             const listingUpdates = {
                 id: generatedId,
                 name: getValue('listingName'),
+                slug: getValue('listingSlug'),
                 type: getValue('listingType'),
                 area: getValue('listingArea'),
                 description: getValue('listingDescription'),
@@ -2202,6 +2206,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 // Search text
                 const searchableText = [
                     listing.name,
+                    listing.slug,
                     listing.type,
                     listing.area,
                     listing.description,
@@ -2250,6 +2255,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 row.innerHTML = 
                     '<td class="cell-id">' + safe(listing.id) + '</td>' +
                     '<td class="cell-name"><input type="text" value="' + safe(listing.name) + '" data-field="name" /></td>' +
+                    '<td class="cell-slug"><input type="text" value="' + safe(listing.slug) + '" data-field="slug" placeholder="auto" /></td>' +
                     '<td class="cell-type"><select data-field="type">' +
                         data.filterOptions.types.map(function(t) { return '<option value="' + t + '" ' + (safe(listing.type) === t ? 'selected' : '') + '>' + t + '</option>'; }).join('') +
                     '</select></td>' +
@@ -2377,16 +2383,17 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 };
                 
                 const headers = [
-                    'id', 'name', 'type', 'area', 'description', 'detailedDescription',
+                    'id', 'name', 'slug', 'type', 'area', 'description', 'detailedDescription',
                     'image1', 'image2', 'image3', 'website', 'phone', 'address',
                     'authorName', 'publishedDate', 'modifiedDate', 'directionsLink',
-                    'amenities', 'featured', 'slug', 'googleMapsUrl'
+                    'amenities', 'featured', 'googleMapsUrl'
                 ];
                 
                 const rows = data.listings.map(function(listing) {
                     return [
                         listing.id || '',
                         escapeCsv(listing.name || ''),
+                        escapeCsv(listing.slug || ''),
                         listing.type || '',
                         listing.area || '',
                         escapeCsv(listing.description || ''),
@@ -2403,7 +2410,6 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         listing.directionsLink || '',
                         escapeCsv(joinList(listing.amenities || [])),
                         listing.featured ? 'true' : 'false',
-                        listing.slug || '',
                         listing.googleMapsUrl || listing.directionsLink || ''
                     ].join(',');
                 });
