@@ -1820,22 +1820,34 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     throw new Error('HTTP ' + response.status);
                 }
                 const json = await response.json();
-                if (!json.success) {
-                    throw new Error(json.error || 'Failed to fetch ImageKit upload params');
+                if (!json || json.success === false) {
+                    throw new Error((json && json.error) || 'Failed to fetch ImageKit upload params');
                 }
-                return json.data;
+                const data = json.data || json;
+                if (!data || !data.token || !data.signature || !data.expire) {
+                    throw new Error('Invalid ImageKit params response (missing fields)');
+                }
+                return data;
             } catch (getError) {
                 console.warn('GET request for ImageKit params failed, falling back to POST:', getError);
                 
                 const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: IMAGEKIT_AUTH_ACTION })
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'action=' + encodeURIComponent(IMAGEKIT_AUTH_ACTION)
                 });
-                const json = await response.json();
-                if (!json.success) {
-                    throw new Error(json.error || 'Failed to fetch ImageKit upload params');
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
                 }
-                return json.data;
+                const json = await response.json();
+                if (!json || json.success === false) {
+                    throw new Error((json && json.error) || 'Failed to fetch ImageKit upload params');
+                }
+                const data = json.data || json;
+                if (!data || !data.token || !data.signature || !data.expire) {
+                    throw new Error('Invalid ImageKit params response (missing fields)');
+                }
+                return data;
             }
         }
 
