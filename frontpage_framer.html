@@ -91,8 +91,8 @@
     --badge-type-color: #212529;
     --badge-area-bg: #ffffff;
     --badge-area-color: #212529;
-    --badge-featured-bg: rgba(59, 130, 246, 0.1);
-    --badge-featured-color: #3b82f6;
+    --badge-featured-bg: #bbc236;
+    --badge-featured-color: #ffffff;
             
             /* SVG Icon Definitions - All icons with stroke='currentColor' */
             --icon-wine: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 22h8'/%3E%3Cpath d='M7 10h10'/%3E%3Cpath d='M12 15v7'/%3E%3Cpath d='M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5z'/%3E%3C/svg%3E");
@@ -506,16 +506,16 @@
             line-height: 1;
             letter-spacing: 0.02em;
             text-transform: uppercase;
-            background: rgba(255, 255, 255, 0.9);
-            color: var(--theme-primary);
-            border: 1px solid rgba(45, 106, 79, 0.2);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-            z-index: 2;
+            background: var(--badge-featured-bg);
+            color: var(--badge-featured-color);
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+            z-index: 3;
         }
         :root.dark-mode .card-featured-tag {
-            background: rgba(17, 24, 39, 0.9);
-            color: #9ae6b4;
-            border-color: rgba(154, 230, 180, 0.25);
+            background: var(--badge-featured-bg);
+            color: var(--badge-featured-color);
+            border: none;
         }
         
         .preview-container { 
@@ -870,8 +870,8 @@
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 10.5a3 3 0 11-6 0 3 3 0 016 0z' /%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z' /%3E%3C/svg%3E");
         }
         .badge-featured {
-            background: rgba(59, 130, 246, 0.1);
-            color: #3b82f6;
+            background: var(--badge-featured-bg);
+            color: var(--badge-featured-color);
             padding: 4px 10px;
             border-radius: 6px;
             font-size: 11px;
@@ -884,17 +884,17 @@
             gap: 6px;
         }
         .badge-featured:hover {
-            background-color: #3b82f6;
-            color: white;
+            background-color: #a6ad2d;
+            color: var(--badge-featured-color);
             transform: scale(1.05);
         }
         :root.dark-mode body .badge-featured {
-            background-color: rgba(59, 130, 246, 0.2);
-            color: #93c5fd;
+            background-color: var(--badge-featured-bg);
+            color: var(--badge-featured-color);
         }
         :root.dark-mode body .badge-featured:hover {
-            background-color: #3b82f6;
-            color: white;
+            background-color: #a6ad2d;
+            color: var(--badge-featured-color);
         }
         
         /* Card Info Icons */
