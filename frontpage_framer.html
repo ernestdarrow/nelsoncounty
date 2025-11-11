@@ -4683,14 +4683,32 @@ const FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
 // Helper function to normalize image URLs - prepends CMS base URL if needed
 function normalizeImageUrl(url) {
     if (!url) return url;
-    // If already a full URL (starts with http:// or https://) or data URI, return as-is
-    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+    
+    let finalUrl = url;
+    
+    // If already a full URL (starts with http:// or https://) or data URI, keep as-is
+    if (!(url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:'))) {
+        // Remove leading slash if present to avoid double slashes
+        const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+        // Prepend CMS base URL
+        finalUrl = CMS_BASE_URL + '/' + cleanUrl;
+    }
+    
+    return applyImageKitTransform(finalUrl);
+}
+
+function applyImageKitTransform(url) {
+    if (!url) return url;
+    
+    const isImageKit = url.startsWith('https://ik.imagekit.io/');
+    const hasTransform = url.includes('tr=');
+    
+    if (!isImageKit || hasTransform) {
         return url;
     }
-    // Remove leading slash if present to avoid double slashes
-    const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
-    // Prepend CMS base URL
-    return CMS_BASE_URL + '/' + cleanUrl;
+    
+    const transformParams = 'tr=w-800,h-800,cm-at_least,f-auto,q-80';
+    return url.includes('?') ? url + '&' + transformParams : url + '?' + transformParams;
 }
 
 // Handle image error - try image2, then fallback
