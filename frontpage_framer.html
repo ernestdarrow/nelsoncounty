@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- FRAMER CODE ADDON - Adventure Directory -->
+    <!-- FRAMERs CODE ADDON - Adventure Directory -->
     <!-- This code addon displays an interactive directory of listings with filtering, search, and map integration -->
     <!-- 
     SETUP INSTRUCTIONS:
@@ -883,6 +883,13 @@
             margin-bottom: 10px;
             transition: all 0.2s;
         }
+
+        /* Hide contributor and created/updated meta rows on card backs (icon colors are unique to those rows) */
+        .flip-card-back .card-info-item:has(svg[stroke="#4E6B52"]),
+        .flip-card-back .card-info-item:has(svg[stroke="#6366f1"]) {
+            display: none !important;
+        }
+
         a.card-info-item:hover {
             opacity: 0.8;
         }
@@ -2573,17 +2580,6 @@
             border: none;
             cursor: pointer;
         }
-        .map-popup-link {
-            display: inline-block;
-            margin-top: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #2d6a4f !important;
-            text-decoration: none !important;
-        }
-        .map-popup-link:hover {
-            text-decoration: underline !important;
-        }
         .map-popup-btn:hover {
             background: var(--theme-primary-hover);
             transform: translateY(-2px);
@@ -3841,29 +3837,11 @@ function parseCSVLine(line) {
 
 // Helper function to convert CSV row to listing object
 function mapCSVRowToListing(row, index) {
-    // Handle various column name variations (case-insensitive, trimmed)
-    const normalizedRow = {};
-    if (row && typeof row === 'object') {
-        Object.keys(row).forEach(function(key) {
-            if (key === undefined || key === null) return;
-            const normalizedKey = String(key).trim().toLowerCase();
-            if (normalizedKey) {
-                normalizedRow[normalizedKey] = row[key];
-            }
-        });
-    }
-    
+    // Handle various column name variations
     const getField = (fieldName, altNames = []) => {
         const names = [fieldName, ...altNames];
         for (const name of names) {
-            const normalizedName = String(name).trim().toLowerCase();
-            if (!normalizedName) continue;
-            if (Object.prototype.hasOwnProperty.call(normalizedRow, normalizedName)) {
-                const value = normalizedRow[normalizedName];
-                if (value !== undefined && value !== null) {
-                    return String(value).trim();
-                }
-            }
+            if (row[name]) return row[name].trim();
         }
         return '';
     };
@@ -3878,14 +3856,6 @@ function mapCSVRowToListing(row, index) {
     const featuredStr = getField('Featured', ['featured']);
     const featured = featuredStr === 'TRUE' || featuredStr === 'true' || featuredStr === '1' || featuredStr === 'Yes' || featuredStr === 'yes';
     
-    const authorName = getField('Author Name', ['authorName', 'Author', 'author', 'contributor', 'contributor name']);
-    const authorEmail = getField('Author Email', ['authorEmail', 'Author Email', 'author_email', 'contributor email', 'email']);
-    const publishedDate = getField('Published Date', ['publishedDate', 'Created Date', 'createdDate', 'Date Created', 'publishDate', 'created on']);
-    const modifiedDate = getField('Modified Date', ['modifiedDate', 'Updated Date', 'updatedDate', 'Date Updated', 'editedDate', 'Edited Date', 'last updated', 'last modified']);
-    const googleMapsUrlField = getField('Google Maps URL', ['Google Map URL', 'Google Maps Link', 'Maps URL', 'Map URL', 'Google Maps', 'googleMapsUrl', 'google_maps_url', 'map url', 'maps link']);
-    const directionsLinkField = getField('Directions Link', ['directionsLink', 'Directions', 'Map Link', 'Directions URL', 'map directions', 'directions url']);
-    const directionsLink = directionsLinkField || googleMapsUrlField;
-    
     return {
         id: getField('ID', ['id', 'Id']) || String(index + 1),
         name: getField('Title', ['Name', 'name', 'title']) || 'Unnamed',
@@ -3895,17 +3865,11 @@ function mapCSVRowToListing(row, index) {
         image1: getField('Photo', ['photo', 'Image', 'image', 'Image1', 'image1', 'Image 1']) || '',
         // Support multiple second-image header variants from the sheet
         image2: getField('Image2', ['image2', 'Image 2', 'Photo 2', 'photo2', 'Photo2', 'Second Photo', 'Secondary Photo']) || '',
-        website: getField('External Website', ['Website', 'website', 'URL', 'url', 'website url', 'site url', 'business website', 'website link']) || '',
-        phone: getField('Phone', ['phone', 'phone number', 'business phone', 'contact phone', 'primary phone']) || '',
-        address: getField('Address', ['address', 'street address', 'business address', 'physical address', 'location']) || '',
+        website: getField('External Website', ['Website', 'website', 'URL', 'url']) || '',
+        phone: getField('Phone', ['phone']) || '',
+        address: getField('Address', ['address']) || '',
         amenities: amenities,
-        featured: featured,
-        authorName: authorName || '',
-        authorEmail: authorEmail || '',
-        publishedDate: publishedDate || '',
-        modifiedDate: modifiedDate || '',
-        directionsLink: directionsLink || '',
-        googleMapsUrl: googleMapsUrlField || directionsLink || ''
+        featured: featured
     };
 }
 
@@ -4466,21 +4430,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-function formatDisplayDate(dateStr) {
-    if (!dateStr) return '';
-    const trimmed = String(dateStr).trim();
-    if (!trimmed) return '';
-    const parsed = new Date(trimmed);
-    if (!isNaN(parsed.getTime())) {
-        try {
-            return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        } catch (e) {
-            // Fallback to ISO if locale fails
-        }
-    }
-    return trimmed;
-}
-
 // Function to fix character encoding issues
 function fixEncoding(text) {
     if (!text) return text;
@@ -4877,11 +4826,6 @@ function filterPreview() {
         const addressText = (listing.address || '').toLowerCase();
         const phoneText = (listing.phone || '').toLowerCase();
         const websiteText = (listing.website || '').toLowerCase();
-        const authorText = (listing.authorName || '').toLowerCase();
-        const authorEmailText = (listing.authorEmail || '').toLowerCase();
-        const createdText = (listing.publishedDate || '').toLowerCase();
-        const updatedText = (listing.modifiedDate || '').toLowerCase();
-        const directionsText = (listing.directionsLink || listing.googleMapsUrl || '').toLowerCase();
         const matchesSearch = !searchTerm || 
             listing.name.toLowerCase().includes(searchTerm) ||
             listing.type.toLowerCase().includes(searchTerm) ||
@@ -4890,12 +4834,7 @@ function filterPreview() {
             addressText.includes(searchTerm) ||
             phoneText.includes(searchTerm) ||
             websiteText.includes(searchTerm) ||
-            amenitiesText.includes(searchTerm) ||
-            authorText.includes(searchTerm) ||
-            authorEmailText.includes(searchTerm) ||
-            createdText.includes(searchTerm) ||
-            updatedText.includes(searchTerm) ||
-            directionsText.includes(searchTerm);
+            amenitiesText.includes(searchTerm);
         
         // Handle type matching - treat "Activity" and "Outdoor" as equivalent
         const matchesType = currentTypeFilter.length === 0 || currentTypeFilter.some(function(filterType) {
@@ -5021,10 +4960,8 @@ function clearPreviewFilters() {
 }
 
 // Filter to show only a specific listing (from map popup)
-function filterByListingName(listingName, autoFlip) {
+function filterByListingName(listingName) {
     if (!data) return;
-    
-    var shouldAutoFlip = (typeof autoFlip === 'undefined') ? true : !!autoFlip;
     
     // Clear all other filters
     const searchInput = document.getElementById('previewSearchInput');
@@ -5050,8 +4987,6 @@ function filterByListingName(listingName, autoFlip) {
     // Show clear button
     const clearBtn = document.getElementById('clearFiltersBtn');
     if (clearBtn) clearBtn.style.display = 'block';
-    const mobileClearBtn = document.getElementById('mobileClearFiltersBtn');
-    if (mobileClearBtn) mobileClearBtn.style.display = 'block';
     
     renderPreview(filtered);
     
@@ -5069,10 +5004,8 @@ function filterByListingName(listingName, autoFlip) {
             if (cards.length > 0) {
                 cards[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
                 
-                if (shouldAutoFlip) {
-                    // Auto-flip the card to show details when allowed
-                    setTimeout(function() { cards[0].click(); }, 300);
-                }
+                // Auto-flip the card to show details when coming from URL parameter
+                setTimeout(function() { cards[0].click(); }, 300);
             } else {
                 previewGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
@@ -5541,8 +5474,7 @@ function renderPreview(filteredListings) {
             addressDiv.addEventListener('click', function(e) {
                 e.stopPropagation(); // Prevent card flip
             });
-            const fallbackMapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(listing.address);
-            const preferredMapsUrl = listing.directionsLink || listing.googleMapsUrl || fallbackMapsUrl;
+            const googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(listing.address);
             addressDiv.innerHTML = 
                 '<div class="card-info-icon" style="width: 32px; height: 32px; flex-shrink: 0; display: flex; align-items: flex-start; justify-content: center; padding-top: 6px;">' +
                 '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; stroke: #D65052;">' +
@@ -5551,7 +5483,7 @@ function renderPreview(filteredListings) {
                 '</svg>' +
                 '</div>' +
                 '<div style="flex: 1; padding-top: 6px; line-height: 0.85;">' +
-                '<a href="' + escapeHtml(preferredMapsUrl) + '" style="font-size: 12px; color: var(--text-primary); text-decoration: none; line-height: 0.85;" target="_blank" rel="noopener noreferrer">' + escapeHtml(fixEncoding(listing.address)) + '</a>' +
+                '<a href="' + googleMapsUrl + '" style="font-size: 12px; color: var(--text-primary); text-decoration: none; line-height: 0.85;" target="_blank" rel="noopener noreferrer">' + escapeHtml(fixEncoding(listing.address)) + '</a>' +
                 '</div>';
             backContent.appendChild(addressDiv);
         }
@@ -5700,6 +5632,14 @@ function renderPreview(filteredListings) {
             amenitiesDiv.appendChild(amenitiesWrapper);
             backContent.appendChild(amenitiesDiv);
         }
+        
+        // Remove any contributor or created/updated info rows if they slipped through from cached markup
+        Array.from(backContent.querySelectorAll('.card-info-item')).forEach(function(item) {
+            const text = (item.textContent || '').toLowerCase();
+            if (text.includes('contributed by') || text.includes('created ') || text.includes('updated ')) {
+                item.style.display = 'none';
+            }
+        });
         
         // Link to full page
         const viewLink = document.createElement('a');
@@ -6305,8 +6245,6 @@ function updateMapMarkers(listings) {
                     ? '<img src="' + normalizeImageUrl(listing.image1) + '" onerror="this.onerror=null; this.src=FALLBACK_IMG;" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; display: block; margin: 0; padding: 0;">'
                     : '<img src="' + FALLBACK_IMG + '" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; display: block; margin: 0; padding: 0;">';
                 
-                var mapLink = listing.directionsLink || listing.googleMapsUrl || ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(listing.address || ''));
-                
                 var popupContent = 
                     '<div style="padding: 20px 16px; margin: 0; line-height: normal;">' +
                     '<div class="map-popup-title">' + escapeHtml(fixEncoding(listing.name)) + '</div>' +
@@ -6316,7 +6254,6 @@ function updateMapMarkers(listings) {
                     '</div>' +
                     imageHtml +
                     '<div class="map-popup-desc" style="margin-top: 12px;">' + escapeHtml(fixEncoding(listing.description).substring(0, 100)) + '...</div>' +
-                    (mapLink ? '<a class="map-popup-link" href="' + escapeHtml(mapLink) + '" target="_blank" rel="noopener noreferrer">Open in Google Maps ↗</a>' : '') +
                     '<button class="map-popup-btn" style="width: 100%; margin-top: 16px; background: #2d6a4f !important; color: white !important; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: visible; white-space: nowrap;" onclick="filterByListingName(\'' + escapeHtml(fixEncoding(listing.name)).replace(/'/g, "\\'") + '\'); google.maps.event.trigger(map, \'click\');">View Details</button>' +
                     '</div>';
                 
@@ -6328,9 +6265,9 @@ function updateMapMarkers(listings) {
                     var cardHeight = cardWidth; // Square
                     var fontSize = (window.innerWidth < 969) ? 12 : 14;
                     var gradientHeight = (window.innerWidth < 969) ? 50 : 60;
-                    var simpleContent = '<div style="padding: 0 !important; margin: 0 !important; text-align: center; cursor: pointer; width: ' + cardWidth + 'px; height: ' + cardHeight + 'px; position: relative; overflow: hidden; border-radius: 12px; line-height: 0; font-size: 0; background-image: url(\'' + imageUrl + '\'); background-size: cover !important; background-position: center center !important; background-repeat: no-repeat !important; display: flex; flex-direction: column; justify-content: flex-end; border: 4px solid #ffffff; outline: 0; box-sizing: border-box; min-width: ' + cardWidth + 'px; min-height: ' + cardHeight + 'px;" onclick="filterByListingName(\'' + escapeHtml(fixEncoding(listing.name)).replace(/'/g, "\\'") + '\', false); google.maps.event.trigger(map, \'click\');">' + 
+                    var simpleContent = '<div style="padding: 0 !important; margin: 0 !important; text-align: center; cursor: pointer; width: ' + cardWidth + 'px; height: ' + cardHeight + 'px; position: relative; overflow: hidden; border-radius: 12px; line-height: 0; font-size: 0; background-image: url(\'' + imageUrl + '\'); background-size: cover !important; background-position: center center !important; background-repeat: no-repeat !important; display: flex; flex-direction: column; justify-content: flex-end; border: 4px solid #ffffff; outline: 0; box-sizing: border-box; min-width: ' + cardWidth + 'px; min-height: ' + cardHeight + 'px;" onclick="filterByListingName(\'' + escapeHtml(fixEncoding(listing.name)).replace(/'/g, "\\'") + '\'); google.maps.event.trigger(map, \'click\');">' + 
                         '<div style="position: absolute; bottom: 0; left: 0; right: 0; height: ' + gradientHeight + 'px; background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0)); pointer-events: none; z-index: 1; margin: 0; padding: 0;"></div>' +
-                        '<div style="font-size: ' + fontSize + 'px; font-weight: 600; color: #ffffff; line-height: 1.2; margin: 0; padding: 0 12px; position: absolute; left: 0; right: 0; bottom: 12px; z-index: 2; text-shadow: 0 1px 2px rgba(0,0,0,0.5); box-sizing: border-box;">' + escapeHtml(fixEncoding(listing.name)) + '</div>' +
+                        '<div style="font-size: ' + fontSize + 'px; font-weight: 600; color: #ffffff; line-height: 1.1; padding: 0 8px 4px 8px; margin: 0; position: relative; z-index: 2; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">' + escapeHtml(fixEncoding(listing.name)) + '</div>' +
                         '</div>';
                     infoWindow.setContent(simpleContent);
                     infoWindow.open(map, marker);

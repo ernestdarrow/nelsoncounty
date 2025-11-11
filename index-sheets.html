@@ -6,7 +6,7 @@
     <title>Admin Panel - Google Sheets</title>
     <!-- Google Identity Services -->
     <script>
-        // Prevent Google's auto-initialization before our code runs
+        // Prevents Google auto-initialization before our code runs
         // Google's script looks for g_id_onload function or element
         // We'll prevent it from auto-initializing by not providing either until ready
         window.g_id_onload = null;
@@ -437,11 +437,6 @@
                             <th>Website</th>
                             <th>Phone</th>
                             <th>Address</th>
-                            <th>Author</th>
-                            <th>Author Email</th>
-                            <th>Created</th>
-                            <th>Updated</th>
-                            <th>Google Maps URL</th>
                             <th>Amenities</th>
                             <th>Featured</th>
                             <th>Actions</th>
@@ -600,7 +595,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Google Maps URL</label>
+                    <label>Directions Link</label>
                     <input type="url" id="listingDirectionsLink" placeholder="https://www.google.com/maps/..." />
                 </div>
                 
@@ -641,7 +636,7 @@
             }, 1000);
         });
     </script>
-    <script src="admin.js"></script>
+    <script src="https://ernestdarrow.github.io/nelsoncounty/admin.js"></script>
     
     <script>
         // Fallback: If admin.js fails to load, show error after 2 seconds
