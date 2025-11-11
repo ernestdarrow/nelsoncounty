@@ -532,6 +532,15 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         }
         
         // Map CSV row to listing object
+        function slugify(value) {
+            return (value || '')
+                .toString()
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
+        
         function mapCSVRowToListing(row) {
             const normalizedRow = {};
             if (row && typeof row === 'object') {
@@ -604,6 +613,10 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 modifiedDate: getField('modifiedDate', ['Modified Date', 'Updated Date', 'updatedDate', 'Date Updated', 'editedDate', 'Edited Date', 'last updated', 'last modified']),
                 directionsLink: directionsLinkField || googleMapsUrlField || ''
             };
+            
+            if (!listing.slug && listing.name) {
+                listing.slug = slugify(listing.name);
+            }
             
             listing.googleMapsUrl = googleMapsUrlField || listing.directionsLink || '';
             if (!listing.directionsLink && listing.googleMapsUrl) {
@@ -1523,9 +1536,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             const listing = sanitizeListing(Object.assign({}, existingListing || {}, listingUpdates));
             
             if (!listing.slug && listing.name) {
-                listing.slug = listing.name.toLowerCase()
-                    .replace(/[^a-z0-9]+/g, '-')
-                    .replace(/^-+|-+$/g, '');
+                listing.slug = slugify(listing.name);
             }
             
             // Save locally only - user must click "Save All to Google Sheets" to sync
@@ -2533,6 +2544,33 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             // Small delay to ensure everything is ready (especially important when script is external)
             await new Promise(resolve => setTimeout(resolve, 100));
             await loadDataFromGoogleSheets();
+            
+            const nameInput = document.getElementById('listingName');
+            const slugInput = document.getElementById('listingSlug');
+            if (nameInput && slugInput) {
+                const updateManualFlag = () => {
+                    const autoSlug = slugify(nameInput.value);
+                    slugInput.dataset.manual = (slugInput.value && slugInput.value !== autoSlug) ? 'true' : 'false';
+                };
+                
+                const maybeAutoUpdateSlug = () => {
+                    if (slugInput.dataset.manual !== 'true') {
+                        slugInput.value = slugify(nameInput.value);
+                    }
+                    updateManualFlag();
+                };
+                
+                updateManualFlag();
+                
+                nameInput.addEventListener('input', maybeAutoUpdateSlug);
+                slugInput.addEventListener('input', updateManualFlag);
+                slugInput.addEventListener('blur', () => {
+                    if (!slugInput.value) {
+                        slugInput.dataset.manual = 'false';
+                        slugInput.value = slugify(nameInput.value);
+                    }
+                });
+            }
             
             // Initialize form dropdowns with dynamic options
             updateTypeDropdown();
