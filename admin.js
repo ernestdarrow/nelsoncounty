@@ -565,6 +565,18 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             };
             
             const featuredStr = getField('Featured', ['featured']);
+            const detailedDescriptionValue = getField('Detailed Description', [
+                'detaileddescription',
+                'detailed description',
+                'long description',
+                'longdescription',
+                'full description',
+                'fulldescription',
+                'detail description',
+                'detaildescription',
+                'extended description',
+                'extendeddescription'
+            ]);
             const image3Value = getField('Image3', ['image3', 'Image 3', 'Photo 3', 'photo3', 'Photo3', 'Third Photo', 'Tertiary Photo']);
             const galleryValue = getField('imageGallery', ['ImageGallery', 'Image Gallery', 'gallery', 'Gallery']);
             
@@ -577,6 +589,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 type: getField('Type', ['type']),
                 area: getField('Area', ['area']),
                 description: getField('Description', ['description', 'Desc', 'desc']),
+                detailedDescription: detailedDescriptionValue,
                 image1: getField('Photo', ['photo', 'Image', 'image', 'Image1', 'image1', 'Image 1']),
                 image2: getField('Image2', ['image2', 'Image 2', 'Photo 2', 'photo2', 'Photo2', 'Second Photo', 'Secondary Photo']),
                 image3: image3Value || galleryValue,
@@ -1220,6 +1233,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     listing.type,
                     listing.area,
                     listing.description,
+                listing.detailedDescription,
                 listing.address,
                 listing.authorName,
                 listing.publishedDate,
@@ -1330,6 +1344,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             document.getElementById('listingType').value = listing.type;
             document.getElementById('listingArea').value = listing.area;
             document.getElementById('listingDescription').value = listing.description;
+            const detailedDescriptionInput = document.getElementById('listingDetailedDescription');
+            if (detailedDescriptionInput) detailedDescriptionInput.value = listing.detailedDescription || '';
             document.getElementById('listingImage1').value = listing.image1;
             document.getElementById('listingImage2').value = listing.image2 || '';
             const image3Input = document.getElementById('listingImage3');
@@ -1484,6 +1500,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 type: getValue('listingType'),
                 area: getValue('listingArea'),
                 description: getValue('listingDescription'),
+                detailedDescription: getValue('listingDetailedDescription'),
                 image1: getValue('listingImage1'),
                 image2: getValue('listingImage2'),
                 image3: getValue('listingImage3'),
@@ -2161,6 +2178,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     listing.type,
                     listing.area,
                     listing.description,
+                    listing.detailedDescription,
                     listing.amenities.join(' ')
                 ].join(' ').toLowerCase();
                 
@@ -2212,6 +2230,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         data.filterOptions.areas.map(function(a) { return '<option value="' + a + '" ' + (safe(listing.area) === a ? 'selected' : '') + '>' + a + '</option>'; }).join('') +
                     '</select></td>' +
                     '<td class="cell-description"><textarea data-field="description">' + safe(listing.description) + '</textarea></td>' +
+                    '<td class="cell-description-detailed"><textarea data-field="detailedDescription">' + safe(listing.detailedDescription) + '</textarea></td>' +
                     '<td class="cell-image"><input type="text" value="' + safe(listing.image1) + '" data-field="image1" placeholder="Image URL or base64" /></td>' +
                     '<td class="cell-image"><input type="text" value="' + safe(listing.image2) + '" data-field="image2" placeholder="Image URL or base64" /></td>' +
                     '<td class="cell-image"><input type="text" value="' + safe(listing.image3) + '" data-field="image3" placeholder="Image URL or base64" /></td>' +
@@ -2331,7 +2350,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 };
                 
                 const headers = [
-                    'id', 'name', 'type', 'area', 'description',
+                    'id', 'name', 'type', 'area', 'description', 'detailedDescription',
                     'image1', 'image2', 'image3', 'website', 'phone', 'address',
                     'authorName', 'publishedDate', 'modifiedDate', 'directionsLink',
                     'amenities', 'featured', 'slug', 'googleMapsUrl'
@@ -2344,6 +2363,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         listing.type || '',
                         listing.area || '',
                         escapeCsv(listing.description || ''),
+                        escapeCsv(listing.detailedDescription || ''),
                         escapeCsv(listing.image1 || ''),
                         escapeCsv(listing.image2 || ''),
                         escapeCsv(listing.image3 || ''),
