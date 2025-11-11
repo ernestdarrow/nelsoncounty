@@ -315,11 +315,27 @@ const initialData =
         
         // Map CSV row to listing object
         function mapCSVRowToListing(row) {
+            const normalizedRow = {};
+            if (row && typeof row === 'object') {
+                Object.keys(row).forEach(function(key) {
+                    if (key === undefined || key === null) return;
+                    const normalizedKey = String(key).trim().toLowerCase();
+                    if (normalizedKey) {
+                        normalizedRow[normalizedKey] = row[key];
+                    }
+                });
+            }
+            
             const getField = (fieldName, altNames = []) => {
                 const names = [fieldName, ...altNames];
                 for (const name of names) {
-                    if (row[name] !== undefined && row[name] !== null) {
-                        return String(row[name]).trim();
+                    const normalizedName = String(name).trim().toLowerCase();
+                    if (!normalizedName) continue;
+                    if (Object.prototype.hasOwnProperty.call(normalizedRow, normalizedName)) {
+                        const value = normalizedRow[normalizedName];
+                        if (value !== undefined && value !== null) {
+                            return String(value).trim();
+                        }
                     }
                 }
                 return '';
@@ -334,8 +350,8 @@ const initialData =
             
             const galleryValue = getField('imageGallery', ['ImageGallery', 'Image Gallery', 'gallery', 'Gallery']);
             
-            const googleMapsUrlField = getField('Google Maps URL', ['Google Map URL', 'Google Maps Link', 'Maps URL', 'Map URL', 'Google Maps', 'googleMapsUrl', 'google_maps_url']);
-            const directionsLinkField = getField('directionsLink', ['Directions Link', 'Directions URL', 'Map Link']);
+            const googleMapsUrlField = getField('Google Maps URL', ['Google Map URL', 'Google Maps Link', 'Maps URL', 'Map URL', 'Google Maps', 'googleMapsUrl', 'google_maps_url', 'map url', 'maps link']);
+            const directionsLinkField = getField('directionsLink', ['Directions Link', 'Directions URL', 'Map Link', 'map directions', 'directions url']);
             
             const listing = {
                 id: getField('ID', ['id', 'Id']),
@@ -346,20 +362,20 @@ const initialData =
                 image1: getField('Photo', ['photo', 'Image', 'image', 'Image1', 'image1', 'Image 1']),
                 image2: getField('Image2', ['image2', 'Image 2', 'Photo 2', 'photo2', 'Photo2', 'Second Photo', 'Secondary Photo']),
                 imageGallery: galleryValue,
-                website: getField('External Website', ['Website', 'website', 'URL', 'url']),
-                phone: getField('Phone', ['phone']),
-                address: getField('Address', ['address']),
+                website: getField('External Website', ['Website', 'website', 'URL', 'url', 'website url', 'site url', 'business website', 'website link']),
+                phone: getField('Phone', ['phone', 'phone number', 'business phone', 'contact phone', 'primary phone']),
+                address: getField('Address', ['address', 'street address', 'business address', 'physical address', 'location']),
                 amenities: parseList(getField('Amenities', ['amenities', 'Amenity'])),
                 amenitiesTags: parseList(getField('Amenities Tags', ['amenities_tags', 'Amenities_Tags', 'Amenity Tags'])),
                 featured: featuredStr === 'TRUE' || featuredStr === 'true' || featuredStr === '1' || featuredStr === 'Yes' || featuredStr === 'yes',
                 slug: getField('slug'),
                 wordpressUrl: getField('wordpressUrl'),
-                authorName: getField('authorName', ['Author Name', 'Author', 'author']),
-                authorEmail: getField('authorEmail', ['Author Email', 'author_email']),
+                authorName: getField('authorName', ['Author Name', 'Author', 'author', 'contributor', 'contributor name']),
+                authorEmail: getField('authorEmail', ['Author Email', 'author_email', 'contributor email', 'email']),
                 authorUsername: getField('authorUsername'),
                 authorId: getField('authorId'),
-                publishedDate: getField('publishedDate', ['Published Date', 'Created Date', 'createdDate', 'Date Created', 'publishDate']),
-                modifiedDate: getField('modifiedDate', ['Modified Date', 'Updated Date', 'updatedDate', 'Date Updated', 'editedDate', 'Edited Date']),
+                publishedDate: getField('publishedDate', ['Published Date', 'Created Date', 'createdDate', 'Date Created', 'publishDate', 'created on']),
+                modifiedDate: getField('modifiedDate', ['Modified Date', 'Updated Date', 'updatedDate', 'Date Updated', 'editedDate', 'Edited Date', 'last updated', 'last modified']),
                 status: getField('status'),
                 commentStatus: getField('commentStatus'),
                 pingStatus: getField('pingStatus'),
