@@ -220,6 +220,161 @@ const initialData =
 }
 ;
 
+function normalizeFilterValue(value) {
+    if (typeof value !== 'string') return '';
+    const trimmed = value.trim();
+    return trimmed;
+}
+
+function collectUsedFilterOptions(listings) {
+    const types = [];
+    const areas = [];
+    const amenities = [];
+    
+    const typeSet = new Set();
+    const areaSet = new Set();
+    const amenitySet = new Set();
+    
+    (Array.isArray(listings) ? listings : []).forEach(function(listing) {
+        if (listing && typeof listing === 'object') {
+            const type = normalizeFilterValue(listing.type);
+            if (type && !typeSet.has(type)) {
+                typeSet.add(type);
+                types.push(type);
+            }
+            
+            const area = normalizeFilterValue(listing.area);
+            if (area && !areaSet.has(area)) {
+                areaSet.add(area);
+                areas.push(area);
+            }
+            
+            let listingAmenities = [];
+            if (Array.isArray(listing.amenities)) {
+                listingAmenities = listing.amenities;
+            } else if (typeof listing.amenities === 'string') {
+                listingAmenities = listing.amenities.split(/[,;]+/).map(function(value) { return value.trim(); });
+            }
+            
+            listingAmenities.forEach(function(rawAmenity) {
+                const amenity = normalizeFilterValue(rawAmenity);
+                if (amenity && !amenitySet.has(amenity)) {
+                    amenitySet.add(amenity);
+                    amenities.push(amenity);
+                }
+            });
+        }
+    });
+    
+    return { types: types, areas: areas, amenities: amenities };
+}
+
+function mergeOptionsPreservingOrder(existing, required) {
+    const existingArray = Array.isArray(existing) ? existing.map(normalizeFilterValue) : [];
+    const requiredArray = Array.isArray(required) ? required.map(normalizeFilterValue).filter(function(value) { return value.length > 0; }) : [];
+    const requiredSet = new Set(requiredArray);
+    
+    const keptExisting = existingArray.filter(function(value) { return value && requiredSet.has(value); });
+    const missing = requiredArray.filter(function(value) { return keptExisting.indexOf(value) === -1; });
+    
+    return keptExisting.concat(missing);
+}
+
+function sanitizeFilterOptions(existingOptions, listings) {
+    const usage = collectUsedFilterOptions(listings);
+    const options = existingOptions || {};
+    
+    return {
+        types: mergeOptionsPreservingOrder(options.types, usage.types),
+        areas: mergeOptionsPreservingOrder(options.areas, usage.areas),
+        amenities: mergeOptionsPreservingOrder(options.amenities, usage.amenities)
+    };
+}
+
+function haveDifferentValues(previous, next) {
+    const prevArray = Array.isArray(previous) ? previous : [];
+    const nextArray = Array.isArray(next) ? next : [];
+    
+    if (prevArray.length !== nextArray.length) return true;
+    for (let i = 0; i < prevArray.length; i++) {
+        if (prevArray[i] !== nextArray[i]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function refreshFilterSelect(selectId, values) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    
+    const defaultOption = select.querySelector('option[value=""]');
+    if (!select.dataset.placeholderText) {
+        if (defaultOption) {
+            select.dataset.placeholderText = defaultOption.textContent;
+        } else if (select.getAttribute('data-placeholder')) {
+            select.dataset.placeholderText = select.getAttribute('data-placeholder');
+        } else {
+            select.dataset.placeholderText = 'All';
+        }
+    }
+    
+    const placeholderText = select.dataset.placeholderText || 'All';
+    const currentValue = select.value;
+    const safeValues = Array.isArray(values) ? values : [];
+    
+    select.innerHTML = '';
+    
+    const firstOption = document.createElement('option');
+    firstOption.value = '';
+    firstOption.textContent = placeholderText;
+    select.appendChild(firstOption);
+    
+    safeValues.forEach(function(value) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+    });
+    
+    if (safeValues.indexOf(currentValue) > -1) {
+        select.value = currentValue;
+    } else {
+        select.value = '';
+    }
+}
+
+function applyFilterOptionCleanup(existingOptions) {
+    if (typeof data === 'undefined') return false;
+    
+    const sanitized = sanitizeFilterOptions(existingOptions || data.filterOptions, data.listings);
+    const typesChanged = haveDifferentValues(data.filterOptions && data.filterOptions.types, sanitized.types);
+    const areasChanged = haveDifferentValues(data.filterOptions && data.filterOptions.areas, sanitized.areas);
+    const amenitiesChanged = haveDifferentValues(data.filterOptions && data.filterOptions.amenities, sanitized.amenities);
+    
+    const hasChanges = typesChanged || areasChanged || amenitiesChanged;
+    
+    data.filterOptions = sanitized;
+    
+    if (hasChanges) {
+        saveFilterOptions();
+    }
+    
+    updateTypeDropdown();
+    updateAreaDropdown();
+    renderAmenitiesCheckboxes();
+    populateAdminFilters();
+    populatePreviewFilters();
+    
+    if (hasChanges) {
+        renderSettings();
+    }
+    
+    return hasChanges;
+}
+
+initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, initialData.listings);
+
 // =================================
 // GOOGLE SHEETS CONFIGURATION
 // =================================
@@ -238,10 +393,14 @@ const initialData =
         const savedFilterOptions = localStorage.getItem('nelsonCounty_filterOptions');
         if (savedFilterOptions) {
             try {
-                data.filterOptions = JSON.parse(savedFilterOptions);
+                const parsedFilterOptions = JSON.parse(savedFilterOptions);
+                data.filterOptions = sanitizeFilterOptions(parsedFilterOptions, data.listings);
             } catch (e) {
                 console.error('Error loading saved filterOptions:', e);
+                data.filterOptions = sanitizeFilterOptions(data.filterOptions, data.listings);
             }
+        } else {
+            data.filterOptions = sanitizeFilterOptions(data.filterOptions, data.listings);
         }
         
         let deleteConfirmId = null;
@@ -554,26 +713,14 @@ const initialData =
                             data = JSON.parse(JSON.stringify(initialData));
                         }
                         const existingFilterOptions = data.filterOptions || initialData.filterOptions;
-                        // Extract filter options from listings (for merging)
-                        const types = [...new Set(listings.map(l => l.type).filter(Boolean))].sort();
-                        const areas = [...new Set(listings.map(l => l.area).filter(Boolean))].sort();
-                        const amenities = [...new Set(listings.flatMap(l => l.amenities || []).filter(Boolean))].sort();
-                        
-                        // Merge saved options with extracted ones (preserve all, remove duplicates)
-                        const mergedTypes = [...new Set([...(existingFilterOptions.types || []), ...types])].sort();
-                        const mergedAreas = [...new Set([...(existingFilterOptions.areas || []), ...areas])].sort();
-                        const mergedAmenities = [...new Set([...(existingFilterOptions.amenities || []), ...amenities])].sort();
+                        const sanitizedFilterOptions = sanitizeFilterOptions(existingFilterOptions, listings);
                         
                         data = {
                             listings: listings,
-                            filterOptions: {
-                                types: mergedTypes,
-                                areas: mergedAreas,
-                                amenities: mergedAmenities
-                            }
+                            filterOptions: sanitizedFilterOptions
                         };
-                        // Save filterOptions to localStorage
-                        saveFilterOptions();
+                        
+                        applyFilterOptionCleanup(sanitizedFilterOptions);
                         
                         console.log('✅ Loaded ' + listings.length + ' listings from Google Sheets (Apps Script)');
                         updateSyncStatus(true, `✅ Loaded ${listings.length} listings`);
@@ -688,26 +835,13 @@ const initialData =
                             data = JSON.parse(JSON.stringify(initialData));
                         }
                         const existingFilterOptions = data.filterOptions || initialData.filterOptions;
-                        // Extract filter options from listings (for merging)
-                        const types = [...new Set(listings.map(l => l.type).filter(Boolean))].sort();
-                        const areas = [...new Set(listings.map(l => l.area).filter(Boolean))].sort();
-                        const amenities = [...new Set(listings.flatMap(l => l.amenities || []).filter(Boolean))].sort();
-                        
-                        // Merge saved options with extracted ones (preserve all, remove duplicates)
-                        const mergedTypes = [...new Set([...(existingFilterOptions.types || []), ...types])].sort();
-                        const mergedAreas = [...new Set([...(existingFilterOptions.areas || []), ...areas])].sort();
-                        const mergedAmenities = [...new Set([...(existingFilterOptions.amenities || []), ...amenities])].sort();
+                        const sanitizedFilterOptions = sanitizeFilterOptions(existingFilterOptions, listings);
                         
                         data = {
                             listings: listings,
-                            filterOptions: {
-                                types: mergedTypes,
-                                areas: mergedAreas,
-                                amenities: mergedAmenities
-                            }
+                            filterOptions: sanitizedFilterOptions
                         };
-                        // Save filterOptions to localStorage
-                        saveFilterOptions();
+                        applyFilterOptionCleanup(sanitizedFilterOptions);
                         console.log('✅ Loaded ' + listings.length + ' listings from Google Sheets (CSV)');
                         updateSyncStatus(true, `✅ Loaded ${listings.length} listings (CSV)`);
                         renderListings();
@@ -1111,25 +1245,15 @@ const initialData =
         }
         
         function populateAdminFilters() {
-            const areaFilter = document.getElementById('adminAreaFilter');
-            if (areaFilter && areaFilter.options.length === 1) {
-                data.filterOptions.areas.forEach(function(area) {
-                    const option = document.createElement('option');
-                    option.value = area;
-                    option.textContent = area;
-                    areaFilter.appendChild(option);
-                });
-            }
-            
-            const amenityFilter = document.getElementById('adminAmenityFilter');
-            if (amenityFilter && amenityFilter.options.length === 1) {
-                data.filterOptions.amenities.forEach(function(amenity) {
-                    const option = document.createElement('option');
-                    option.value = amenity;
-                    option.textContent = amenity;
-                    amenityFilter.appendChild(option);
-                });
-            }
+            if (!data || !data.filterOptions) return;
+            refreshFilterSelect('adminAreaFilter', data.filterOptions.areas);
+            refreshFilterSelect('adminAmenityFilter', data.filterOptions.amenities);
+        }
+
+        function populatePreviewFilters() {
+            if (!data || !data.filterOptions) return;
+            refreshFilterSelect('previewAreaFilter', data.filterOptions.areas);
+            refreshFilterSelect('previewAmenityFilter', data.filterOptions.amenities);
         }
         
         function renderAmenitiesCheckboxes() {
@@ -1283,6 +1407,7 @@ const initialData =
                     alert('Deleted "' + listing.name + '" (Local only - configure Google Sheets to sync)');
                 }
                 
+                applyFilterOptionCleanup();
                 renderListings();
                 
             } else {
@@ -1375,7 +1500,8 @@ const initialData =
                 alert('"' + listing.name + '" has been added locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.');
             }
             
-            // Update the display and close modal
+            // Update filter options, refresh display, and close modal
+            applyFilterOptionCleanup();
             renderListings();
             closeModal();
         }
@@ -1739,26 +1865,8 @@ const initialData =
             const grid = document.getElementById('previewGrid');
             grid.innerHTML = '';
             
-            // Populate filter dropdowns if not already done
-            const areaFilter = document.getElementById('previewAreaFilter');
-            if (areaFilter.options.length === 1) {
-                data.filterOptions.areas.forEach(function(area) {
-                    const option = document.createElement('option');
-                    option.value = area;
-                    option.textContent = area;
-                    areaFilter.appendChild(option);
-                });
-            }
-            
-            const amenityFilter = document.getElementById('previewAmenityFilter');
-            if (amenityFilter.options.length === 1) {
-                data.filterOptions.amenities.forEach(function(amenity) {
-                    const option = document.createElement('option');
-                    option.value = amenity;
-                    option.textContent = amenity;
-                    amenityFilter.appendChild(option);
-                });
-            }
+            // Populate filter dropdowns
+            populatePreviewFilters();
             
             // Update results count
             document.getElementById('previewResultsCount').textContent = 'Showing ' + listings.length + ' listing' + (listings.length !== 1 ? 's' : '');
@@ -2044,6 +2152,7 @@ const initialData =
             });
             
             // Update all views
+            applyFilterOptionCleanup();
             renderListings();
             
             // Changes saved locally only - user must click "Save All to Google Sheets" to sync
@@ -2064,6 +2173,7 @@ const initialData =
                 deleteConfirmId = null;
                 if (deleteConfirmTimeout) clearTimeout(deleteConfirmTimeout);
                 
+                applyFilterOptionCleanup();
                 renderDataTable();
                 renderListings();
                 
@@ -2226,33 +2336,18 @@ const initialData =
                                                 'Click Cancel to keep current listings unchanged');
                         if (confirmed) {
                             const existingFilterOptions = (data && data.filterOptions) ? data.filterOptions : (initialData.filterOptions || { types: [], areas: [], amenities: [] });
-                            
-                            const types = [...new Set(newListings.map(l => l.type).filter(Boolean))].sort();
-                            const areas = [...new Set(newListings.map(l => l.area).filter(Boolean))].sort();
-                            const amenities = [...new Set(newListings.flatMap(l => Array.isArray(l.amenities) ? l.amenities : (typeof l.amenities === 'string' ? l.amenities.split(/[,;]/) : [])).map(a => a && a.trim()).filter(Boolean))].sort();
-                            
-                            const mergedTypes = [...new Set([...(existingFilterOptions.types || []), ...types])].sort();
-                            const mergedAreas = [...new Set([...(existingFilterOptions.areas || []), ...areas])].sort();
-                            const mergedAmenities = [...new Set([...(existingFilterOptions.amenities || []), ...amenities])].sort();
+                            const sanitizedFilterOptions = sanitizeFilterOptions(existingFilterOptions, newListings);
                             
                             if (!data) {
                                 data = { listings: [], filterOptions: { types: [], areas: [], amenities: [] } };
                             }
                             
                             data.listings = newListings;
-                            data.filterOptions = {
-                                types: mergedTypes,
-                                areas: mergedAreas,
-                                amenities: mergedAmenities
-                            };
+                            data.filterOptions = sanitizedFilterOptions;
                             
-                            saveFilterOptions();
+                            applyFilterOptionCleanup(sanitizedFilterOptions);
                             renderDataTable();
                             renderListings();
-                            populateAdminFilters();
-                            updateTypeDropdown();
-                            updateAreaDropdown();
-                            renderAmenitiesCheckboxes();
                             updateStats();
                             
                             // CSV imported locally only - user must click "Save All to Google Sheets" to sync
@@ -2288,6 +2383,7 @@ const initialData =
             renderListings();
             updateStats();
             populateAdminFilters();
+            populatePreviewFilters();
             
             // Add event listeners to quick filter buttons in admin tab
             document.querySelectorAll('#adminTab .type-filter-btn').forEach(function(btn) {
