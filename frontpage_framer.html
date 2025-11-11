@@ -5358,9 +5358,18 @@ function renderPreview(filteredListings) {
             };
             imgWrapper.appendChild(img2);
         }
+        if (listing.image3) {
+            const img3 = document.createElement('img');
+            img3.src = normalizeImageUrl(listing.image3);
+            img3.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 24px; flex-shrink: 0; scroll-snap-align: start;';
+            img3.onerror = function() {
+                this.src = FALLBACK_IMG;
+            };
+            imgWrapper.appendChild(img3);
+        }
         
         // If no images, add fallback
-        if (!listing.image1 && !listing.image2) {
+        if (!listing.image1 && !listing.image2 && !listing.image3) {
             const img = document.createElement('img');
             img.src = FALLBACK_IMG;
             img.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 24px; flex-shrink: 0; scroll-snap-align: start;';
@@ -5368,7 +5377,7 @@ function renderPreview(filteredListings) {
         }
         
         // Set wrapper and image widths to accommodate all images side by side
-        const imageCount = (listing.image1 ? 1 : 0) + (listing.image2 ? 1 : 0);
+        const imageCount = (listing.image1 ? 1 : 0) + (listing.image2 ? 1 : 0) + (listing.image3 ? 1 : 0);
         if (imageCount > 1) {
             // Wait for container to have dimensions, then set wrapper and image widths
             setTimeout(function() {

@@ -220,6 +220,43 @@ const initialData =
 }
 ;
 
+const REMOVED_LISTING_FIELDS = [
+    'imageGallery',
+    'amenitiesTags',
+    'wordpressUrl',
+    'authorEmail',
+    'authorUsername',
+    'authorId',
+    'status',
+    'commentStatus',
+    'pingStatus',
+    'originalCategories',
+    'originalAttributes',
+    'dataConfidence',
+    'notes',
+    'descriptionSource',
+    'amenitiesGuessed',
+    'missingFields'
+];
+
+function sanitizeListing(listing) {
+    if (!listing || typeof listing !== 'object') return listing;
+    
+    const galleryImage = listing.imageGallery;
+    if (!listing.image3 && galleryImage) {
+        listing.image3 = galleryImage;
+    }
+    
+    REMOVED_LISTING_FIELDS.forEach(function(field) {
+        if (field in listing) {
+            delete listing[field];
+        }
+    });
+    delete listing.imageGallery;
+    
+    return listing;
+}
+
 function normalizeFilterValue(value) {
     if (typeof value !== 'string') return '';
     const trimmed = value.trim();
@@ -347,6 +384,10 @@ function refreshFilterSelect(selectId, values) {
 function applyFilterOptionCleanup(existingOptions) {
     if (typeof data === 'undefined') return false;
     
+    data.listings = (data.listings || []).map(function(listing) {
+        return sanitizeListing(listing);
+    });
+    
     const sanitized = sanitizeFilterOptions(existingOptions || data.filterOptions, data.listings);
     const typesChanged = haveDifferentValues(data.filterOptions && data.filterOptions.types, sanitized.types);
     const areasChanged = haveDifferentValues(data.filterOptions && data.filterOptions.areas, sanitized.areas);
@@ -388,6 +429,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         
         // Initialize data with initialData (will be updated from Google Sheets on load)
         let data = JSON.parse(JSON.stringify(initialData));
+        data.listings = (data.listings || []).map(function(listing) {
+            return sanitizeListing(listing);
+        });
         
         // Load saved filterOptions from localStorage if available
         const savedFilterOptions = localStorage.getItem('nelsonCounty_filterOptions');
@@ -518,7 +562,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             };
             
             const featuredStr = getField('Featured', ['featured']);
-            
+            const image3Value = getField('Image3', ['image3', 'Image 3', 'Photo 3', 'photo3', 'Photo3', 'Third Photo', 'Tertiary Photo']);
             const galleryValue = getField('imageGallery', ['ImageGallery', 'Image Gallery', 'gallery', 'Gallery']);
             
             const googleMapsUrlField = getField('Google Maps URL', ['Google Map URL', 'Google Maps Link', 'Maps URL', 'Map URL', 'Google Maps', 'googleMapsUrl', 'google_maps_url', 'map url', 'maps link']);
@@ -532,31 +576,16 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 description: getField('Description', ['description', 'Desc', 'desc']),
                 image1: getField('Photo', ['photo', 'Image', 'image', 'Image1', 'image1', 'Image 1']),
                 image2: getField('Image2', ['image2', 'Image 2', 'Photo 2', 'photo2', 'Photo2', 'Second Photo', 'Secondary Photo']),
-                imageGallery: galleryValue,
+                image3: image3Value || galleryValue,
                 website: getField('External Website', ['Website', 'website', 'URL', 'url', 'website url', 'site url', 'business website', 'website link']),
                 phone: getField('Phone', ['phone', 'phone number', 'business phone', 'contact phone', 'primary phone']),
                 address: getField('Address', ['address', 'street address', 'business address', 'physical address', 'location']),
                 amenities: parseList(getField('Amenities', ['amenities', 'Amenity'])),
-                amenitiesTags: parseList(getField('Amenities Tags', ['amenities_tags', 'Amenities_Tags', 'Amenity Tags'])),
                 featured: featuredStr === 'TRUE' || featuredStr === 'true' || featuredStr === '1' || featuredStr === 'Yes' || featuredStr === 'yes',
                 slug: getField('slug'),
-                wordpressUrl: getField('wordpressUrl'),
                 authorName: getField('authorName', ['Author Name', 'Author', 'author', 'contributor', 'contributor name']),
-                authorEmail: getField('authorEmail', ['Author Email', 'author_email', 'contributor email', 'email']),
-                authorUsername: getField('authorUsername'),
-                authorId: getField('authorId'),
                 publishedDate: getField('publishedDate', ['Published Date', 'Created Date', 'createdDate', 'Date Created', 'publishDate', 'created on']),
                 modifiedDate: getField('modifiedDate', ['Modified Date', 'Updated Date', 'updatedDate', 'Date Updated', 'editedDate', 'Edited Date', 'last updated', 'last modified']),
-                status: getField('status'),
-                commentStatus: getField('commentStatus'),
-                pingStatus: getField('pingStatus'),
-                originalCategories: getField('originalCategories'),
-                originalAttributes: getField('originalAttributes'),
-                dataConfidence: getField('dataConfidence'),
-                notes: getField('notes'),
-                descriptionSource: getField('descriptionSource'),
-                amenitiesGuessed: getField('amenitiesGuessed'),
-                missingFields: getField('missingFields'),
                 directionsLink: directionsLinkField || googleMapsUrlField || ''
             };
             
@@ -571,7 +600,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     .replace(/^-+|-+$/g, '');
             }
             
-            return listing;
+            return sanitizeListing(listing);
         }
         
         // Update sync status UI
@@ -705,7 +734,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     const result = await response.json();
                     
                     if (result.success && result.listings && result.listings.length > 0) {
-                        const listings = result.listings;
+                        const listings = result.listings.map(function(listing) {
+                            return sanitizeListing(Object.assign({}, listing));
+                        });
                         
                         // Preserve existing filterOptions when loading from Sheets
                         // Ensure data is initialized before accessing it
@@ -1091,11 +1122,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             
             const contactLines = [];
             if (listing.authorName) {
-                let authorLine = 'Author: ' + listing.authorName;
-                if (listing.authorEmail) {
-                    authorLine += ' (' + listing.authorEmail + ')';
-                }
-                contactLines.push(authorLine);
+                contactLines.push('Author: ' + listing.authorName);
             }
             if (listing.publishedDate) {
                 contactLines.push('Published: ' + listing.publishedDate);
@@ -1192,12 +1219,10 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     listing.description,
                 listing.address,
                 listing.authorName,
-                listing.authorEmail,
                 listing.publishedDate,
                 listing.modifiedDate,
                 listing.directionsLink,
-                listing.amenities.join(' '),
-                (listing.amenitiesTags || []).join(' ')
+                listing.amenities.join(' ')
                 ].join(' ').toLowerCase();
                 
                 const matchesSearch = !searchTerm || searchableText.indexOf(searchTerm) > -1;
@@ -1304,13 +1329,13 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             document.getElementById('listingDescription').value = listing.description;
             document.getElementById('listingImage1').value = listing.image1;
             document.getElementById('listingImage2').value = listing.image2 || '';
+            const image3Input = document.getElementById('listingImage3');
+            if (image3Input) image3Input.value = listing.image3 || '';
             document.getElementById('listingWebsite').value = listing.website;
             document.getElementById('listingPhone').value = listing.phone || '';
             document.getElementById('listingAddress').value = listing.address;
             const authorNameInput = document.getElementById('listingAuthorName');
             if (authorNameInput) authorNameInput.value = listing.authorName || '';
-            const authorEmailInput = document.getElementById('listingAuthorEmail');
-            if (authorEmailInput) authorEmailInput.value = listing.authorEmail || '';
             const publishedInput = document.getElementById('listingPublishedDate');
             if (publishedInput) publishedInput.value = listing.publishedDate || '';
             const modifiedInput = document.getElementById('listingModifiedDate');
@@ -1458,31 +1483,25 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 description: getValue('listingDescription'),
                 image1: getValue('listingImage1'),
                 image2: getValue('listingImage2'),
+                image3: getValue('listingImage3'),
                 website: getValue('listingWebsite'),
                 phone: getValue('listingPhone'),
                 address: getValue('listingAddress'),
                 amenities: selectedAmenities,
                 featured: getChecked('listingFeatured'),
                 authorName: getValue('listingAuthorName'),
-                authorEmail: getValue('listingAuthorEmail'),
                 publishedDate: getValue('listingPublishedDate'),
                 modifiedDate: getValue('listingModifiedDate'),
                 directionsLink: getValue('listingDirectionsLink'),
                 googleMapsUrl: getValue('listingDirectionsLink')
             };
             
-            const listing = Object.assign({}, existingListing || {}, listingUpdates);
+            const listing = sanitizeListing(Object.assign({}, existingListing || {}, listingUpdates));
             
             if (!listing.slug && listing.name) {
                 listing.slug = listing.name.toLowerCase()
                     .replace(/[^a-z0-9]+/g, '-')
                     .replace(/^-+|-+$/g, '');
-            }
-            
-            if (!listing.amenitiesTags) {
-                listing.amenitiesTags = existingListing && existingListing.amenitiesTags 
-                    ? existingListing.amenitiesTags.slice() 
-                    : [];
             }
             
             // Save locally only - user must click "Save All to Google Sheets" to sync
@@ -1931,6 +1950,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 if (listing.image2) {
                     imagesHTML += '<img src="' + listing.image2 + '" class="flip-back-image" />';
                 }
+                if (listing.image3) {
+                    imagesHTML += '<img src="' + listing.image3 + '" class="flip-back-image" />';
+                }
                 imagesHTML += '</div>';
                 
                 // Build amenities HTML if they exist
@@ -2093,11 +2115,11 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     '<td class="cell-description"><textarea data-field="description">' + safe(listing.description) + '</textarea></td>' +
                     '<td class="cell-image"><input type="text" value="' + safe(listing.image1) + '" data-field="image1" placeholder="Image URL or base64" /></td>' +
                     '<td class="cell-image"><input type="text" value="' + safe(listing.image2) + '" data-field="image2" placeholder="Image URL or base64" /></td>' +
+                    '<td class="cell-image"><input type="text" value="' + safe(listing.image3) + '" data-field="image3" placeholder="Image URL or base64" /></td>' +
                     '<td class="cell-website"><input type="url" value="' + safe(listing.website) + '" data-field="website" /></td>' +
                     '<td class="cell-phone"><input type="tel" value="' + safe(listing.phone) + '" data-field="phone" /></td>' +
                     '<td class="cell-address"><input type="text" value="' + safe(listing.address) + '" data-field="address" /></td>' +
                     '<td class="cell-author"><input type="text" value="' + safe(listing.authorName) + '" data-field="authorName" placeholder="Author name" /></td>' +
-                    '<td class="cell-author-email"><input type="email" value="' + safe(listing.authorEmail) + '" data-field="authorEmail" placeholder="name@example.com" /></td>' +
                     '<td class="cell-date"><input type="date" value="' + safe(listing.publishedDate) + '" data-field="publishedDate" /></td>' +
                     '<td class="cell-date"><input type="date" value="' + safe(listing.modifiedDate) + '" data-field="modifiedDate" /></td>' +
                     '<td class="cell-directions"><input type="url" value="' + safe(listing.directionsLink) + '" data-field="directionsLink" placeholder="https://..." /></td>' +
@@ -2211,12 +2233,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 
                 const headers = [
                     'id', 'name', 'type', 'area', 'description',
-                    'image1', 'image2', 'imageGallery', 'website', 'phone', 'address',
-                    'amenities', 'amenities_tags', 'featured', 'slug', 'wordpressUrl',
-                    'authorName', 'authorEmail', 'authorUsername', 'authorId',
-                    'publishedDate', 'modifiedDate', 'status', 'commentStatus', 'pingStatus',
-                    'originalCategories', 'originalAttributes', 'dataConfidence', 'notes',
-                    'descriptionSource', 'amenitiesGuessed', 'missingFields', 'directionsLink', 'googleMapsUrl'
+                    'image1', 'image2', 'image3', 'website', 'phone', 'address',
+                    'authorName', 'publishedDate', 'modifiedDate', 'directionsLink',
+                    'amenities', 'featured', 'slug', 'googleMapsUrl'
                 ];
                 
                 const rows = data.listings.map(function(listing) {
@@ -2228,32 +2247,17 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         escapeCsv(listing.description || ''),
                         escapeCsv(listing.image1 || ''),
                         escapeCsv(listing.image2 || ''),
-                        escapeCsv(listing.imageGallery || ''),
+                        escapeCsv(listing.image3 || ''),
                         listing.website || '',
                         listing.phone || '',
                         escapeCsv(listing.address || ''),
-                        escapeCsv(joinList(listing.amenities || [])),
-                        escapeCsv(joinList(listing.amenitiesTags || [])),
-                        listing.featured ? 'true' : 'false',
-                        listing.slug || '',
-                        listing.wordpressUrl || '',
                         listing.authorName || '',
-                        listing.authorEmail || '',
-                        listing.authorUsername || '',
-                        listing.authorId || '',
                         listing.publishedDate || '',
                         listing.modifiedDate || '',
-                        listing.status || '',
-                        listing.commentStatus || '',
-                        listing.pingStatus || '',
-                        listing.originalCategories || '',
-                        listing.originalAttributes || '',
-                        listing.dataConfidence || '',
-                        escapeCsv(listing.notes || ''),
-                        listing.descriptionSource || '',
-                        listing.amenitiesGuessed || '',
-                        listing.missingFields || '',
                         listing.directionsLink || '',
+                        escapeCsv(joinList(listing.amenities || [])),
+                        listing.featured ? 'true' : 'false',
+                        listing.slug || '',
                         listing.googleMapsUrl || listing.directionsLink || ''
                     ].join(',');
                 });
@@ -2342,7 +2346,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                                 data = { listings: [], filterOptions: { types: [], areas: [], amenities: [] } };
                             }
                             
-                            data.listings = newListings;
+                            data.listings = newListings.map(function(listing) {
+                                return sanitizeListing(listing);
+                            });
                             data.filterOptions = sanitizedFilterOptions;
                             
                             applyFilterOptionCleanup(sanitizedFilterOptions);
