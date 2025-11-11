@@ -249,6 +249,8 @@ const initialData =
         
         // Helper function to parse CSV text into array of objects
         function parseCSV(csvText) {
+            if (!csvText) return { headers: [], dataRows: [] };
+            
             const rows = [];
             let currentRow = '';
             let inQuotes = false;
@@ -263,51 +265,61 @@ const initialData =
                         i++;
                     } else {
                         inQuotes = !inQuotes;
+                        currentRow += char;
                     }
-                } else if (char === '\n' && !inQuotes) {
-                    if (currentRow.trim()) rows.push(currentRow);
+                } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    if (char === '\r' && nextChar === '\n') i++;
+                    if (currentRow.length > 0) rows.push(currentRow);
                     currentRow = '';
                 } else {
                     currentRow += char;
                 }
             }
-            if (currentRow.trim()) rows.push(currentRow);
+            if (currentRow.length > 0) rows.push(currentRow);
             
-            if (rows.length === 0) return [];
+            const filteredRows = rows.filter(row => row.trim().length > 0);
+            if (filteredRows.length === 0) return { headers: [], dataRows: [] };
             
-            const headers = rows[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-            const dataRows = [];
-            
-            for (let i = 1; i < rows.length; i++) {
+            const parseCSVLine = (line) => {
                 const values = [];
                 let current = '';
                 let inQuotes = false;
                 
-                for (let j = 0; j < rows[i].length; j++) {
-                    const char = rows[i][j];
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    const nextChar = line[i + 1];
+                    
                     if (char === '"') {
-                        if (inQuotes && rows[i][j + 1] === '"') {
+                        if (inQuotes && nextChar === '"') {
                             current += '"';
-                            j++;
+                            i++;
                         } else {
                             inQuotes = !inQuotes;
                         }
                     } else if (char === ',' && !inQuotes) {
-                        values.push(current.trim().replace(/^"|"$/g, ''));
+                        values.push(current);
                         current = '';
                     } else {
                         current += char;
                     }
                 }
-                values.push(current.trim().replace(/^"|"$/g, ''));
+                values.push(current);
                 
-                if (values[0]) { // Only add rows with a title/ID
-                    const row = {};
-                    headers.forEach((header, idx) => {
-                        row[header] = values[idx] || '';
-                    });
-                    dataRows.push(row);
-                }
+                return values.map(value => value.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
+            };
+            
+            const headers = parseCSVLine(filteredRows[0]).filter(Boolean);
+            const dataRows = [];
+            
+            for (let i = 1; i < filteredRows.length; i++) {
+                const values = parseCSVLine(filteredRows[i]);
+                if (!values.some(v => v && v.trim())) continue;
+                
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = (values[index] !== undefined) ? values[index] : '';
+                });
+                dataRows.push(row);
             }
             
             return { headers, dataRows };
