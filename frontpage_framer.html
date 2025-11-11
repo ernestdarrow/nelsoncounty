@@ -2573,6 +2573,17 @@
             border: none;
             cursor: pointer;
         }
+        .map-popup-link {
+            display: inline-block;
+            margin-top: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #2d6a4f !important;
+            text-decoration: none !important;
+        }
+        .map-popup-link:hover {
+            text-decoration: underline !important;
+        }
         .map-popup-btn:hover {
             background: var(--theme-primary-hover);
             transform: translateY(-2px);
@@ -3849,6 +3860,14 @@ function mapCSVRowToListing(row, index) {
     const featuredStr = getField('Featured', ['featured']);
     const featured = featuredStr === 'TRUE' || featuredStr === 'true' || featuredStr === '1' || featuredStr === 'Yes' || featuredStr === 'yes';
     
+    const authorName = getField('Author Name', ['authorName', 'Author', 'author']);
+    const authorEmail = getField('Author Email', ['authorEmail', 'Author Email', 'author_email']);
+    const publishedDate = getField('Published Date', ['publishedDate', 'Created Date', 'createdDate', 'Date Created', 'publishDate']);
+    const modifiedDate = getField('Modified Date', ['modifiedDate', 'Updated Date', 'updatedDate', 'Date Updated', 'editedDate', 'Edited Date']);
+    const googleMapsUrlField = getField('Google Maps URL', ['Google Map URL', 'Google Maps Link', 'Maps URL', 'Map URL', 'Google Maps', 'googleMapsUrl', 'google_maps_url']);
+    const directionsLinkField = getField('Directions Link', ['directionsLink', 'Directions', 'Map Link', 'Directions URL']);
+    const directionsLink = directionsLinkField || googleMapsUrlField;
+    
     return {
         id: getField('ID', ['id', 'Id']) || String(index + 1),
         name: getField('Title', ['Name', 'name', 'title']) || 'Unnamed',
@@ -3862,7 +3881,13 @@ function mapCSVRowToListing(row, index) {
         phone: getField('Phone', ['phone']) || '',
         address: getField('Address', ['address']) || '',
         amenities: amenities,
-        featured: featured
+        featured: featured,
+        authorName: authorName || '',
+        authorEmail: authorEmail || '',
+        publishedDate: publishedDate || '',
+        modifiedDate: modifiedDate || '',
+        directionsLink: directionsLink || '',
+        googleMapsUrl: googleMapsUrlField || directionsLink || ''
     };
 }
 
@@ -4423,6 +4448,21 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function formatDisplayDate(dateStr) {
+    if (!dateStr) return '';
+    const trimmed = String(dateStr).trim();
+    if (!trimmed) return '';
+    const parsed = new Date(trimmed);
+    if (!isNaN(parsed.getTime())) {
+        try {
+            return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        } catch (e) {
+            // Fallback to ISO if locale fails
+        }
+    }
+    return trimmed;
+}
+
 // Function to fix character encoding issues
 function fixEncoding(text) {
     if (!text) return text;
@@ -4819,6 +4859,11 @@ function filterPreview() {
         const addressText = (listing.address || '').toLowerCase();
         const phoneText = (listing.phone || '').toLowerCase();
         const websiteText = (listing.website || '').toLowerCase();
+        const authorText = (listing.authorName || '').toLowerCase();
+        const authorEmailText = (listing.authorEmail || '').toLowerCase();
+        const createdText = (listing.publishedDate || '').toLowerCase();
+        const updatedText = (listing.modifiedDate || '').toLowerCase();
+        const directionsText = (listing.directionsLink || listing.googleMapsUrl || '').toLowerCase();
         const matchesSearch = !searchTerm || 
             listing.name.toLowerCase().includes(searchTerm) ||
             listing.type.toLowerCase().includes(searchTerm) ||
@@ -4827,7 +4872,12 @@ function filterPreview() {
             addressText.includes(searchTerm) ||
             phoneText.includes(searchTerm) ||
             websiteText.includes(searchTerm) ||
-            amenitiesText.includes(searchTerm);
+            amenitiesText.includes(searchTerm) ||
+            authorText.includes(searchTerm) ||
+            authorEmailText.includes(searchTerm) ||
+            createdText.includes(searchTerm) ||
+            updatedText.includes(searchTerm) ||
+            directionsText.includes(searchTerm);
         
         // Handle type matching - treat "Activity" and "Outdoor" as equivalent
         const matchesType = currentTypeFilter.length === 0 || currentTypeFilter.some(function(filterType) {
@@ -5462,6 +5512,69 @@ function renderPreview(filteredListings) {
             }, 100);
         }
         
+        if (listing.authorName || listing.authorEmail) {
+            const authorDiv = document.createElement('div');
+            authorDiv.className = 'card-info-item';
+            authorDiv.style.cssText = 'display: flex; align-items: flex-start; gap: 10px; margin-bottom: 1px;';
+            authorDiv.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            const authorPieces = [];
+            if (listing.authorName) {
+                authorPieces.push('<strong>' + escapeHtml(fixEncoding(listing.authorName)) + '</strong>');
+            }
+            if (listing.authorEmail) {
+                const emailTarget = encodeURIComponent(String(listing.authorEmail).trim());
+                authorPieces.push('<a href="mailto:' + emailTarget + '" style="color: var(--text-primary); text-decoration: none;" target="_parent">' + escapeHtml(String(listing.authorEmail).trim()) + '</a>');
+            }
+            const authorContent = authorPieces.join(' &middot; ') || 'Unknown contributor';
+            
+            authorDiv.innerHTML =
+                '<div class="card-info-icon" style="width: 32px; height: 32px; flex-shrink: 0; display: flex; align-items: flex-start; justify-content: center; padding-top: 6px;">' +
+                '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; stroke: #4E6B52;">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" d="M15 19.127a3 3 0 012.25 2.898V23H6.75v-.975a3 3 0 012.25-2.898M12 14.25a4.5 4.5 0 100-9 4.5 4.5 0 000 9z" />' +
+                '</svg>' +
+                '</div>' +
+                '<div style="flex: 1; padding-top: 6px; line-height: 1.2; font-size: 12px; color: var(--text-primary);">' +
+                'Contributed by ' + authorContent +
+                '</div>';
+            
+            backContent.appendChild(authorDiv);
+        }
+        
+        const createdDisplay = formatDisplayDate(listing.publishedDate);
+        const updatedDisplay = formatDisplayDate(listing.modifiedDate);
+        if (createdDisplay || updatedDisplay) {
+            const datesDiv = document.createElement('div');
+            datesDiv.className = 'card-info-item';
+            datesDiv.style.cssText = 'display: flex; align-items: flex-start; gap: 10px; margin-bottom: 1px;';
+            datesDiv.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            const dateSegments = [];
+            if (createdDisplay) {
+                dateSegments.push('Created ' + createdDisplay);
+            }
+            if (updatedDisplay) {
+                dateSegments.push('Updated ' + updatedDisplay);
+            }
+            const dateContent = dateSegments.map(function(text) { return escapeHtml(text); }).join(' &middot; ');
+            
+            datesDiv.innerHTML =
+                '<div class="card-info-icon" style="width: 32px; height: 32px; flex-shrink: 0; display: flex; align-items: flex-start; justify-content: center; padding-top: 6px;">' +
+                '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; stroke: #6366f1;">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />' +
+                '</svg>' +
+                '</div>' +
+                '<div style="flex: 1; padding-top: 6px; line-height: 1.2; font-size: 12px; color: var(--text-primary);">' +
+                dateContent +
+                '</div>';
+            
+            backContent.appendChild(datesDiv);
+        }
+        
         // Address
         if (listing.address) {
             const addressDiv = document.createElement('div');
@@ -5470,7 +5583,8 @@ function renderPreview(filteredListings) {
             addressDiv.addEventListener('click', function(e) {
                 e.stopPropagation(); // Prevent card flip
             });
-            const googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(listing.address);
+            const fallbackMapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(listing.address);
+            const preferredMapsUrl = listing.directionsLink || listing.googleMapsUrl || fallbackMapsUrl;
             addressDiv.innerHTML = 
                 '<div class="card-info-icon" style="width: 32px; height: 32px; flex-shrink: 0; display: flex; align-items: flex-start; justify-content: center; padding-top: 6px;">' +
                 '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; stroke: #D65052;">' +
@@ -5479,7 +5593,7 @@ function renderPreview(filteredListings) {
                 '</svg>' +
                 '</div>' +
                 '<div style="flex: 1; padding-top: 6px; line-height: 0.85;">' +
-                '<a href="' + googleMapsUrl + '" style="font-size: 12px; color: var(--text-primary); text-decoration: none; line-height: 0.85;" target="_blank" rel="noopener noreferrer">' + escapeHtml(fixEncoding(listing.address)) + '</a>' +
+                '<a href="' + escapeHtml(preferredMapsUrl) + '" style="font-size: 12px; color: var(--text-primary); text-decoration: none; line-height: 0.85;" target="_blank" rel="noopener noreferrer">' + escapeHtml(fixEncoding(listing.address)) + '</a>' +
                 '</div>';
             backContent.appendChild(addressDiv);
         }
@@ -6233,6 +6347,8 @@ function updateMapMarkers(listings) {
                     ? '<img src="' + normalizeImageUrl(listing.image1) + '" onerror="this.onerror=null; this.src=FALLBACK_IMG;" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; display: block; margin: 0; padding: 0;">'
                     : '<img src="' + FALLBACK_IMG + '" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; display: block; margin: 0; padding: 0;">';
                 
+                var mapLink = listing.directionsLink || listing.googleMapsUrl || ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(listing.address || ''));
+                
                 var popupContent = 
                     '<div style="padding: 20px 16px; margin: 0; line-height: normal;">' +
                     '<div class="map-popup-title">' + escapeHtml(fixEncoding(listing.name)) + '</div>' +
@@ -6242,6 +6358,7 @@ function updateMapMarkers(listings) {
                     '</div>' +
                     imageHtml +
                     '<div class="map-popup-desc" style="margin-top: 12px;">' + escapeHtml(fixEncoding(listing.description).substring(0, 100)) + '...</div>' +
+                    (mapLink ? '<a class="map-popup-link" href="' + escapeHtml(mapLink) + '" target="_blank" rel="noopener noreferrer">Open in Google Maps ↗</a>' : '') +
                     '<button class="map-popup-btn" style="width: 100%; margin-top: 16px; background: #2d6a4f !important; color: white !important; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: visible; white-space: nowrap;" onclick="filterByListingName(\'' + escapeHtml(fixEncoding(listing.name)).replace(/'/g, "\\'") + '\'); google.maps.event.trigger(map, \'click\');">View Details</button>' +
                     '</div>';
                 

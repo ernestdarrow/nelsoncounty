@@ -334,6 +334,9 @@ const initialData =
             
             const galleryValue = getField('imageGallery', ['ImageGallery', 'Image Gallery', 'gallery', 'Gallery']);
             
+            const googleMapsUrlField = getField('Google Maps URL', ['Google Map URL', 'Google Maps Link', 'Maps URL', 'Map URL', 'Google Maps', 'googleMapsUrl', 'google_maps_url']);
+            const directionsLinkField = getField('directionsLink', ['Directions Link', 'Directions URL', 'Map Link']);
+            
             const listing = {
                 id: getField('ID', ['id', 'Id']),
                 name: getField('Title', ['Name', 'name', 'title']) || getField('name'),
@@ -351,12 +354,12 @@ const initialData =
                 featured: featuredStr === 'TRUE' || featuredStr === 'true' || featuredStr === '1' || featuredStr === 'Yes' || featuredStr === 'yes',
                 slug: getField('slug'),
                 wordpressUrl: getField('wordpressUrl'),
-                authorName: getField('authorName'),
-                authorEmail: getField('authorEmail'),
+                authorName: getField('authorName', ['Author Name', 'Author', 'author']),
+                authorEmail: getField('authorEmail', ['Author Email', 'author_email']),
                 authorUsername: getField('authorUsername'),
                 authorId: getField('authorId'),
-                publishedDate: getField('publishedDate'),
-                modifiedDate: getField('modifiedDate'),
+                publishedDate: getField('publishedDate', ['Published Date', 'Created Date', 'createdDate', 'Date Created', 'publishDate']),
+                modifiedDate: getField('modifiedDate', ['Modified Date', 'Updated Date', 'updatedDate', 'Date Updated', 'editedDate', 'Edited Date']),
                 status: getField('status'),
                 commentStatus: getField('commentStatus'),
                 pingStatus: getField('pingStatus'),
@@ -367,8 +370,13 @@ const initialData =
                 descriptionSource: getField('descriptionSource'),
                 amenitiesGuessed: getField('amenitiesGuessed'),
                 missingFields: getField('missingFields'),
-                directionsLink: getField('directionsLink')
+                directionsLink: directionsLinkField || googleMapsUrlField || ''
             };
+            
+            listing.googleMapsUrl = googleMapsUrlField || listing.directionsLink || '';
+            if (!listing.directionsLink && listing.googleMapsUrl) {
+                listing.directionsLink = listing.googleMapsUrl;
+            }
             
             if (!listing.id && listing.name) {
                 listing.id = listing.name.toLowerCase()
@@ -1306,7 +1314,8 @@ const initialData =
                 authorEmail: getValue('listingAuthorEmail'),
                 publishedDate: getValue('listingPublishedDate'),
                 modifiedDate: getValue('listingModifiedDate'),
-                directionsLink: getValue('listingDirectionsLink')
+                directionsLink: getValue('listingDirectionsLink'),
+                googleMapsUrl: getValue('listingDirectionsLink')
             };
             
             const listing = Object.assign({}, existingListing || {}, listingUpdates);
@@ -2028,6 +2037,9 @@ const initialData =
                         }
                     } else if (listing[field] !== newValue) {
                         listing[field] = newValue;
+                        if (field === 'directionsLink') {
+                            listing.googleMapsUrl = newValue;
+                        }
                         changeCount++;
                     }
                 });
@@ -2096,7 +2108,7 @@ const initialData =
                     'authorName', 'authorEmail', 'authorUsername', 'authorId',
                     'publishedDate', 'modifiedDate', 'status', 'commentStatus', 'pingStatus',
                     'originalCategories', 'originalAttributes', 'dataConfidence', 'notes',
-                    'descriptionSource', 'amenitiesGuessed', 'missingFields', 'directionsLink'
+                    'descriptionSource', 'amenitiesGuessed', 'missingFields', 'directionsLink', 'googleMapsUrl'
                 ];
                 
                 const rows = data.listings.map(function(listing) {
@@ -2133,7 +2145,8 @@ const initialData =
                         listing.descriptionSource || '',
                         listing.amenitiesGuessed || '',
                         listing.missingFields || '',
-                        listing.directionsLink || ''
+                        listing.directionsLink || '',
+                        listing.googleMapsUrl || listing.directionsLink || ''
                     ].join(',');
                 });
                 
