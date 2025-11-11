@@ -1466,11 +1466,6 @@ const initialData =
                 document.getElementById('settingsTab').classList.add('active');
                 header.style.display = 'block';
                 renderSettings();
-            } else if (tab === 'code') {
-                document.querySelectorAll('.tab-btn')[3].classList.add('active');
-                document.getElementById('codeTab').classList.add('active');
-                header.style.display = 'block';
-                generateCode();
             }
         }
         
@@ -1966,34 +1961,6 @@ const initialData =
             });
             
             renderPreview();
-        }
-        
-        function generateCode() {
-            const jsonData = JSON.stringify(data, null, 2);
-            document.getElementById('jsonCode').value = jsonData;
-            
-            const embedCode = '<div id="adventure-directory"><\/div>\n<scr' + 'ipt src="https:\/\/your-domain.com\/directory.js"><\/scr' + 'ipt>\n<link rel="stylesheet" href="https:\/\/your-domain.com\/directory.css">';
-            document.getElementById('embedCode').value = embedCode;
-            
-            // Extract all CSS from the style tag
-            const styleTag = document.querySelector('style');
-            const cssCode = styleTag ? styleTag.textContent : '';
-            document.getElementById('cssCode').value = cssCode;
-            
-            const jsCode = 'const listings = ' + jsonData + ';\n\nfunction renderListings() {\n  const container = document.getElementById("adventure-directory");\n  listings.forEach(function(listing) {\n    const card = document.createElement("div");\n    card.className = "listing-card";\n    card.innerHTML = "<h3>" + listing.name + "</h3>";\n    container.appendChild(card);\n  });\n}\n\nrenderListings();';
-            document.getElementById('jsCode').value = jsCode;
-        }
-        
-        function copyCode(type) {
-            let textarea;
-            if (type === 'embed') textarea = document.getElementById('embedCode');
-            else if (type === 'json') textarea = document.getElementById('jsonCode');
-            else if (type === 'css') textarea = document.getElementById('cssCode');
-            else if (type === 'js') textarea = document.getElementById('jsCode');
-            
-            textarea.select();
-            document.execCommand('copy');
-            alert('Copied to clipboard!');
         }
         
         function renderDataTable() {
