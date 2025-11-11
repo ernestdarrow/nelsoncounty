@@ -1989,29 +1989,32 @@ const initialData =
             tbody.innerHTML = '';
             
             data.listings.forEach(function(listing, index) {
+                const safe = (value) => (value === undefined || value === null) ? '' : value;
+                const safeArray = (value) => Array.isArray(value) ? value : [];
+                
                 const row = document.createElement('tr');
                 row.setAttribute('data-index', index);
                 row.innerHTML = 
-                    '<td class="cell-id">' + listing.id + '</td>' +
-                    '<td class="cell-name"><input type="text" value="' + listing.name + '" data-field="name" /></td>' +
+                    '<td class="cell-id">' + safe(listing.id) + '</td>' +
+                    '<td class="cell-name"><input type="text" value="' + safe(listing.name) + '" data-field="name" /></td>' +
                     '<td class="cell-type"><select data-field="type">' +
-                        data.filterOptions.types.map(function(t) { return '<option value="' + t + '" ' + (listing.type === t ? 'selected' : '') + '>' + t + '</option>'; }).join('') +
+                        data.filterOptions.types.map(function(t) { return '<option value="' + t + '" ' + (safe(listing.type) === t ? 'selected' : '') + '>' + t + '</option>'; }).join('') +
                     '</select></td>' +
                     '<td class="cell-area"><select data-field="area">' +
-                        data.filterOptions.areas.map(function(a) { return '<option value="' + a + '" ' + (listing.area === a ? 'selected' : '') + '>' + a + '</option>'; }).join('') +
+                        data.filterOptions.areas.map(function(a) { return '<option value="' + a + '" ' + (safe(listing.area) === a ? 'selected' : '') + '>' + a + '</option>'; }).join('') +
                     '</select></td>' +
-                    '<td class="cell-description"><textarea data-field="description">' + listing.description + '</textarea></td>' +
-                    '<td class="cell-image"><input type="text" value="' + (listing.image1 || '') + '" data-field="image1" placeholder="Image URL or base64" /></td>' +
-                    '<td class="cell-image"><input type="text" value="' + (listing.image2 || '') + '" data-field="image2" placeholder="Image URL or base64" /></td>' +
-                    '<td class="cell-website"><input type="url" value="' + listing.website + '" data-field="website" /></td>' +
-                    '<td class="cell-phone"><input type="tel" value="' + (listing.phone || '') + '" data-field="phone" /></td>' +
-                    '<td class="cell-address"><input type="text" value="' + listing.address + '" data-field="address" /></td>' +
-                    '<td class="cell-author"><input type="text" value="' + (listing.authorName || '') + '" data-field="authorName" placeholder="Author name" /></td>' +
-                    '<td class="cell-author-email"><input type="email" value="' + (listing.authorEmail || '') + '" data-field="authorEmail" placeholder="name@example.com" /></td>' +
-                    '<td class="cell-date"><input type="date" value="' + (listing.publishedDate || '') + '" data-field="publishedDate" /></td>' +
-                    '<td class="cell-date"><input type="date" value="' + (listing.modifiedDate || '') + '" data-field="modifiedDate" /></td>' +
-                    '<td class="cell-directions"><input type="url" value="' + (listing.directionsLink || '') + '" data-field="directionsLink" placeholder="https://..." /></td>' +
-                    '<td class="cell-amenities"><textarea data-field="amenities">' + listing.amenities.join(', ') + '</textarea></td>' +
+                    '<td class="cell-description"><textarea data-field="description">' + safe(listing.description) + '</textarea></td>' +
+                    '<td class="cell-image"><input type="text" value="' + safe(listing.image1) + '" data-field="image1" placeholder="Image URL or base64" /></td>' +
+                    '<td class="cell-image"><input type="text" value="' + safe(listing.image2) + '" data-field="image2" placeholder="Image URL or base64" /></td>' +
+                    '<td class="cell-website"><input type="url" value="' + safe(listing.website) + '" data-field="website" /></td>' +
+                    '<td class="cell-phone"><input type="tel" value="' + safe(listing.phone) + '" data-field="phone" /></td>' +
+                    '<td class="cell-address"><input type="text" value="' + safe(listing.address) + '" data-field="address" /></td>' +
+                    '<td class="cell-author"><input type="text" value="' + safe(listing.authorName) + '" data-field="authorName" placeholder="Author name" /></td>' +
+                    '<td class="cell-author-email"><input type="email" value="' + safe(listing.authorEmail) + '" data-field="authorEmail" placeholder="name@example.com" /></td>' +
+                    '<td class="cell-date"><input type="date" value="' + safe(listing.publishedDate) + '" data-field="publishedDate" /></td>' +
+                    '<td class="cell-date"><input type="date" value="' + safe(listing.modifiedDate) + '" data-field="modifiedDate" /></td>' +
+                    '<td class="cell-directions"><input type="url" value="' + safe(listing.directionsLink) + '" data-field="directionsLink" placeholder="https://..." /></td>' +
+                    '<td class="cell-amenities"><textarea data-field="amenities">' + safeArray(listing.amenities).join(', ') + '</textarea></td>' +
                     '<td class="cell-featured"><input type="checkbox" ' + (listing.featured ? 'checked' : '') + ' data-field="featured" /></td>' +
                     '<td class="cell-actions">' +
                         '<button class="btn-table-delete" onclick="deleteFromTable(' + index + ')" style="background: ' + (deleteConfirmId === listing.id ? '#dc2626' : '#E3795C') + ';">' +
