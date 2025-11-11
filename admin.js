@@ -1814,7 +1814,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         async function fetchImageKitUploadParams() {
             const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                // Use a simple request (no custom headers) to avoid CORS preflight failures
                 body: JSON.stringify({ action: IMAGEKIT_AUTH_ACTION })
             });
             const json = await response.json();
