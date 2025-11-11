@@ -1812,16 +1812,31 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         }
 
         async function fetchImageKitUploadParams() {
-            const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
-                // Use a simple request (no custom headers) to avoid CORS preflight failures
-                body: JSON.stringify({ action: IMAGEKIT_AUTH_ACTION })
-            });
-            const json = await response.json();
-            if (!json.success) {
-                throw new Error(json.error || 'Failed to fetch ImageKit upload params');
+            const urlWithQuery = GOOGLE_APPS_SCRIPT_URL + '?action=' + encodeURIComponent(IMAGEKIT_AUTH_ACTION) + '&t=' + Date.now();
+            
+            try {
+                const response = await fetch(urlWithQuery, { method: 'GET' });
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
+                const json = await response.json();
+                if (!json.success) {
+                    throw new Error(json.error || 'Failed to fetch ImageKit upload params');
+                }
+                return json.data;
+            } catch (getError) {
+                console.warn('GET request for ImageKit params failed, falling back to POST:', getError);
+                
+                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: IMAGEKIT_AUTH_ACTION })
+                });
+                const json = await response.json();
+                if (!json.success) {
+                    throw new Error(json.error || 'Failed to fetch ImageKit upload params');
+                }
+                return json.data;
             }
-            return json.data;
         }
 
         async function uploadImageToImageKit(file, onProgress) {
