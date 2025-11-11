@@ -426,6 +426,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         // Step 2: Your Google Apps Script Web App URL (REQUIRED for read/write)
         // This URL is already configured and working!
         const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNH8P5P8iorzRTTx3FpVbYPFNBo1qUWIU630v7ymLJWypvJpSEfPZC5nfxJpjjwjF-Jg/exec';
+        const IMAGEKIT_PUBLIC_KEY = 'public_bEXbACd1Av+LMd7EASiu/x25f4o=';
+        const IMAGEKIT_URL_ENDPOINT = 'https://ik.imagekit.io/OE';
+        const IMAGEKIT_AUTH_ACTION = 'getImageKitUploadParams';
         
         // Initialize data with initialData (will be updated from Google Sheets on load)
         let data = JSON.parse(JSON.stringify(initialData));
@@ -1790,6 +1793,102 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         function updateAmenitiesCheckboxes() {
             renderAmenitiesCheckboxes();
         }
+
+        async function fetchImageKitUploadParams() {
+            const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: IMAGEKIT_AUTH_ACTION })
+            });
+            const json = await response.json();
+            if (!json.success) {
+                throw new Error(json.error || 'Failed to fetch ImageKit upload params');
+            }
+            return json.data;
+        }
+
+        async function uploadImageToImageKit(file, onProgress) {
+            const { token, expire, signature, folder } = await fetchImageKitUploadParams();
+
+            const form = new FormData();
+            form.append('file', file);
+            form.append('fileName', file.name);
+            form.append('token', token);
+            form.append('expire', expire);
+            form.append('signature', signature);
+            form.append('publicKey', IMAGEKIT_PUBLIC_KEY);
+            form.append('useUniqueFileName', 'true');
+            if (folder) form.append('folder', folder);
+
+            const uploadUrl = 'https://upload.imagekit.io/api/v1/files/upload';
+            const xhr = new XMLHttpRequest();
+
+            const uploadPromise = new Promise(function(resolve, reject) {
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            resolve(JSON.parse(xhr.responseText));
+                        } else {
+                            reject(new Error(xhr.responseText || 'ImageKit upload failed'));
+                        }
+                    }
+                };
+                xhr.onerror = function() {
+                    reject(new Error('Network error'));
+                };
+            });
+
+            if (typeof onProgress === 'function') {
+                xhr.upload.onprogress = function(event) {
+                    if (event.lengthComputable) {
+                        const percent = Math.round((event.loaded / event.total) * 100);
+                        onProgress(percent);
+                    }
+                };
+            }
+
+            xhr.open('POST', uploadUrl);
+            xhr.send(form);
+
+            return uploadPromise;
+        }
+
+        function initImageUploadButtons() {
+            document.querySelectorAll('.btn-upload-image').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const targetId = button.dataset.target;
+                    const input = document.getElementById(targetId);
+                    if (!input) return;
+
+                    const filePicker = document.createElement('input');
+                    filePicker.type = 'file';
+                    filePicker.accept = 'image/*';
+
+                    filePicker.onchange = async function() {
+                        if (!filePicker.files || !filePicker.files[0]) return;
+                        const file = filePicker.files[0];
+
+                        button.disabled = true;
+                        const originalText = button.textContent;
+                        button.textContent = 'Uploading...';
+
+                        try {
+                            const result = await uploadImageToImageKit(file);
+                            input.value = result.url || result.filePath || '';
+                            alert('Image uploaded successfully!');
+                        } catch (error) {
+                            console.error('ImageKit upload error:', error);
+                            alert('Image upload failed: ' + error.message);
+                        } finally {
+                            button.disabled = false;
+                            button.textContent = originalText;
+                        }
+                    };
+
+                    filePicker.click();
+                });
+            });
+        }
         
         // Icon mapping function - maps activity types to centralized icon library
         function getIconClass(type) {
@@ -2390,6 +2489,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             updateStats();
             populateAdminFilters();
             populatePreviewFilters();
+            initImageUploadButtons();
             
             // Add event listeners to quick filter buttons in admin tab
             document.querySelectorAll('#adminTab .type-filter-btn').forEach(function(btn) {

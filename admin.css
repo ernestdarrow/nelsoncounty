@@ -263,6 +263,17 @@
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px; font-family: inherit; transition: border-color 0.3s ease, background-color 0.3s ease; background: var(--bg-primary); color: var(--text-primary); }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #007AFF; }
         .form-group textarea { resize: vertical; min-height: 100px; }
+        .image-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .image-input-group input {
+            flex: 1;
+        }
+        .btn-upload-image {
+            white-space: nowrap;
+        }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         
         .checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
