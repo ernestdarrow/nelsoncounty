@@ -495,6 +495,28 @@
         .badge-type { background: #ffffff !important; color: #212529 !important; box-shadow: none !important; }
         .badge-area { background: #ffffff !important; color: #212529 !important; box-shadow: none !important; }
         .badge-featured { background: var(--badge-featured-bg); color: var(--badge-featured-color); }
+        .card-featured-tag {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--theme-primary);
+            border: 1px solid rgba(45, 106, 79, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            z-index: 2;
+        }
+        :root.dark-mode .card-featured-tag {
+            background: rgba(17, 24, 39, 0.9);
+            color: #9ae6b4;
+            border-color: rgba(154, 230, 180, 0.25);
+        }
         
         .preview-container { 
             width: 100%; 
@@ -5290,6 +5312,15 @@ function renderPreview(filteredListings) {
         imgContainer.className = 'card-front-image-scroll';
         imgContainer.style.cssText = 'position: relative; width: 100%; height: 0; padding-bottom: 100%; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none;';
         imgContainer.style.setProperty('-ms-overflow-style', 'none');
+        if (listing.featured) {
+            const featuredTag = document.createElement('span');
+            featuredTag.className = 'badge-featured card-featured-tag';
+            featuredTag.textContent = 'Featured';
+            featuredTag.addEventListener('click', function(e) {
+                filterByBadge(e, 'featured', 'true');
+            });
+            imgContainer.appendChild(featuredTag);
+        }
         
         const imgWrapper = document.createElement('div');
         imgWrapper.style.cssText = 'position: absolute; top: 0; left: 0; width: auto; height: 100%; display: flex;';
@@ -5385,11 +5416,13 @@ function renderPreview(filteredListings) {
         const fixedArea = fixEncoding(listing.area);
         const fixedDescription = fixEncoding(listing.description);
         
+        let badgesHtml = 
+            '<span class="badge-type ' + getIconClass(listing.type) + '" data-type="' + escapeHtml(listing.type) + '" onclick="event.preventDefault(); event.stopPropagation(); filterByBadge(event, \'type\', \'' + escapeHtml(listing.type) + '\'); return false;">' + escapeHtml(fixedType) + '</span>' +
+            '<span class="badge-area" data-area="' + escapeHtml(listing.area) + '" onclick="event.preventDefault(); event.stopPropagation(); filterByBadge(event, \'area\', \'' + escapeHtml(listing.area) + '\'); return false;">' + escapeHtml(fixedArea) + '</span>';
         contentDiv.innerHTML = 
             '<h3 style="font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--text-primary); line-height: 1.2;">' + escapeHtml(fixedName) + '</h3>' +
-            '<div style="display: flex; gap: 8px; margin-bottom: 10px;">' +
-            '<span class="badge-type ' + getIconClass(listing.type) + '" data-type="' + escapeHtml(listing.type) + '" onclick="event.preventDefault(); event.stopPropagation(); filterByBadge(event, \'type\', \'' + escapeHtml(listing.type) + '\'); return false;">' + escapeHtml(fixedType) + '</span>' +
-            '<span class="badge-area" data-area="' + escapeHtml(listing.area) + '" onclick="event.preventDefault(); event.stopPropagation(); filterByBadge(event, \'area\', \'' + escapeHtml(listing.area) + '\'); return false;">' + escapeHtml(fixedArea) + '</span>' +
+            '<div style="display: flex; gap: 8px; margin-bottom: 10px; align-items: center;">' +
+            badgesHtml +
             '</div>' +
             '<p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5;">' + escapeHtml(fixedDescription) + '</p>';
         front.appendChild(contentDiv);
