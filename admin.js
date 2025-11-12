@@ -263,31 +263,57 @@ function normalizeFilterValue(value) {
     return trimmed;
 }
 
-// Category definitions with emoji, name, description, and type mappings (same as frontpage_framer.html)
-const TYPE_CATEGORIES = {
+// Load categories from localStorage or use defaults
+function loadCategoriesFromStorage() {
+    try {
+        const stored = localStorage.getItem('nelsonCounty_categories');
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && typeof parsed === 'object') {
+                return parsed;
+            }
+        }
+    } catch (e) {
+        console.error('Error loading categories from storage:', e);
+    }
+    return null;
+}
+
+function saveCategoriesToStorage(categories) {
+    try {
+        localStorage.setItem('nelsonCounty_categories', JSON.stringify(categories));
+        return true;
+    } catch (e) {
+        console.error('Error saving categories to storage:', e);
+        return false;
+    }
+}
+
+// Default category definitions - comprehensive list based on user requirements
+const DEFAULT_TYPE_CATEGORIES = {
     'taste': {
         emoji: '🥘',
         name: 'Taste',
         description: 'Food and drink experiences of all kinds.',
-        types: ['Restaurant', 'Café', 'Coffee Shop', 'Bakery', 'Brewery', 'Winery', 'Cidery', 'Distillery', 'Bar', 'Cocktail Bar', 'Food Market', 'Farmers Market', 'Food Tour', 'Cooking Class']
+        types: ['Restaurant', 'Café', 'Coffee Shop', 'Bakery', 'Brewery', 'Winery', 'Cidery', 'Distillery', 'Bar', 'Cocktail Bar', 'Food Market', 'Farmers Market', 'Food Tour', 'Cooking Class', 'Local Specialty', 'Street Food', 'Fine Dining']
     },
     'stay': {
         emoji: '🛏️',
         name: 'Stay',
         description: 'Places to sleep or retreat.',
-        types: ['Lodging', 'Hotel', 'Resort', 'B&B', 'BnB', 'Inn', 'Cabin', 'Camping', 'Glamping', 'Hostel', 'Boutique Stay', 'Treehouse', 'Unique Stay']
+        types: ['Lodging', 'Hotel', 'Resort', 'B&B', 'BnB', 'Inn', 'Cabin', 'Camping', 'Glamping', 'Hostel', 'Boutique Stay', 'Treehouse', 'Unique Stay', 'Airbnb', 'Lodge', 'Boat']
     },
     'outdoor': {
         emoji: '🌿',
         name: 'Outdoor',
         description: 'Nature, adventure, and recreation outside.',
-        types: ['Hiking', 'Outdoor', 'Outdoor Activity', 'Park', 'Beach', 'Trail', 'Camping', 'Climbing', 'Water Sports', 'Skiing', 'Scenic Drive', 'Viewpoint', 'Nature Walk', 'Biking', 'Cycling', 'Kayaking', 'Kayak', 'Farm & Orchard']
+        types: ['Hiking', 'Outdoor', 'Outdoor Activity', 'Park', 'Beach', 'Trail', 'Camping', 'Climbing', 'Water Sports', 'Skiing', 'Scenic Drive', 'Viewpoint', 'Nature Walk', 'Biking', 'Cycling', 'Kayaking', 'Kayak', 'Farm & Orchard', 'National Park', 'Hike']
     },
     'culture': {
         emoji: '🎭',
         name: 'Culture',
         description: 'Art, heritage, people, and traditions.',
-        types: ['Museum', 'Gallery', 'Art Gallery', 'Art', 'Architecture', 'Landmark', 'Historical Site', 'Festival', 'Cultural Tour', 'Craft', 'Music', 'Theater', 'Theatre', 'Dance', 'Attraction', 'Attractions']
+        types: ['Museum', 'Gallery', 'Art Gallery', 'Art', 'Architecture', 'Landmark', 'Historical Site', 'Festival', 'Cultural Tour', 'Craft', 'Music', 'Theater', 'Theatre', 'Dance', 'Attraction', 'Attractions', 'Local Craft', 'Cultural Site']
     },
     'shop': {
         emoji: '🛍️',
@@ -311,7 +337,7 @@ const TYPE_CATEGORIES = {
         emoji: '💡',
         name: 'Learn',
         description: 'Knowledge, discovery, and curiosity.',
-        types: ['Class', 'Workshop', 'Studio', 'Exhibit', 'Educational Tour', 'Library', 'Lab', 'Science Center', 'Learning', 'Education']
+        types: ['Class', 'Workshop', 'Studio', 'Exhibit', 'Educational Tour', 'Library', 'Lab', 'Science Center', 'Learning', 'Education', 'Museum']
     },
     'work': {
         emoji: '💼',
@@ -327,8 +353,23 @@ const TYPE_CATEGORIES = {
     }
 };
 
+// Initialize TYPE_CATEGORIES from storage or defaults
+let TYPE_CATEGORIES = loadCategoriesFromStorage() || DEFAULT_TYPE_CATEGORIES;
+
+// Ensure we always have the default structure
+if (!TYPE_CATEGORIES || Object.keys(TYPE_CATEGORIES).length === 0) {
+    TYPE_CATEGORIES = DEFAULT_TYPE_CATEGORIES;
+    saveCategoriesToStorage(TYPE_CATEGORIES);
+}
+
 // Map individual types to categories (case-insensitive)
-function getCategoryForType(type) {
+// Also checks for category override on listing
+function getCategoryForType(type, listing) {
+    // If listing has a category override, use it
+    if (listing && listing.category) {
+        return listing.category;
+    }
+    
     if (!type) return null;
     const normalizedType = normalizeFilterValue(type);
     
@@ -1420,7 +1461,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             // Count occurrences of each category
             (Array.isArray(listings) ? listings : []).forEach(function(listing) {
                 if (listing && listing.type) {
-                    const category = getCategoryForType(listing.type);
+                    const category = getCategoryForType(listing.type, listing);
                     if (category) {
                         categoryCounts[category] = (categoryCounts[category] || 0) + 1;
                     }
@@ -1620,6 +1661,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             // Ensure dropdowns are populated with current options
             updateTypeDropdown();
             updateAreaDropdown();
+            updateCategoryDropdown();
             renderAmenitiesCheckboxes();
             document.getElementById('listingModal').classList.add('active');
         }
@@ -1631,6 +1673,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             // Ensure dropdowns are populated with current options
             updateTypeDropdown();
             updateAreaDropdown();
+            updateCategoryDropdown();
             renderAmenitiesCheckboxes();
             
             document.getElementById('modalTitle').textContent = 'Edit Listing';
@@ -1643,6 +1686,12 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             if (detailedDescriptionInput) detailedDescriptionInput.value = listing.detailedDescription || '';
             const slugInput = document.getElementById('listingSlug');
             if (slugInput) slugInput.value = listing.slug || '';
+            
+            // Set category if it exists, otherwise leave blank for auto-assignment
+            const categoryInput = document.getElementById('listingCategory');
+            if (categoryInput) {
+                categoryInput.value = listing.category || '';
+            }
             document.getElementById('listingImage1').value = listing.image1;
             document.getElementById('listingImage2').value = listing.image2 || '';
             const image3Input = document.getElementById('listingImage3');
@@ -1791,6 +1840,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             const existingListing = isUpdate ? data.listings.find(function(l) { return l.id === editingId; }) : null;
             const generatedId = editingId || Date.now().toString();
             
+            // Get category override, if provided
+            const categoryOverride = getValue('listingCategory');
+            
             const listingUpdates = {
                 id: generatedId,
                 name: getValue('listingName'),
@@ -1811,7 +1863,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 publishedDate: getValue('listingPublishedDate'),
                 modifiedDate: getValue('listingModifiedDate'),
                 directionsLink: getValue('listingDirectionsLink'),
-                googleMapsUrl: getValue('listingDirectionsLink')
+                googleMapsUrl: getValue('listingDirectionsLink'),
+                category: categoryOverride || undefined // Only save if explicitly set
             };
             
             const listing = sanitizeListing(Object.assign({}, existingListing || {}, listingUpdates));
@@ -1922,8 +1975,13 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 document.getElementById('dataTab').classList.add('active');
                 header.style.display = 'block';
                 renderDataTable();
-            } else if (tab === 'settings') {
+            } else if (tab === 'categories') {
                 document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('categoriesTab').classList.add('active');
+                header.style.display = 'block';
+                renderCategories();
+            } else if (tab === 'settings') {
+                document.querySelectorAll('.tab-btn')[3].classList.add('active');
                 document.getElementById('settingsTab').classList.add('active');
                 header.style.display = 'block';
                 renderSettings();
@@ -2067,6 +2125,143 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             localStorage.setItem('nelsonCounty_filterOptions', JSON.stringify(data.filterOptions));
         }
         
+        // ===========================================
+        // CATEGORY MANAGEMENT FUNCTIONS
+        // ===========================================
+        function renderCategories() {
+            const container = document.getElementById('categoriesList');
+            if (!container) return;
+            
+            container.innerHTML = Object.keys(TYPE_CATEGORIES).map(function(categoryKey) {
+                const category = TYPE_CATEGORIES[categoryKey];
+                const typesHtml = category.types.map(function(type, typeIndex) {
+                    return '<div style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #f8f9fa; border-radius: 4px; margin: 4px 0;">' +
+                        '<span style="flex: 1;">' + type + '</span>' +
+                        '<button onclick="removeTypeFromCategory(\'' + categoryKey + '\', ' + typeIndex + ')" style="background: #dc3545; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">Remove</button>' +
+                        '</div>';
+                }).join('');
+                
+                return '<div style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;">' +
+                    '<div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">' +
+                    '<input type="text" id="categoryEmoji_' + categoryKey + '" value="' + category.emoji + '" style="width: 60px; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 24px; text-align: center;" onchange="updateCategory(\'' + categoryKey + '\')" placeholder="🎭" />' +
+                    '<input type="text" id="categoryName_' + categoryKey + '" value="' + category.name + '" style="flex: 1; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;" onchange="updateCategory(\'' + categoryKey + '\')" placeholder="Category Name" />' +
+                    '</div>' +
+                    '<div style="margin-bottom: 15px;">' +
+                    '<textarea id="categoryDesc_' + categoryKey + '" style="width: 100%; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px; min-height: 60px;" onchange="updateCategory(\'' + categoryKey + '\')" placeholder="Category description">' + category.description + '</textarea>' +
+                    '</div>' +
+                    '<div style="margin-bottom: 15px;">' +
+                    '<label style="display: block; margin-bottom: 8px; font-weight: 600; color: #212529;">Types in this category:</label>' +
+                    '<div id="categoryTypes_' + categoryKey + '" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;">' + typesHtml + '</div>' +
+                    '<div style="display: flex; gap: 10px;">' +
+                    '<input type="text" id="newTypeForCategory_' + categoryKey + '" placeholder="Add type..." style="flex: 1; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;" onkeypress="if(event.key===\'Enter\') addTypeToCategory(\'' + categoryKey + '\')" />' +
+                    '<button onclick="addTypeToCategory(\'' + categoryKey + '\')" class="btn btn-success" style="padding: 8px 16px;">Add</button>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+            }).join('');
+        }
+        
+        window.updateCategory = function updateCategory(categoryKey) {
+            const category = TYPE_CATEGORIES[categoryKey];
+            if (!category) return;
+            
+            category.emoji = document.getElementById('categoryEmoji_' + categoryKey).value.trim();
+            category.name = document.getElementById('categoryName_' + categoryKey).value.trim();
+            category.description = document.getElementById('categoryDesc_' + categoryKey).value.trim();
+            
+            saveCategoriesToStorage(TYPE_CATEGORIES);
+            renderCategories();
+        };
+        
+        window.addTypeToCategory = function addTypeToCategory(categoryKey) {
+            const input = document.getElementById('newTypeForCategory_' + categoryKey);
+            const value = input.value.trim();
+            if (!value) return;
+            
+            const category = TYPE_CATEGORIES[categoryKey];
+            if (!category) return;
+            
+            if (category.types.indexOf(value) === -1) {
+                category.types.push(value);
+                saveCategoriesToStorage(TYPE_CATEGORIES);
+                renderCategories();
+                input.value = '';
+            } else {
+                alert('This type already exists in this category.');
+            }
+        };
+        
+        window.removeTypeFromCategory = function removeTypeFromCategory(categoryKey, typeIndex) {
+            const category = TYPE_CATEGORIES[categoryKey];
+            if (!category) return;
+            
+            const confirmed = confirm('Remove type "' + category.types[typeIndex] + '" from category "' + category.name + '"?\n\nThis will affect how listings are categorized.');
+            if (confirmed) {
+                category.types.splice(typeIndex, 1);
+                saveCategoriesToStorage(TYPE_CATEGORIES);
+                renderCategories();
+            }
+        };
+        
+        window.resetCategoriesToDefaults = function resetCategoriesToDefaults() {
+            if (confirm('Reset all categories to default values? This will overwrite all your customizations.')) {
+                TYPE_CATEGORIES = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES));
+                saveCategoriesToStorage(TYPE_CATEGORIES);
+                renderCategories();
+                alert('Categories reset to defaults.');
+            }
+        };
+        
+        window.exportCategories = function exportCategories() {
+            const blob = new Blob([JSON.stringify(TYPE_CATEGORIES, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'categories-' + new Date().toISOString().split('T')[0] + '.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        };
+        
+        window.importCategories = function importCategories(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported && typeof imported === 'object') {
+                        if (confirm('Import categories? This will overwrite your current categories.')) {
+                            TYPE_CATEGORIES = imported;
+                            saveCategoriesToStorage(TYPE_CATEGORIES);
+                            renderCategories();
+                            alert('Categories imported successfully.');
+                        }
+                    } else {
+                        alert('Invalid categories file.');
+                    }
+                } catch (error) {
+                    alert('Error importing categories: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        };
+        
+        function updateCategoryDropdown() {
+            const select = document.getElementById('listingCategory');
+            if (!select) return;
+            
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">Auto-assign from Type</option>' +
+                Object.keys(TYPE_CATEGORIES).map(function(categoryKey) {
+                    const category = TYPE_CATEGORIES[categoryKey];
+                    return '<option value="' + categoryKey + '">' + category.emoji + ' ' + category.name + '</option>';
+                }).join('');
+            select.value = currentValue;
+        }
+        
         function updateTypeDropdown() {
             const select = document.getElementById('listingType');
             if (!select) return;
@@ -2083,6 +2278,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     return '<option value="' + type + '">' + type + '</option>';
                 }).join('');
             select.value = currentValue;
+            
+            // Update category dropdown when type changes
+            updateCategoryDropdown();
         }
         
         function updateAreaDropdown() {

@@ -3862,31 +3862,47 @@ function extractFilterOptions(listings) {
     return { types, areas, amenities };
 }
 
-// Category definitions with emoji, name, description, and type mappings
-const TYPE_CATEGORIES = {
+// Load categories from localStorage or use defaults (sync with admin.js)
+function loadCategoriesFromStorage() {
+    try {
+        const stored = localStorage.getItem('nelsonCounty_categories');
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && typeof parsed === 'object') {
+                return parsed;
+            }
+        }
+    } catch (e) {
+        console.error('Error loading categories from storage:', e);
+    }
+    return null;
+}
+
+// Default category definitions - comprehensive list
+const DEFAULT_TYPE_CATEGORIES = {
     'taste': {
         emoji: '🥘',
         name: 'Taste',
         description: 'Food and drink experiences of all kinds.',
-        types: ['Restaurant', 'Café', 'Coffee Shop', 'Bakery', 'Brewery', 'Winery', 'Cidery', 'Distillery', 'Bar', 'Cocktail Bar', 'Food Market', 'Farmers Market', 'Food Tour', 'Cooking Class']
+        types: ['Restaurant', 'Café', 'Coffee Shop', 'Bakery', 'Brewery', 'Winery', 'Cidery', 'Distillery', 'Bar', 'Cocktail Bar', 'Food Market', 'Farmers Market', 'Food Tour', 'Cooking Class', 'Local Specialty', 'Street Food', 'Fine Dining']
     },
     'stay': {
         emoji: '🛏️',
         name: 'Stay',
         description: 'Places to sleep or retreat.',
-        types: ['Lodging', 'Hotel', 'Resort', 'B&B', 'BnB', 'Inn', 'Cabin', 'Camping', 'Glamping', 'Hostel', 'Boutique Stay', 'Treehouse', 'Unique Stay']
+        types: ['Lodging', 'Hotel', 'Resort', 'B&B', 'BnB', 'Inn', 'Cabin', 'Camping', 'Glamping', 'Hostel', 'Boutique Stay', 'Treehouse', 'Unique Stay', 'Airbnb', 'Lodge', 'Boat']
     },
     'outdoor': {
         emoji: '🌿',
         name: 'Outdoor',
         description: 'Nature, adventure, and recreation outside.',
-        types: ['Hiking', 'Outdoor', 'Outdoor Activity', 'Park', 'Beach', 'Trail', 'Camping', 'Climbing', 'Water Sports', 'Skiing', 'Scenic Drive', 'Viewpoint', 'Nature Walk', 'Biking', 'Cycling', 'Kayaking', 'Kayak', 'Farm & Orchard']
+        types: ['Hiking', 'Outdoor', 'Outdoor Activity', 'Park', 'Beach', 'Trail', 'Camping', 'Climbing', 'Water Sports', 'Skiing', 'Scenic Drive', 'Viewpoint', 'Nature Walk', 'Biking', 'Cycling', 'Kayaking', 'Kayak', 'Farm & Orchard', 'National Park', 'Hike']
     },
     'culture': {
         emoji: '🎭',
         name: 'Culture',
         description: 'Art, heritage, people, and traditions.',
-        types: ['Museum', 'Gallery', 'Art Gallery', 'Art', 'Architecture', 'Landmark', 'Historical Site', 'Festival', 'Cultural Tour', 'Craft', 'Music', 'Theater', 'Theatre', 'Dance', 'Attraction', 'Attractions']
+        types: ['Museum', 'Gallery', 'Art Gallery', 'Art', 'Architecture', 'Landmark', 'Historical Site', 'Festival', 'Cultural Tour', 'Craft', 'Music', 'Theater', 'Theatre', 'Dance', 'Attraction', 'Attractions', 'Local Craft', 'Cultural Site']
     },
     'shop': {
         emoji: '🛍️',
@@ -3910,7 +3926,7 @@ const TYPE_CATEGORIES = {
         emoji: '💡',
         name: 'Learn',
         description: 'Knowledge, discovery, and curiosity.',
-        types: ['Class', 'Workshop', 'Studio', 'Exhibit', 'Educational Tour', 'Library', 'Lab', 'Science Center', 'Learning', 'Education']
+        types: ['Class', 'Workshop', 'Studio', 'Exhibit', 'Educational Tour', 'Library', 'Lab', 'Science Center', 'Learning', 'Education', 'Museum']
     },
     'work': {
         emoji: '💼',
@@ -3926,8 +3942,22 @@ const TYPE_CATEGORIES = {
     }
 };
 
+// Initialize TYPE_CATEGORIES from storage or defaults
+let TYPE_CATEGORIES = loadCategoriesFromStorage() || DEFAULT_TYPE_CATEGORIES;
+
+// Ensure we always have the default structure
+if (!TYPE_CATEGORIES || Object.keys(TYPE_CATEGORIES).length === 0) {
+    TYPE_CATEGORIES = DEFAULT_TYPE_CATEGORIES;
+}
+
 // Map individual types to categories (case-insensitive)
-function getCategoryForType(type) {
+// Also checks for category override on listing
+function getCategoryForType(type, listing) {
+    // If listing has a category override, use it
+    if (listing && listing.category) {
+        return listing.category;
+    }
+    
     if (!type) return null;
     const normalizedType = type.trim();
     
@@ -3951,7 +3981,7 @@ function getCategoriesByUsage(listings) {
     // Count occurrences of each category
     listings.forEach(function(listing) {
         if (listing.type) {
-            const category = getCategoryForType(listing.type);
+            const category = getCategoryForType(listing.type, listing);
             if (category) {
                 categoryCounts[category] = (categoryCounts[category] || 0) + 1;
             }
