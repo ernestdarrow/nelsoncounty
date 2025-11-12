@@ -3364,11 +3364,6 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 back.innerHTML = 
                     '<button class="flip-close-btn" onclick="event.stopPropagation(); this.closest(\'.flip-card\').classList.remove(\'flipped\');">&times;</button>' +
                     '<h3 style="font-size: 22px; margin-bottom: 12px; color: var(--text-primary);">' + listing.name + '</h3>' +
-                    '<div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">' +
-                    '<span class="badge-type ' + getIconClass(listing.type, listing) + '">' + listing.type + '</span>' +
-                    '<span class="badge-area">' + listing.area + '</span>' +
-                    (listing.featured ? '<span class="badge-featured">Featured</span>' : '') +
-                    '</div>' +
                     '<p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.6; white-space: pre-wrap;">' + (descriptionText || 'No description available') + '</p>' +
                     backAmenitiesHTML +
                     // Phone with icon
@@ -5025,11 +5020,6 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 back.innerHTML = 
                     '<button class="flip-close-btn" onclick="event.stopPropagation(); this.closest(\'.flip-card\').classList.remove(\'flipped\');">&times;</button>' +
                     '<h3 style="font-size: 22px; margin-bottom: 12px; color: var(--text-primary);">' + listing.name + '</h3>' +
-                    '<div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">' +
-                    '<span class="badge-type ' + getIconClass(listing.type, listing) + '">' + listing.type + '</span>' +
-                    '<span class="badge-area">' + listing.area + '</span>' +
-                    (listing.featured ? '<span class="badge-featured">Featured</span>' : '') +
-                    '</div>' +
                     // Use detailedDescription if available, otherwise fall back to description
                     '<p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.6; white-space: pre-wrap;">' + (listing.detailedDescription && listing.detailedDescription.trim() ? listing.detailedDescription : listing.description) + '</p>' +
                     backAmenitiesHTML +
