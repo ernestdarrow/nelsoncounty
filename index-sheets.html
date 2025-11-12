@@ -641,48 +641,64 @@
         }
         
         .flip-card {
-            background-color: transparent;
-            width: 100%;
-            height: 400px;
-            perspective: 1000px;
             cursor: pointer;
+            position: relative;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
         
         .flip-card-inner {
             position: relative;
             width: 100%;
             height: 100%;
-            text-align: left;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-        }
-        
-        .flip-card.flipped .flip-card-inner {
-            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
         }
         
         .flip-card-front,
         .flip-card-back {
-            position: absolute;
             width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+            transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
             background: var(--card-bg);
+            transform-origin: center center;
+        }
+        
+        .flip-card:hover .flip-card-front,
+        .flip-card:hover .flip-card-back {
+            transform: scale(0.98);
+        }
+        
+        .flip-card-front {
+            position: relative;
+            opacity: 1;
+            transform: scale(1);
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
         
         .flip-card-back {
-            transform: rotateY(180deg);
-            padding: 20px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            max-height: 100%;
             display: flex;
             flex-direction: column;
+            opacity: 0;
+            transform: scale(0.96);
+            pointer-events: none;
             overflow-y: auto;
-            z-index: 1000;
-            position: relative;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            box-sizing: border-box;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
         .flip-card-back::-webkit-scrollbar {
@@ -761,25 +777,23 @@
             gap: 6px;
         }
         
-        #flipOverlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 999;
-            backdrop-filter: blur(4px);
-        }
-        
-        #flipOverlay.active {
-            display: block;
-        }
-        
         .flip-card.flipped {
-            position: relative;
-            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .flip-card.flipped .flip-card-front {
+            opacity: 0;
+            transform: scale(0.96);
+            pointer-events: none;
+        }
+        
+        .flip-card.flipped .flip-card-back {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+            border-radius: 12px;
         }
         
         /* Scrollable image container for card front */
@@ -3060,14 +3074,6 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     });
                     
                     this.classList.toggle('flipped');
-                    const overlay = document.getElementById('flipOverlay');
-                    if (this.classList.contains('flipped')) {
-                        overlay.classList.add('active');
-                        document.body.style.overflow = 'hidden'; // Prevent scrolling
-                    } else {
-                        overlay.classList.remove('active');
-                        document.body.style.overflow = '';
-                    }
                 };
                 
                 const inner = document.createElement('div');
@@ -3316,7 +3322,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 const descriptionText = (listing.detailedDescription && listing.detailedDescription.trim()) ? listing.detailedDescription : listing.description;
                 
                 back.innerHTML = 
-                    '<button class="flip-close-btn" onclick="event.stopPropagation(); this.closest(\'.flip-card\').classList.remove(\'flipped\'); document.getElementById(\'flipOverlay\').classList.remove(\'active\'); document.body.style.overflow = \'\';">&times;</button>' +
+                    '<button class="flip-close-btn" onclick="event.stopPropagation(); this.closest(\'.flip-card\').classList.remove(\'flipped\');">&times;</button>' +
                     imagesHTML +
                     '<h3 style="font-size: 22px; margin-bottom: 12px; color: var(--text-primary);">' + listing.name + '</h3>' +
                     '<div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">' +
@@ -4863,19 +4869,6 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     });
                     
                     this.classList.toggle('flipped');
-                    const overlay = document.getElementById('flipOverlay');
-                    if (this.classList.contains('flipped')) {
-                        overlay.classList.add('active');
-                        document.body.style.overflow = 'hidden'; // Prevent scrolling
-                    } else {
-                        overlay.classList.remove('active');
-                        document.body.style.overflow = '';
-                    }
-                    
-                    if (flipBackTimeout) {
-                        clearTimeout(flipBackTimeout);
-                        flipBackTimeout = null;
-                    }
                 };
                 
                 const inner = document.createElement('div');
@@ -5036,7 +5029,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 }
                 
                 back.innerHTML = 
-                    '<button class="flip-close-btn" onclick="event.stopPropagation(); this.closest(\'.flip-card\').classList.remove(\'flipped\'); document.getElementById(\'flipOverlay\').classList.remove(\'active\'); document.body.style.overflow = \'\';">&times;</button>' +
+                    '<button class="flip-close-btn" onclick="event.stopPropagation(); this.closest(\'.flip-card\').classList.remove(\'flipped\');">&times;</button>' +
                     imagesHTML +
                     '<h3 style="font-size: 22px; margin-bottom: 12px; color: var(--text-primary);">' + listing.name + '</h3>' +
                     '<div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">' +
@@ -5100,8 +5093,6 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             document.querySelectorAll('.flip-card.flipped').forEach(function(card) {
                 card.classList.remove('flipped');
             });
-            document.getElementById('flipOverlay').classList.remove('active');
-            document.body.style.overflow = '';
         }
         
         function filterByBadge(event, filterType, value) {
