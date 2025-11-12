@@ -459,7 +459,7 @@ const DEFAULT_TYPE_CATEGORIES = {
         name: 'Shop',
         description: 'Places to buy, browse, or discover goods.',
         icon: 'icon-shopping',
-        types: ['Boutique', 'Market', 'Concept Store', 'Artisan Shop', 'Vintage', 'Design Store', 'Local Brand', 'Maker', 'Shopping', 'Shop']
+        types: ['Boutique', 'Market', 'Concept Store', 'Artisan Shop', 'Vintage', 'Design Store', 'Local Brand', 'Maker', 'Shopping', 'Shop', 'Gas Station', 'Gas', 'Service Station', 'Convenience Store', 'Grocery Store', 'Supermarket']
     },
     'wellness': {
         emoji: '💆',
@@ -534,7 +534,7 @@ const TYPE_KEYWORD_MAPPINGS = {
     'stay': ['hotel', 'lodging', 'resort', 'inn', 'bed and breakfast', 'bnb', 'cabin', 'camping', 'glamping', 'hostel', 'boutique stay', 'treehouse', 'unique stay', 'airbnb', 'lodge', 'accommodation', 'room', 'suite', 'retreat', 'getaway'],
     'outdoor': ['hiking', 'hike', 'trail', 'park', 'beach', 'outdoor', 'nature', 'camping', 'climbing', 'water sports', 'skiing', 'snow', 'scenic', 'viewpoint', 'lookout', 'nature walk', 'biking', 'cycling', 'bike', 'kayaking', 'kayak', 'canoe', 'paddle', 'fishing', 'hunting', 'wildlife', 'forest', 'mountain', 'river', 'lake', 'national park', 'state park', 'garden', 'botanical'],
     'culture': ['museum', 'gallery', 'art', 'architecture', 'landmark', 'historical', 'history', 'heritage', 'festival', 'cultural', 'craft', 'music', 'theater', 'theatre', 'dance', 'performance', 'concert', 'show', 'exhibit', 'exhibition', 'monument', 'memorial', 'site', 'attraction', 'local craft', 'cultural site', 'tradition'],
-    'shop': ['boutique', 'market', 'shop', 'store', 'shopping', 'retail', 'artisan', 'vintage', 'design', 'maker', 'local brand', 'gift', 'souvenir', 'merchandise', 'boutique', 'concept store'],
+    'shop': ['boutique', 'market', 'shop', 'store', 'shopping', 'retail', 'artisan', 'vintage', 'design', 'maker', 'local brand', 'gift', 'souvenir', 'merchandise', 'boutique', 'concept store', 'gas', 'station', 'gas station', 'service station', 'convenience', 'grocery', 'supermarket', 'fuel', 'petrol'],
     'wellness': ['spa', 'retreat', 'yoga', 'sauna', 'hot springs', 'wellness', 'healing', 'fitness', 'meditation', 'beauty', 'health', 'massage', 'therapy', 'relaxation', 'mindfulness', 'pilates', 'gym', 'workout', 'exercise'],
     'experience': ['activity', 'activities', 'indoor activity', 'indoor', 'event', 'nightlife', 'club', 'amusement', 'arcade', 'live show', 'interactive', 'entertainment', 'fun', 'play', 'game', 'adventure', 'experience', 'tour', 'excursion'],
     'learn': ['class', 'workshop', 'studio', 'exhibit', 'educational', 'library', 'lab', 'science', 'learning', 'education', 'school', 'course', 'lesson', 'tutorial', 'seminar', 'lecture'],
@@ -577,6 +577,97 @@ function getCategoryForType(type, listing) {
     
     // Step 3: Default fallback for unmapped types
     return 'experience'; // Default to Experience/Play
+}
+
+// Diagnostic function: Check which types don't have categories assigned
+function checkUnassignedTypes() {
+    if (!data || !data.listings) {
+        console.log('⚠️ No data available to check types');
+        return;
+    }
+    
+    // Get all unique types from listings
+    const allTypes = [];
+    const typeCounts = {};
+    data.listings.forEach(function(listing) {
+        if (listing.type) {
+            if (typeCounts[listing.type]) {
+                typeCounts[listing.type]++;
+            } else {
+                typeCounts[listing.type] = 1;
+                allTypes.push(listing.type);
+            }
+        }
+    });
+    
+    // Check each type to see if it has a category assigned
+    const unassignedTypes = [];
+    const categoryAssignments = {};
+    
+    allTypes.forEach(function(type) {
+        // Create a mock listing to test category assignment
+        const mockListing = { type: type };
+        const category = getCategoryForType(type, mockListing);
+        
+        if (!category) {
+            unassignedTypes.push(type);
+        } else {
+            if (!categoryAssignments[category]) {
+                categoryAssignments[category] = [];
+            }
+            categoryAssignments[category].push({
+                type: type,
+                count: typeCounts[type]
+            });
+        }
+    });
+    
+    // Log results
+    console.log('📊 Type Category Assignment Report:');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('Total unique types:', allTypes.length);
+    console.log('');
+    
+    // Show types by category
+    console.log('✅ Types with categories assigned:');
+    for (const categoryKey in categoryAssignments) {
+        const category = TYPE_CATEGORIES[categoryKey];
+        const categoryName = category ? category.name : categoryKey;
+        console.log(`  ${categoryName} (${categoryKey}):`);
+        categoryAssignments[categoryKey].forEach(function(item) {
+            console.log(`    - ${item.type} (${item.count} listing${item.count !== 1 ? 's' : ''})`);
+        });
+    }
+    console.log('');
+    
+    // Show unassigned types (should be none if everything is working)
+    if (unassignedTypes.length > 0) {
+        console.log('⚠️ Types without categories (falling back to default "experience"):');
+        unassignedTypes.forEach(function(type) {
+            console.log(`  - ${type} (${typeCounts[type]} listing${typeCounts[type] !== 1 ? 's' : ''})`);
+        });
+    } else {
+        console.log('✅ All types have categories assigned!');
+    }
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    // Also check types from filterOptions that might not be in listings yet
+    if (data.filterOptions && data.filterOptions.types) {
+        const filterTypes = data.filterOptions.types;
+        const filterTypesNotInListings = filterTypes.filter(function(type) {
+            return allTypes.indexOf(type) === -1;
+        });
+        
+        if (filterTypesNotInListings.length > 0) {
+            console.log('');
+            console.log('ℹ️ Types in filterOptions but not in current listings:');
+            filterTypesNotInListings.forEach(function(type) {
+                const category = getCategoryForType(type, { type: type });
+                const categoryName = category && TYPE_CATEGORIES[category] ? TYPE_CATEGORIES[category].name : (category || 'experience (default)');
+                console.log(`  - ${type} → ${categoryName}`);
+            });
+        }
+    }
 }
 
 function collectUsedFilterOptions(listings) {
@@ -3521,6 +3612,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             // Small delay to ensure everything is ready (especially important when script is external)
             await new Promise(resolve => setTimeout(resolve, 100));
             await loadDataFromGoogleSheets();
+            
+            // Diagnostic: Check which types don't have categories assigned
+            checkUnassignedTypes();
             
             const nameInput = document.getElementById('listingName');
             const slugInput = document.getElementById('listingSlug');
