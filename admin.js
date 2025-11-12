@@ -1388,10 +1388,10 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 if (currentAdminTypeFilter) {
                     // Check if it's a category key
                     if (TYPE_CATEGORIES[currentAdminTypeFilter]) {
-                        const category = TYPE_CATEGORIES[currentAdminTypeFilter];
-                        matchesType = category.types.some(function(catType) {
-                            return catType.toLowerCase() === normalizeFilterValue(listing.type).toLowerCase();
-                        });
+                        // Use getCategoryForType to determine the listing's category
+                        // This handles both automatic type mapping and category overrides
+                        const listingCategory = getCategoryForType(listing.type, listing);
+                        matchesType = listingCategory === currentAdminTypeFilter;
                     } else {
                         // Direct type match
                         matchesType = listing.type === currentAdminTypeFilter;
@@ -1447,7 +1447,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             
             // Render type filter buttons dynamically based on usage
             if (data.listings) {
-                renderAdminTypeFilterButtons(data.listings, '#adminTab .type-quick-filters', 6);
+                renderAdminTypeFilterButtons(data.listings, '#adminTab .type-quick-filters', 10); // Show all categories that have types in data
             }
         }
 
@@ -1457,30 +1457,62 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             refreshFilterSelect('previewAmenityFilter', data.filterOptions.amenities);
         }
         
-        // Count category usage and sort by frequency (most used first)
+        // Get categories based on TYPES that exist in the data
+        // Only returns categories that have at least one type in the current data
         function getCategoriesByUsage(listings) {
+            if (!listings || listings.length === 0) {
+                return [];
+            }
+            
+            // Step 1: Extract all unique types from the data
+            const uniqueTypes = [...new Set(listings.map(function(listing) {
+                return listing.type;
+            }).filter(Boolean))];
+            
+            // Step 2: Map each unique type to its category
+            const categoryMap = {};
             const categoryCounts = {};
             
-            // Count occurrences of each category
-            (Array.isArray(listings) ? listings : []).forEach(function(listing) {
-                if (listing && listing.type) {
-                    const category = getCategoryForType(listing.type, listing);
-                    if (category) {
-                        categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+            uniqueTypes.forEach(function(type) {
+                // Find a listing with this type to check for category override
+                const listingWithType = listings.find(function(l) { return l.type === type; });
+                const category = getCategoryForType(type, listingWithType);
+                
+                if (category) {
+                    // Track which types map to which categories
+                    if (!categoryMap[category]) {
+                        categoryMap[category] = [];
+                    }
+                    categoryMap[category].push(type);
+                    
+                    // Initialize count for this category
+                    if (!categoryCounts[category]) {
+                        categoryCounts[category] = 0;
                     }
                 }
             });
             
-            // Convert to array and sort by count (descending), then by name (ascending) for ties
-            const categoriesArray = Object.keys(categoryCounts).map(function(categoryKey) {
+            // Step 3: Count actual listings for each category
+            listings.forEach(function(listing) {
+                if (listing.type) {
+                    const listingCategory = getCategoryForType(listing.type, listing);
+                    if (listingCategory && categoryCounts.hasOwnProperty(listingCategory)) {
+                        categoryCounts[listingCategory] = (categoryCounts[listingCategory] || 0) + 1;
+                    }
+                }
+            });
+            
+            // Step 4: Convert to array - only include categories that have types in the data
+            const categoriesArray = Object.keys(categoryMap).map(function(categoryKey) {
                 return {
                     key: categoryKey,
                     category: TYPE_CATEGORIES[categoryKey],
-                    count: categoryCounts[categoryKey]
+                    count: categoryCounts[categoryKey] || 0,
+                    types: categoryMap[categoryKey] // Keep track of which types belong to this category
                 };
             });
             
-            // Sort by count (descending), then by category name (ascending)
+            // Step 5: Sort by count (descending), then by category name (ascending) for ties
             categoriesArray.sort(function(a, b) {
                 if (b.count !== a.count) {
                     return b.count - a.count; // Most used first
@@ -1491,17 +1523,29 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             return categoriesArray;
         }
         
-        // Dynamically render category filter buttons based on usage
+        // Dynamically render category filter buttons based on TYPES in the data
+        // Only shows categories that have at least one type in the current data
         function renderAdminTypeFilterButtons(listings, containerSelector, maxVisible) {
-            if (!listings || listings.length === 0) return;
-            
             const container = document.querySelector(containerSelector);
             if (!container) return;
             
-            maxVisible = maxVisible || 6; // Default to showing top 6
+            if (!listings || listings.length === 0) {
+                console.log('⚠️ No listings provided, cannot determine categories from types');
+                return;
+            }
             
+            maxVisible = maxVisible || 10; // Default to showing up to 10 categories
+            
+            // Get categories based on types that exist in the data
             const categoriesByUsage = getCategoriesByUsage(listings);
-            if (categoriesByUsage.length === 0) return;
+            if (categoriesByUsage.length === 0) {
+                console.log('⚠️ No categories found for types in data');
+                return;
+            }
+            
+            console.log('📊 Admin: Categories found from types in data:', categoriesByUsage.map(function(c) {
+                return c.category.name + ' (' + c.count + ' listings, types: ' + c.types.join(', ') + ')';
+            }).join(', '));
             
             const visibleCategories = categoriesByUsage.slice(0, maxVisible);
             const hiddenCategories = categoriesByUsage.slice(maxVisible);
