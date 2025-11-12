@@ -3897,6 +3897,7 @@ function mapCSVRowToListing(row, index) {
         type: getField('Type', ['type']) || '',
         area: getField('Area', ['area']) || '',
         description: getField('Description', ['description', 'Desc', 'desc']) || '',
+        detailedDescription: getField('Detailed Description', ['detailedDescription', 'detaileddescription', 'DetailedDescription', 'longdescription', 'longDescription', 'fulldescription', 'fullDescription']) || '',
         image1: getField('Photo', ['photo', 'Image', 'image', 'Image1', 'image1', 'Image 1']) || '',
         // Support multiple second-image header variants from the sheet
         image2: getField('Image2', ['image2', 'Image 2', 'Photo 2', 'photo2', 'Photo2', 'Second Photo', 'Secondary Photo']) || '',
@@ -4463,6 +4464,22 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Function to format text with line breaks and paragraphs preserved
+function formatDescriptionWithLineBreaks(text) {
+    if (!text) return '';
+    // First escape HTML to prevent XSS
+    const escaped = escapeHtml(text);
+    // Convert \r\n (Windows line breaks) to \n
+    let formatted = escaped.replace(/\r\n/g, '\n');
+    // Convert \r (Mac line breaks) to \n
+    formatted = formatted.replace(/\r/g, '\n');
+    // Convert double newlines (paragraph breaks) to <br><br> for visual spacing
+    formatted = formatted.replace(/\n\n+/g, '<br><br>');
+    // Convert single newlines to <br>
+    formatted = formatted.replace(/\n/g, '<br>');
+    return formatted;
 }
 
 // Function to fix character encoding issues
@@ -5454,6 +5471,11 @@ function renderPreview(filteredListings) {
         const fixedType = fixEncoding(listing.type);
         const fixedArea = fixEncoding(listing.area);
         const fixedDescription = fixEncoding(listing.description);
+        // Use detailedDescription on back if available and not empty, otherwise fall back to description
+        const hasDetailedDescription = listing.detailedDescription && listing.detailedDescription.trim().length > 0;
+        const backDescriptionText = hasDetailedDescription 
+            ? fixEncoding(listing.detailedDescription) 
+            : fixedDescription;
         
         let badgesHtml = 
             '<span class="badge-type ' + getIconClass(listing.type) + '" data-type="' + escapeHtml(listing.type) + '" onclick="event.preventDefault(); event.stopPropagation(); filterByBadge(event, \'type\', \'' + escapeHtml(listing.type) + '\'); return false;">' + escapeHtml(fixedType) + '</span>' +
@@ -5502,8 +5524,8 @@ function renderPreview(filteredListings) {
         };
         backContent.appendChild(backTitle);
         
-        // Full description with fade-out gradient
-        if (listing.description) {
+        // Full description with fade-out gradient (use detailedDescription if available and not empty, otherwise fall back to description)
+        if (backDescriptionText) {
             const descWrapper = document.createElement('div');
             descWrapper.className = 'desc-wrapper';
             descWrapper.style.cssText = 'position: relative; margin-bottom: 15px;';
@@ -5513,7 +5535,14 @@ function renderPreview(filteredListings) {
             backDesc.href = CMS_BASE_URL + '/nelson-county/' + slug;
             backDesc.target = '_parent';
             backDesc.style.cssText = 'font-size: 14px; color: #000000; line-height: 1.4; margin: 0; display: -webkit-box; -webkit-line-clamp: 7; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; text-decoration: none; cursor: pointer;';
-            backDesc.textContent = fixedDescription;
+            // Format with line breaks if it's a detailed description, otherwise use plain text
+            if (hasDetailedDescription) {
+                // Apply encoding fixes first, then format with line breaks
+                const fixedDetailedDesc = fixEncoding(listing.detailedDescription);
+                backDesc.innerHTML = formatDescriptionWithLineBreaks(fixedDetailedDesc);
+            } else {
+                backDesc.textContent = backDescriptionText;
+            }
             backDesc.onclick = function(e) {
                 e.stopPropagation(); // Prevent card flip
             };
