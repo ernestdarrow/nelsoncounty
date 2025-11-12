@@ -715,10 +715,13 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             const googleMapsUrlField = getField('Google Maps URL', ['Google Map URL', 'Google Maps Link', 'Maps URL', 'Map URL', 'Google Maps', 'googleMapsUrl', 'google_maps_url', 'map url', 'maps link']);
             const directionsLinkField = getField('directionsLink', ['Directions Link', 'Directions URL', 'Map Link', 'map directions', 'directions url']);
             
+            const categoryValue = getField('Category', ['category']);
+            
             const listing = {
                 id: getField('ID', ['id', 'Id']),
                 name: getField('Title', ['Name', 'name', 'title']) || getField('name'),
                 type: getField('Type', ['type']),
+                category: categoryValue || undefined, // Only set if provided
                 area: getField('Area', ['area']),
                 description: getField('Description', ['description', 'Desc', 'desc']),
                 detailedDescription: detailedDescriptionValue,
@@ -2742,6 +2745,15 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 
                 const row = document.createElement('tr');
                 row.setAttribute('data-index', index);
+                
+                // Build category dropdown options
+                const categoryOptions = '<option value="">Auto-assign from Type</option>' +
+                    Object.keys(TYPE_CATEGORIES).map(function(categoryKey) {
+                        const category = TYPE_CATEGORIES[categoryKey];
+                        const isSelected = safe(listing.category) === categoryKey;
+                        return '<option value="' + categoryKey + '" ' + (isSelected ? 'selected' : '') + '>' + category.emoji + ' ' + category.name + '</option>';
+                    }).join('');
+                
                 row.innerHTML = 
                     '<td class="cell-id"><input type="text" value="' + safe(listing.id) + '" data-field="id" /></td>' +
                     '<td class="cell-name"><input type="text" value="' + safe(listing.name) + '" data-field="name" /></td>' +
@@ -2749,6 +2761,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     '<td class="cell-type"><select data-field="type">' +
                         data.filterOptions.types.map(function(t) { return '<option value="' + t + '" ' + (safe(listing.type) === t ? 'selected' : '') + '>' + t + '</option>'; }).join('') +
                     '</select></td>' +
+                    '<td class="cell-category"><select data-field="category">' + categoryOptions + '</select></td>' +
                     '<td class="cell-area"><select data-field="area">' +
                         data.filterOptions.areas.map(function(a) { return '<option value="' + a + '" ' + (safe(listing.area) === a ? 'selected' : '') + '>' + a + '</option>'; }).join('') +
                     '</select></td>' +
@@ -2794,6 +2807,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     } else if (field === 'amenities') {
                         // Convert comma-separated string to array
                         newValue = input.value.split(',').map(function(a) { return a.trim(); }).filter(function(a) { return a.length > 0; });
+                    } else if (field === 'category') {
+                        // Handle category: empty string means no override (undefined), otherwise use the value
+                        newValue = input.value.trim() || undefined;
                     } else {
                         newValue = input.value;
                     }
@@ -2802,6 +2818,14 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     if (field === 'amenities') {
                         if (JSON.stringify(listing[field]) !== JSON.stringify(newValue)) {
                             listing[field] = newValue;
+                            changeCount++;
+                        }
+                    } else if (field === 'category') {
+                        // Compare category properly (handle undefined vs empty string)
+                        const currentCategory = listing[field] || undefined;
+                        const newCategory = newValue || undefined;
+                        if (currentCategory !== newCategory) {
+                            listing[field] = newCategory;
                             changeCount++;
                         }
                     } else if (listing[field] !== newValue) {
@@ -2873,7 +2897,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 };
                 
                 const headers = [
-                    'id', 'name', 'slug', 'type', 'area', 'description', 'detailedDescription',
+                    'id', 'name', 'slug', 'type', 'category', 'area', 'description', 'detailedDescription',
                     'image1', 'image2', 'image3', 'website', 'phone', 'address',
                     'authorName', 'publishedDate', 'modifiedDate', 'directionsLink',
                     'amenities', 'featured', 'googleMapsUrl'
@@ -2885,6 +2909,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         escapeCsv(listing.name || ''),
                         escapeCsv(listing.slug || ''),
                         listing.type || '',
+                        listing.category || '', // Category field
                         listing.area || '',
                         escapeCsv(listing.description || ''),
                         escapeCsv(listing.detailedDescription || ''),
