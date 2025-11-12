@@ -5473,9 +5473,15 @@ function renderPreview(filteredListings) {
         const fixedDescription = fixEncoding(listing.description);
         // Use detailedDescription on back if available and not empty, otherwise fall back to description
         const hasDetailedDescription = listing.detailedDescription && listing.detailedDescription.trim().length > 0;
+        // Remove line breaks from description for card back display (but keep them in raw data for Framer CMS)
+        const removeLineBreaksForDisplay = (text) => {
+            if (!text) return '';
+            // Replace all types of line breaks with spaces, then collapse multiple spaces
+            return text.replace(/\r\n/g, ' ').replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/\s+/g, ' ').trim();
+        };
         const backDescriptionText = hasDetailedDescription 
-            ? fixEncoding(listing.detailedDescription) 
-            : fixedDescription;
+            ? removeLineBreaksForDisplay(fixEncoding(listing.detailedDescription))
+            : removeLineBreaksForDisplay(fixedDescription);
         
         let badgesHtml = 
             '<span class="badge-type ' + getIconClass(listing.type) + '" data-type="' + escapeHtml(listing.type) + '" onclick="event.preventDefault(); event.stopPropagation(); filterByBadge(event, \'type\', \'' + escapeHtml(listing.type) + '\'); return false;">' + escapeHtml(fixedType) + '</span>' +
@@ -5535,14 +5541,8 @@ function renderPreview(filteredListings) {
             backDesc.href = CMS_BASE_URL + '/nelson-county/' + slug;
             backDesc.target = '_parent';
             backDesc.style.cssText = 'font-size: 14px; color: #000000; line-height: 1.4; margin: 0; display: -webkit-box; -webkit-line-clamp: 7; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; text-decoration: none; cursor: pointer;';
-            // Format with line breaks if it's a detailed description, otherwise use plain text
-            if (hasDetailedDescription) {
-                // Apply encoding fixes first, then format with line breaks
-                const fixedDetailedDesc = fixEncoding(listing.detailedDescription);
-                backDesc.innerHTML = formatDescriptionWithLineBreaks(fixedDetailedDesc);
-            } else {
-                backDesc.textContent = backDescriptionText;
-            }
+            // Use plain text (line breaks already removed in backDescriptionText)
+            backDesc.textContent = backDescriptionText;
             backDesc.onclick = function(e) {
                 e.stopPropagation(); // Prevent card flip
             };
