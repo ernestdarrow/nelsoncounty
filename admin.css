@@ -764,6 +764,94 @@
             z-index: 1000;
         }
         
+        /* Scrollable image container for card front */
+        .card-front-image-scroll {
+            position: relative;
+            height: 240px !important;
+            width: 100%;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            flex-shrink: 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            border-radius: 12px 12px 0 0;
+            clip-path: inset(0 round 12px 12px 0 0);
+        }
+        
+        .card-front-image-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .card-front-image-scroll > div {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            display: flex;
+            width: auto;
+        }
+        
+        .card-front-image-scroll img {
+            position: relative;
+            border-radius: 12px !important;
+            width: 100%;
+            min-width: 100%;
+            height: 100% !important;
+            aspect-ratio: 1 / 1 !important;
+            object-fit: cover !important;
+            object-position: center !important;
+            display: block !important;
+            flex-shrink: 0;
+            scroll-snap-align: start;
+        }
+        
+        /* Scroll arrows */
+        .scroll-arrow {
+            position: absolute;
+            width: 30px !important;
+            height: 30px !important;
+            min-width: 30px !important;
+            max-width: 30px !important;
+            min-height: 30px !important;
+            max-height: 30px !important;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            background-size: 16px 16px !important;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0 !important;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+            cursor: pointer;
+            pointer-events: auto !important;
+            flex-shrink: 0 !important;
+            box-sizing: border-box !important;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .scroll-arrow-right {
+            right: 13px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23000' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9 5l7 7-7 7'/%3E%3C/svg%3E");
+        }
+        
+        .scroll-arrow-left {
+            left: 10px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23000' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 19l-7-7 7-7'/%3E%3C/svg%3E");
+        }
+        
+        .flip-card-front:hover .scroll-arrow,
+        .flip-card-front:hover .card-front-image-scroll .scroll-arrow {
+            opacity: 1 !important;
+        }
+        
+        .scroll-arrow:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-50%);
+        }
+        
         @media (max-width: 768px) {
             .form-row { grid-template-columns: 1fr; }
             .header-content { flex-direction: column; align-items: flex-start; }

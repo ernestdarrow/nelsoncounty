@@ -3113,16 +3113,129 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 
                 const front = document.createElement('div');
                 front.className = 'flip-card-front';
-                front.innerHTML = 
-                    '<img src="' + listing.image1 + '" style="width: 100%; height: 200px; object-fit: cover;" />' +
-                    '<div style="padding: 20px;">' +
+                
+                // Create scrollable image container
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'card-front-image-scroll';
+                imgContainer.style.cssText = 'position: relative; width: 100%; height: 240px; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none;';
+                imgContainer.style.setProperty('-ms-overflow-style', 'none');
+                
+                const imgWrapper = document.createElement('div');
+                imgWrapper.style.cssText = 'position: absolute; top: 0; left: 0; width: auto; height: 100%; display: flex;';
+                
+                // Count images
+                const imageCount = (listing.image1 ? 1 : 0) + (listing.image2 ? 1 : 0) + (listing.image3 ? 1 : 0);
+                
+                // Add image1 if it exists
+                if (listing.image1) {
+                    const img1 = document.createElement('img');
+                    img1.src = listing.image1;
+                    img1.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 240px; object-fit: cover; display: block; border-radius: 12px; flex-shrink: 0; scroll-snap-align: start;';
+                    img1.onerror = function() {
+                        this.src = 'https://via.placeholder.com/400x400?text=No+Image';
+                    };
+                    imgWrapper.appendChild(img1);
+                }
+                
+                // Add image2 if it exists
+                if (listing.image2) {
+                    const img2 = document.createElement('img');
+                    img2.src = listing.image2;
+                    img2.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 240px; object-fit: cover; display: block; border-radius: 12px; flex-shrink: 0; scroll-snap-align: start;';
+                    img2.onerror = function() {
+                        this.src = 'https://via.placeholder.com/400x400?text=No+Image';
+                    };
+                    imgWrapper.appendChild(img2);
+                }
+                
+                // Add image3 if it exists
+                if (listing.image3) {
+                    const img3 = document.createElement('img');
+                    img3.src = listing.image3;
+                    img3.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 240px; object-fit: cover; display: block; border-radius: 12px; flex-shrink: 0; scroll-snap-align: start;';
+                    img3.onerror = function() {
+                        this.src = 'https://via.placeholder.com/400x400?text=No+Image';
+                    };
+                    imgWrapper.appendChild(img3);
+                }
+                
+                // If no images, add fallback
+                if (imageCount === 0) {
+                    const img = document.createElement('img');
+                    img.src = 'https://via.placeholder.com/400x400?text=No+Image';
+                    img.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 240px; object-fit: cover; display: block; border-radius: 12px; flex-shrink: 0; scroll-snap-align: start;';
+                    imgWrapper.appendChild(img);
+                }
+                
+                // Set wrapper and image widths to accommodate all images side by side
+                if (imageCount > 1) {
+                    // Wait for container to have dimensions, then set wrapper and image widths
+                    setTimeout(function() {
+                        const containerWidth = imgContainer.offsetWidth || imgContainer.clientWidth;
+                        if (containerWidth > 0) {
+                            imgWrapper.style.width = (containerWidth * imageCount) + 'px';
+                            // Set each image to be exactly the container width
+                            const images = imgWrapper.querySelectorAll('img');
+                            images.forEach(function(img) {
+                                img.style.width = containerWidth + 'px';
+                                img.style.minWidth = containerWidth + 'px';
+                                img.style.maxWidth = containerWidth + 'px';
+                                img.style.height = '240px';
+                            });
+                        }
+                    }, 10);
+                }
+                
+                imgContainer.appendChild(imgWrapper);
+                front.appendChild(imgContainer);
+                
+                // Add scroll arrows if there are multiple images
+                if (imageCount > 1) {
+                    let currentIndex = 0;
+                    const totalImages = imageCount;
+                    
+                    // Right arrow (loops infinitely)
+                    const rightArrow = document.createElement('div');
+                    rightArrow.className = 'scroll-arrow scroll-arrow-right';
+                    
+                    rightArrow.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        currentIndex = (currentIndex + 1) % totalImages;
+                        // Get the container width at click time
+                        const containerWidth = imgContainer.offsetWidth || imgContainer.clientWidth;
+                        imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
+                    });
+                    
+                    // Left arrow (loops infinitely)
+                    const leftArrow = document.createElement('div');
+                    leftArrow.className = 'scroll-arrow scroll-arrow-left';
+                    
+                    leftArrow.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        currentIndex = (currentIndex - 1 + totalImages) % totalImages;
+                        // Get the container width at click time
+                        const containerWidth = imgContainer.offsetWidth || imgContainer.clientWidth;
+                        imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
+                    });
+                    
+                    imgContainer.appendChild(rightArrow);
+                    imgContainer.appendChild(leftArrow);
+                }
+                
+                // Add card content below images
+                const cardContent = document.createElement('div');
+                cardContent.style.cssText = 'padding: 20px;';
+                cardContent.innerHTML = 
                     '<h3 style="font-size: 20px; margin-bottom: 10px; color: var(--text-primary);">' + listing.name + '</h3>' +
                     '<div style="display: flex; gap: 8px; margin-bottom: 10px;">' +
                     '<span class="badge-type ' + getIconClass(listing.type, listing) + '" data-type="' + listing.type + '" onclick="filterByBadge(event, \'type\', \'' + listing.type + '\')">' + listing.type + '</span>' +
                     '<span class="badge-area" data-area="' + listing.area + '" onclick="filterByBadge(event, \'area\', \'' + listing.area + '\')">' + listing.area + '</span>' +
                     '</div>' +
-                    '<p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5;">' + listing.description.substring(0, 100) + '...</p>' +
-                    '</div>';
+                    '<p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5;">' + listing.description.substring(0, 100) + '...</p>';
+                
+                front.appendChild(cardContent);
                 
                 const back = document.createElement('div');
                 back.className = 'flip-card-back';
