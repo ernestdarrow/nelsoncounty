@@ -289,6 +289,140 @@ function saveCategoriesToStorage(categories) {
     }
 }
 
+// ===========================================
+// ICON MAPPING MANAGEMENT (synced between admin and front page)
+// ===========================================
+function loadIconMappingsFromStorage() {
+    try {
+        const stored = localStorage.getItem('nelsonCounty_iconMappings');
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && typeof parsed === 'object') {
+                return parsed;
+            }
+        }
+    } catch (e) {
+        console.error('Error loading icon mappings from storage:', e);
+    }
+    return null;
+}
+
+function saveIconMappingsToStorage(iconMappings) {
+    try {
+        localStorage.setItem('nelsonCounty_iconMappings', JSON.stringify(iconMappings));
+        return true;
+    } catch (e) {
+        console.error('Error saving icon mappings to storage:', e);
+        return false;
+    }
+}
+
+// Default icon mappings - comprehensive list (merged from admin and front page)
+const DEFAULT_ICON_MAPPINGS = {
+    'Wine': 'icon-wine',
+    'Winery': 'icon-wine',
+    'Beer': 'icon-beer',
+    'Brewery': 'icon-beer',
+    'Spirits': 'icon-spirits',
+    'Distillery': 'icon-spirits',
+    'Cocktails': 'icon-cocktail',
+    'Cocktail Bar': 'icon-cocktail',
+    'Coffee': 'icon-coffee',
+    'Coffee Shop': 'icon-coffee',
+    'Café': 'icon-coffee',
+    'Tea': 'icon-tea',
+    'Tea Room': 'icon-tea',
+    'Restaurant': 'icon-restaurant',
+    'Dining': 'icon-restaurant',
+    'Bakery': 'icon-bakery',
+    'Patisserie': 'icon-bakery',
+    'Cheese': 'icon-cheese',
+    'Fromagerie': 'icon-cheese',
+    'Chocolate': 'icon-chocolate',
+    'Chocolatier': 'icon-chocolate',
+    'Museum': 'icon-museum',
+    'Art': 'icon-art',
+    'Art Gallery': 'icon-gallery',
+    'Gallery': 'icon-gallery',
+    'Hiking': 'icon-hiking',
+    'Hike': 'icon-hiking',
+    'Trail': 'icon-hiking',
+    'Cycling': 'icon-cycling',
+    'Bike': 'icon-cycling',
+    'Activity': 'icon-activity',
+    'Activities': 'icon-activity',
+    'Outdoor': 'icon-outdoor',
+    'Outdoor Activity': 'icon-outdoor',
+    'Kayaking': 'icon-kayaking',
+    'Kayak': 'icon-kayaking',
+    'Spa': 'icon-spa',
+    'Wellness': 'icon-wellness',
+    'Health': 'icon-wellness',
+    'Shopping': 'icon-shopping',
+    'Shop': 'icon-shopping',
+    'Market': 'icon-market',
+    'Farmers Market': 'icon-market',
+    'Concert': 'icon-concert',
+    'Music': 'icon-concert',
+    'Theater': 'icon-theater',
+    'Theatre': 'icon-theater',
+    'Cinema': 'icon-cinema',
+    'Movie': 'icon-cinema',
+    'Film': 'icon-cinema',
+    'Festival': 'icon-festival',
+    'Event': 'icon-festival',
+    'Hotel': 'icon-lodging',
+    'Lodging': 'icon-lodging',
+    'B&B': 'icon-lodging',
+    'BnB': 'icon-lodging',
+    'Inn': 'icon-lodging',
+    'Cabin': 'icon-lodging',
+    'Camping': 'icon-lodging',
+    'Transport': 'icon-transport',
+    'Transportation': 'icon-transport',
+    'Train': 'icon-train',
+    'Railway': 'icon-train',
+    'Boat': 'icon-boat',
+    'Ferry': 'icon-boat',
+    'Scenic': 'icon-scenic',
+    'Viewpoint': 'icon-viewpoint',
+    'Lookout': 'icon-viewpoint',
+    'Park': 'icon-park',
+    'Garden': 'icon-garden',
+    'Beach': 'icon-beach',
+    'History': 'icon-history',
+    'Historical': 'icon-history',
+    'Heritage': 'icon-history',
+    'Culture': 'icon-culture',
+    'Cultural': 'icon-culture',
+    'Architecture': 'icon-architecture',
+    'Building': 'icon-architecture',
+    'Local': 'icon-local',
+    'Tour': 'icon-tour',
+    'Guided Tour': 'icon-tour',
+    'Workshop': 'icon-workshop',
+    'Class': 'icon-class',
+    'Course': 'icon-class',
+    'Food': 'icon-food',
+    'Cuisine': 'icon-food',
+    'Cidery': 'icon-cidery',
+    'Cider': 'icon-cidery',
+    'Indoor Activity': 'icon-indoor',
+    'Indoor': 'icon-indoor',
+    'Attraction': 'icon-attraction',
+    'Attractions': 'icon-attraction',
+    'Farm & Orchard': 'icon-farm',
+    'Farm': 'icon-farm',
+    'Orchard': 'icon-farm'
+};
+
+// Initialize icon mappings from storage or defaults
+let ICON_MAPPINGS = loadIconMappingsFromStorage();
+if (!ICON_MAPPINGS || Object.keys(ICON_MAPPINGS).length === 0) {
+    ICON_MAPPINGS = DEFAULT_ICON_MAPPINGS;
+    saveIconMappingsToStorage(ICON_MAPPINGS);
+}
+
 // Default category definitions - comprehensive list based on user requirements
 const DEFAULT_TYPE_CATEGORIES = {
     'taste': {
@@ -2027,8 +2161,13 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 document.getElementById('categoriesTab').classList.add('active');
                 header.style.display = 'block';
                 renderCategories();
-            } else if (tab === 'settings') {
+            } else if (tab === 'icons') {
                 document.querySelectorAll('.tab-btn')[3].classList.add('active');
+                document.getElementById('iconsTab').classList.add('active');
+                header.style.display = 'block';
+                renderIconMappings();
+            } else if (tab === 'settings') {
+                document.querySelectorAll('.tab-btn')[4].classList.add('active');
                 document.getElementById('settingsTab').classList.add('active');
                 header.style.display = 'block';
                 renderSettings();
@@ -2166,6 +2305,245 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 updateAmenitiesCheckboxes();
             }
         }
+        
+        // ===========================================
+        // ICON MAPPING MANAGEMENT FUNCTIONS
+        // ===========================================
+        
+        // List of available icon classes
+        const AVAILABLE_ICONS = [
+            'icon-wine', 'icon-beer', 'icon-spirits', 'icon-cocktail', 'icon-coffee', 'icon-tea',
+            'icon-restaurant', 'icon-bakery', 'icon-cheese', 'icon-chocolate', 'icon-museum', 'icon-art',
+            'icon-gallery', 'icon-hiking', 'icon-cycling', 'icon-activity', 'icon-kayaking', 'icon-spa',
+            'icon-wellness', 'icon-shopping', 'icon-market', 'icon-concert', 'icon-theater', 'icon-cinema',
+            'icon-festival', 'icon-hotel', 'icon-lodging', 'icon-transport', 'icon-train', 'icon-boat',
+            'icon-scenic', 'icon-viewpoint', 'icon-park', 'icon-garden', 'icon-beach', 'icon-history',
+            'icon-culture', 'icon-architecture', 'icon-local', 'icon-tour', 'icon-workshop', 'icon-class',
+            'icon-food', 'icon-cidery', 'icon-indoor', 'icon-attraction', 'icon-farm', 'icon-outdoor',
+            'icon-default'
+        ];
+        
+        function renderIconMappings() {
+            const container = document.getElementById('iconsList');
+            if (!container) return;
+            
+            // Get sorted list of type-icon mappings
+            const mappings = Object.keys(ICON_MAPPINGS).map(function(type) {
+                return { type: type, icon: ICON_MAPPINGS[type] };
+            }).sort(function(a, b) {
+                return a.type.localeCompare(b.type);
+            });
+            
+            if (mappings.length === 0) {
+                container.innerHTML = '<p style="color: #6c757d; padding: 20px; text-align: center;">No icon mappings found. Click "Add New Mapping" to create one.</p>';
+                return;
+            }
+            
+            // Create a temporary container to build the HTML safely
+            const tempContainer = document.createElement('div');
+            
+            mappings.forEach(function(mapping, index) {
+                const iconOptions = AVAILABLE_ICONS.map(function(icon) {
+                    return '<option value="' + icon + '"' + (icon === mapping.icon ? ' selected' : '') + '>' + icon.replace('icon-', '') + '</option>';
+                }).join('');
+                
+                // Escape type for HTML display only
+                const escapedTypeForHTML = mapping.type.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                
+                const item = document.createElement('div');
+                item.className = 'icon-mapping-item';
+                item.setAttribute('data-type', mapping.type); // Store actual type in data attribute
+                item.style.cssText = 'display: flex; align-items: center; gap: 15px; padding: 15px; background: #ffffff; border: 1px solid #dee2e6; border-radius: 8px;';
+                
+                item.innerHTML = '<div style="flex: 1;">' +
+                    '<div style="font-weight: 600; color: #212529; margin-bottom: 5px;">' + escapedTypeForHTML + '</div>' +
+                    '<div style="font-size: 12px; color: #6c757d;">Type</div>' +
+                    '</div>' +
+                    '<div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 4px; border: 1px solid #dee2e6;">' +
+                    '<span class="badge-type ' + mapping.icon + '" style="width: 24px; height: 24px; display: inline-block;"></span>' +
+                    '</div>' +
+                    '<div style="flex: 1;">' +
+                    '<select class="icon-select" style="width: 100%; padding: 8px 12px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 14px;">' +
+                    iconOptions +
+                    '</select>' +
+                    '</div>' +
+                    '<button class="remove-icon-mapping-btn" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">Remove</button>';
+                
+                tempContainer.appendChild(item);
+            });
+            
+            container.innerHTML = '';
+            container.appendChild(tempContainer);
+            
+            // Attach event listeners after rendering
+            container.querySelectorAll('.icon-select').forEach(function(select) {
+                select.addEventListener('change', function() {
+                    const item = this.closest('.icon-mapping-item');
+                    const type = item.getAttribute('data-type');
+                    const iconClass = this.value;
+                    updateIconMapping(type, iconClass);
+                });
+            });
+            
+            container.querySelectorAll('.remove-icon-mapping-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const item = this.closest('.icon-mapping-item');
+                    const type = item.getAttribute('data-type');
+                    removeIconMapping(type);
+                });
+            });
+        }
+        
+        window.updateIconMapping = function updateIconMapping(type, iconClass) {
+            if (!type || !iconClass) return;
+            
+            ICON_MAPPINGS[type] = iconClass;
+            saveIconMappingsToStorage(ICON_MAPPINGS);
+            
+            // Re-render to show updated icon
+            renderIconMappings();
+            
+            // Update preview if we have listings displayed
+            if (data && data.listings) {
+                renderListings(data.listings);
+                if (typeof renderPreview === 'function') {
+                    renderPreview(data.listings);
+                }
+            }
+        };
+        
+        window.addIconMapping = function addIconMapping() {
+            const type = prompt('Enter the listing type name:');
+            if (!type || !type.trim()) return;
+            
+            const trimmedType = type.trim();
+            if (ICON_MAPPINGS[trimmedType]) {
+                alert('This type already has an icon mapping. Use the edit function to change it.');
+                return;
+            }
+            
+            // Default to icon-default
+            ICON_MAPPINGS[trimmedType] = 'icon-default';
+            saveIconMappingsToStorage(ICON_MAPPINGS);
+            renderIconMappings();
+            
+            // Scroll to the new mapping
+            setTimeout(function() {
+                const item = document.querySelector('.icon-mapping-item[data-type="' + trimmedType + '"]');
+                if (item) {
+                    item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    item.style.background = '#fff3cd';
+                    setTimeout(function() {
+                        item.style.background = '#ffffff';
+                    }, 2000);
+                }
+            }, 100);
+        };
+        
+        window.removeIconMapping = function removeIconMapping(type) {
+            if (!type) return;
+            
+            const confirmed = confirm('Remove icon mapping for type: "' + type + '"\n\n' +
+                                    'This will remove the custom mapping. The type will use the default icon.\n\n' +
+                                    'Click OK to remove this mapping\n' +
+                                    'Click Cancel to keep it');
+            if (confirmed) {
+                delete ICON_MAPPINGS[type];
+                saveIconMappingsToStorage(ICON_MAPPINGS);
+                renderIconMappings();
+                
+                // Update preview if we have listings displayed
+                if (data && data.listings) {
+                    renderListings(data.listings);
+                    if (typeof renderPreview === 'function') {
+                        renderPreview(data.listings);
+                    }
+                }
+            }
+        };
+        
+        window.filterIconMappings = function filterIconMappings() {
+            const searchTerm = document.getElementById('iconMappingSearch').value.toLowerCase().trim();
+            const items = document.querySelectorAll('.icon-mapping-item');
+            
+            items.forEach(function(item) {
+                const type = item.dataset.type.toLowerCase();
+                const iconSelect = item.querySelector('.icon-select');
+                const icon = iconSelect ? iconSelect.value.toLowerCase() : '';
+                const matches = !searchTerm || type.indexOf(searchTerm) > -1 || icon.indexOf(searchTerm) > -1;
+                item.style.display = matches ? 'flex' : 'none';
+            });
+        };
+        
+        window.resetIconMappingsToDefaults = function resetIconMappingsToDefaults() {
+            const confirmed = confirm('Reset all icon mappings to defaults?\n\n' +
+                                    'This will replace all current mappings with the default set.\n\n' +
+                                    'Click OK to reset\n' +
+                                    'Click Cancel to keep current mappings');
+            if (confirmed) {
+                ICON_MAPPINGS = JSON.parse(JSON.stringify(DEFAULT_ICON_MAPPINGS));
+                saveIconMappingsToStorage(ICON_MAPPINGS);
+                renderIconMappings();
+                
+                // Update preview if we have listings displayed
+                if (data && data.listings) {
+                    renderListings(data.listings);
+                    if (typeof renderPreview === 'function') {
+                        renderPreview(data.listings);
+                    }
+                }
+            }
+        };
+        
+        window.exportIconMappings = function exportIconMappings() {
+            const dataStr = JSON.stringify(ICON_MAPPINGS, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'icon-mappings-' + new Date().toISOString().split('T')[0] + '.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        };
+        
+        window.importIconMappings = function importIconMappings(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported && typeof imported === 'object') {
+                        const confirmed = confirm('Import icon mappings?\n\n' +
+                                                'This will replace all current mappings with the imported ones.\n\n' +
+                                                'Click OK to import\n' +
+                                                'Click Cancel to cancel');
+                        if (confirmed) {
+                            ICON_MAPPINGS = imported;
+                            saveIconMappingsToStorage(ICON_MAPPINGS);
+                            renderIconMappings();
+                            
+                            // Update preview if we have listings displayed
+                            if (data && data.listings) {
+                                renderListings(data.listings);
+                                if (typeof renderPreview === 'function') {
+                                    renderPreview(data.listings);
+                                }
+                            }
+                            
+                            alert('Icon mappings imported successfully!');
+                        }
+                    } else {
+                        alert('Invalid file format. Please import a valid JSON file.');
+                    }
+                } catch (err) {
+                    alert('Error importing file: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset file input
+        };
         
         function saveFilterOptions() {
             // Save to localStorage
@@ -2475,92 +2853,12 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             });
         }
         
-        // Icon mapping function - maps activity types to centralized icon library
+        // Icon mapping function - uses shared icon mappings from localStorage
+        // Changes made here will sync to front page automatically
         function getIconClass(type) {
-            const typeMap = {
-                'Wine': 'icon-wine',
-                'Winery': 'icon-wine',
-                'Beer': 'icon-beer',
-                'Brewery': 'icon-beer',
-                'Spirits': 'icon-spirits',
-                'Distillery': 'icon-spirits',
-                'Cocktails': 'icon-cocktail',
-                'Cocktail Bar': 'icon-cocktail',
-                'Coffee': 'icon-coffee',
-                'Coffee Shop': 'icon-coffee',
-                'Café': 'icon-coffee',
-                'Tea': 'icon-tea',
-                'Tea Room': 'icon-tea',
-                'Restaurant': 'icon-restaurant',
-                'Dining': 'icon-restaurant',
-                'Bakery': 'icon-bakery',
-                'Patisserie': 'icon-bakery',
-                'Cheese': 'icon-cheese',
-                'Fromagerie': 'icon-cheese',
-                'Chocolate': 'icon-chocolate',
-                'Chocolatier': 'icon-chocolate',
-                'Museum': 'icon-museum',
-                'Art': 'icon-art',
-                'Art Gallery': 'icon-gallery',
-                'Gallery': 'icon-gallery',
-                'Hiking': 'icon-hiking',
-                'Hike': 'icon-hiking',
-                'Trail': 'icon-hiking',
-                'Cycling': 'icon-cycling',
-                'Bike': 'icon-cycling',
-                'Activity': 'icon-activity',
-                'Activities': 'icon-activity',
-                'Kayaking': 'icon-kayaking',
-                'Kayak': 'icon-kayaking',
-                'Spa': 'icon-spa',
-                'Wellness': 'icon-wellness',
-                'Health': 'icon-wellness',
-                'Shopping': 'icon-shopping',
-                'Shop': 'icon-shopping',
-                'Market': 'icon-market',
-                'Farmers Market': 'icon-market',
-                'Concert': 'icon-concert',
-                'Music': 'icon-concert',
-                'Theater': 'icon-theater',
-                'Theatre': 'icon-theater',
-                'Cinema': 'icon-cinema',
-                'Movie': 'icon-cinema',
-                'Film': 'icon-cinema',
-                'Festival': 'icon-festival',
-                'Event': 'icon-festival',
-                'Hotel': 'icon-hotel',
-                'Lodging': 'icon-lodging',
-                'B&B': 'icon-lodging',
-                'Inn': 'icon-lodging',
-                'Transport': 'icon-transport',
-                'Transportation': 'icon-transport',
-                'Train': 'icon-train',
-                'Railway': 'icon-train',
-                'Boat': 'icon-boat',
-                'Ferry': 'icon-boat',
-                'Scenic': 'icon-scenic',
-                'Viewpoint': 'icon-viewpoint',
-                'Lookout': 'icon-viewpoint',
-                'Park': 'icon-park',
-                'Garden': 'icon-garden',
-                'Beach': 'icon-beach',
-                'History': 'icon-history',
-                'Historical': 'icon-history',
-                'Heritage': 'icon-history',
-                'Culture': 'icon-culture',
-                'Cultural': 'icon-culture',
-                'Architecture': 'icon-architecture',
-                'Building': 'icon-architecture',
-                'Local': 'icon-local',
-                'Tour': 'icon-tour',
-                'Guided Tour': 'icon-tour',
-                'Workshop': 'icon-workshop',
-                'Class': 'icon-class',
-                'Course': 'icon-class',
-                'Food': 'icon-food',
-                'Cuisine': 'icon-food'
-            };
-            return typeMap[type] || 'icon-default';
+            if (!type) return 'icon-default';
+            // Use shared icon mappings (synced with front page)
+            return ICON_MAPPINGS[type] || 'icon-default';
         }
         
         function renderPreview(filteredListings) {

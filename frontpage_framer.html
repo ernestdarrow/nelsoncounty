@@ -3878,6 +3878,132 @@ function loadCategoriesFromStorage() {
     return null;
 }
 
+// Load icon mappings from localStorage or use defaults (sync with admin.js)
+function loadIconMappingsFromStorage() {
+    try {
+        const stored = localStorage.getItem('nelsonCounty_iconMappings');
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && typeof parsed === 'object') {
+                return parsed;
+            }
+        }
+    } catch (e) {
+        console.error('Error loading icon mappings from storage:', e);
+    }
+    return null;
+}
+
+// Default icon mappings - comprehensive list (merged from admin and front page)
+const DEFAULT_ICON_MAPPINGS = {
+    'Wine': 'icon-wine',
+    'Winery': 'icon-wine',
+    'Beer': 'icon-beer',
+    'Brewery': 'icon-beer',
+    'Spirits': 'icon-spirits',
+    'Distillery': 'icon-spirits',
+    'Cocktails': 'icon-cocktail',
+    'Cocktail Bar': 'icon-cocktail',
+    'Coffee': 'icon-coffee',
+    'Coffee Shop': 'icon-coffee',
+    'Café': 'icon-coffee',
+    'Tea': 'icon-tea',
+    'Tea Room': 'icon-tea',
+    'Restaurant': 'icon-restaurant',
+    'Dining': 'icon-restaurant',
+    'Bakery': 'icon-bakery',
+    'Patisserie': 'icon-bakery',
+    'Cheese': 'icon-cheese',
+    'Fromagerie': 'icon-cheese',
+    'Chocolate': 'icon-chocolate',
+    'Chocolatier': 'icon-chocolate',
+    'Museum': 'icon-museum',
+    'Art': 'icon-art',
+    'Art Gallery': 'icon-gallery',
+    'Gallery': 'icon-gallery',
+    'Hiking': 'icon-hiking',
+    'Hike': 'icon-hiking',
+    'Trail': 'icon-hiking',
+    'Cycling': 'icon-cycling',
+    'Bike': 'icon-cycling',
+    'Activity': 'icon-activity',
+    'Activities': 'icon-activity',
+    'Outdoor': 'icon-outdoor',
+    'Outdoor Activity': 'icon-outdoor',
+    'Kayaking': 'icon-kayaking',
+    'Kayak': 'icon-kayaking',
+    'Spa': 'icon-spa',
+    'Wellness': 'icon-wellness',
+    'Health': 'icon-wellness',
+    'Shopping': 'icon-shopping',
+    'Shop': 'icon-shopping',
+    'Market': 'icon-market',
+    'Farmers Market': 'icon-market',
+    'Concert': 'icon-concert',
+    'Music': 'icon-concert',
+    'Theater': 'icon-theater',
+    'Theatre': 'icon-theater',
+    'Cinema': 'icon-cinema',
+    'Movie': 'icon-cinema',
+    'Film': 'icon-cinema',
+    'Festival': 'icon-festival',
+    'Event': 'icon-festival',
+    'Hotel': 'icon-lodging',
+    'Lodging': 'icon-lodging',
+    'B&B': 'icon-lodging',
+    'BnB': 'icon-lodging',
+    'Inn': 'icon-lodging',
+    'Cabin': 'icon-lodging',
+    'Camping': 'icon-lodging',
+    'Transport': 'icon-transport',
+    'Transportation': 'icon-transport',
+    'Train': 'icon-train',
+    'Railway': 'icon-train',
+    'Boat': 'icon-boat',
+    'Ferry': 'icon-boat',
+    'Scenic': 'icon-scenic',
+    'Viewpoint': 'icon-viewpoint',
+    'Lookout': 'icon-viewpoint',
+    'Park': 'icon-park',
+    'Garden': 'icon-garden',
+    'Beach': 'icon-beach',
+    'History': 'icon-history',
+    'Historical': 'icon-history',
+    'Heritage': 'icon-history',
+    'Culture': 'icon-culture',
+    'Cultural': 'icon-culture',
+    'Architecture': 'icon-architecture',
+    'Building': 'icon-architecture',
+    'Local': 'icon-local',
+    'Tour': 'icon-tour',
+    'Guided Tour': 'icon-tour',
+    'Workshop': 'icon-workshop',
+    'Class': 'icon-class',
+    'Course': 'icon-class',
+    'Food': 'icon-food',
+    'Cuisine': 'icon-food',
+    'Cidery': 'icon-cidery',
+    'Cider': 'icon-cidery',
+    'Indoor Activity': 'icon-indoor',
+    'Indoor': 'icon-indoor',
+    'Attraction': 'icon-attraction',
+    'Attractions': 'icon-attraction',
+    'Farm & Orchard': 'icon-farm',
+    'Farm': 'icon-farm',
+    'Orchard': 'icon-farm'
+};
+
+// Initialize icon mappings from storage or defaults
+let ICON_MAPPINGS = loadIconMappingsFromStorage();
+if (!ICON_MAPPINGS || Object.keys(ICON_MAPPINGS).length === 0) {
+    ICON_MAPPINGS = DEFAULT_ICON_MAPPINGS;
+    try {
+        localStorage.setItem('nelsonCounty_iconMappings', JSON.stringify(ICON_MAPPINGS));
+    } catch (e) {
+        console.error('Error saving icon mappings to storage:', e);
+    }
+}
+
 // Default category definitions - comprehensive list
 const DEFAULT_TYPE_CATEGORIES = {
     'taste': {
@@ -4984,34 +5110,12 @@ function updateStructuredData(listings) {
     }
 }
 
-// Icon mapping function
+// Icon mapping function - uses shared icon mappings from localStorage
+// Changes made in admin will sync here automatically
 function getIconClass(type) {
-    const typeMap = {
-        'Wine': 'icon-wine', 'Winery': 'icon-wine', 'Beer': 'icon-beer', 'Brewery': 'icon-beer',
-        'Spirits': 'icon-spirits', 'Distillery': 'icon-spirits', 'Cocktails': 'icon-cocktail',
-        'Cocktail Bar': 'icon-cocktail', 'Coffee': 'icon-coffee', 'Coffee Shop': 'icon-coffee',
-        'Café': 'icon-coffee', 'Tea': 'icon-tea', 'Tea Room': 'icon-tea',
-        'Restaurant': 'icon-restaurant', 'Dining': 'icon-restaurant', 'Bakery': 'icon-bakery',
-        'Patisserie': 'icon-bakery', 'Cheese': 'icon-cheese', 'Fromagerie': 'icon-cheese',
-        'Chocolate': 'icon-chocolate', 'Chocolatier': 'icon-chocolate', 'Museum': 'icon-museum',
-        'Art': 'icon-art', 'Art Gallery': 'icon-gallery', 'Gallery': 'icon-gallery',
-        'Hiking': 'icon-hiking', 'Hike': 'icon-hiking', 'Trail': 'icon-hiking',
-        'Cycling': 'icon-cycling', 'Bike': 'icon-cycling', 'Activity': 'icon-activity',
-        'Activities': 'icon-activity', 'Outdoor': 'icon-outdoor', 'Outdoor Activity': 'icon-outdoor',
-        'Kayaking': 'icon-kayaking', 'Kayak': 'icon-kayaking',
-        'Spa': 'icon-spa', 'Wellness': 'icon-wellness', 'Health': 'icon-wellness',
-        'Shopping': 'icon-shopping', 'Shop': 'icon-shopping', 'Market': 'icon-market',
-        'Farmers Market': 'icon-market', 'Concert': 'icon-concert', 'Music': 'icon-concert',
-        'Theater': 'icon-theater', 'Theatre': 'icon-theater', 'Cinema': 'icon-cinema',
-        'Movie': 'icon-cinema', 'Film': 'icon-cinema', 'Lodging': 'icon-lodging',
-        'Hotel': 'icon-lodging', 'Inn': 'icon-lodging', 'BnB': 'icon-lodging',
-        'Cabin': 'icon-cabin', 'Camping': 'icon-camping', 'Park': 'icon-park',
-        'Cidery': 'icon-cidery', 'Cider': 'icon-cidery',
-        'Indoor Activity': 'icon-indoor', 'Indoor': 'icon-indoor',
-        'Attraction': 'icon-attraction', 'Attractions': 'icon-attraction',
-        'Farm & Orchard': 'icon-farm', 'Farm': 'icon-farm', 'Orchard': 'icon-farm'
-    };
-    return typeMap[type] || 'icon-default';
+    if (!type) return 'icon-default';
+    // Use shared icon mappings (synced with admin)
+    return ICON_MAPPINGS[type] || 'icon-default';
 }
 
 // Fallback placeholder image (SVG data URI) - forest green background with white camera icon
