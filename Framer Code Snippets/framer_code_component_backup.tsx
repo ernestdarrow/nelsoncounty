@@ -24,7 +24,7 @@ export default function AdventureDirectory() {
 
   return React.createElement('iframe', {
     ref: iframeRef,
-    src: 'https://ernestdarrow.github.io/nelsoncounty/frontpage_framer.html',
+    src: 'https://odd-even.github.io/nelsoncounty/frontpage_framer.html',
     style: {
       width: '100%',
       height: '800px',
