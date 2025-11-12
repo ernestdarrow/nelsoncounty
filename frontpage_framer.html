@@ -3863,7 +3863,7 @@ function extractFilterOptions(listings) {
     return { types, areas, amenities };
 }
 
-// Load categories from localStorage or use defaults (sync with admin.js)
+// Load categories from localStorage (synced with admin.js)
 function loadCategoriesFromStorage() {
     try {
         const stored = localStorage.getItem('nelsonCounty_categories');
@@ -4079,7 +4079,7 @@ const DEFAULT_TYPE_CATEGORIES = {
     }
 };
 
-// Initialize TYPE_CATEGORIES from storage or defaults
+// Initialize TYPE_CATEGORIES from localStorage or defaults
 let TYPE_CATEGORIES = loadCategoriesFromStorage() || DEFAULT_TYPE_CATEGORIES;
 
 // Ensure we always have the default structure and icons

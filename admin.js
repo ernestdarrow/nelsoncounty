@@ -263,7 +263,7 @@ function normalizeFilterValue(value) {
     return trimmed;
 }
 
-// Load categories from localStorage or use defaults
+// Load categories from localStorage (synced between admin and front page)
 function loadCategoriesFromStorage() {
     try {
         const stored = localStorage.getItem('nelsonCounty_categories');
@@ -279,6 +279,7 @@ function loadCategoriesFromStorage() {
     return null;
 }
 
+// Save categories to localStorage (synced between admin and front page)
 function saveCategoriesToStorage(categories) {
     try {
         localStorage.setItem('nelsonCounty_categories', JSON.stringify(categories));
@@ -497,7 +498,7 @@ const DEFAULT_TYPE_CATEGORIES = {
     }
 };
 
-// Initialize TYPE_CATEGORIES from storage or defaults
+// Initialize TYPE_CATEGORIES from localStorage or defaults
 let TYPE_CATEGORIES = loadCategoriesFromStorage() || DEFAULT_TYPE_CATEGORIES;
 
 // Ensure we always have the default structure and icons
@@ -506,19 +507,24 @@ if (!TYPE_CATEGORIES || Object.keys(TYPE_CATEGORIES).length === 0) {
     saveCategoriesToStorage(TYPE_CATEGORIES);
 } else {
     // Ensure all categories have icons from defaults
+    let needsUpdate = false;
     for (const categoryKey in DEFAULT_TYPE_CATEGORIES) {
         if (TYPE_CATEGORIES[categoryKey]) {
             // If category exists but doesn't have an icon, set it from defaults
             if (!TYPE_CATEGORIES[categoryKey].icon && DEFAULT_TYPE_CATEGORIES[categoryKey].icon) {
                 TYPE_CATEGORIES[categoryKey].icon = DEFAULT_TYPE_CATEGORIES[categoryKey].icon;
+                needsUpdate = true;
             }
         } else {
             // If category is missing, add it from defaults
             TYPE_CATEGORIES[categoryKey] = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES[categoryKey]));
+            needsUpdate = true;
         }
     }
     // Save updated categories if we made changes
-    saveCategoriesToStorage(TYPE_CATEGORIES);
+    if (needsUpdate) {
+        saveCategoriesToStorage(TYPE_CATEGORIES);
+    }
 }
 
 // Keyword mappings for automatic category assignment based on type content
