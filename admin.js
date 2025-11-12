@@ -2264,7 +2264,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 const row = document.createElement('tr');
                 row.setAttribute('data-index', index);
                 row.innerHTML = 
-                    '<td class="cell-id">' + safe(listing.id) + '</td>' +
+                    '<td class="cell-id"><input type="text" value="' + safe(listing.id) + '" data-field="id" /></td>' +
                     '<td class="cell-name"><input type="text" value="' + safe(listing.name) + '" data-field="name" /></td>' +
                     '<td class="cell-slug"><input type="text" value="' + safe(listing.slug) + '" data-field="slug" placeholder="auto" /></td>' +
                     '<td class="cell-type"><select data-field="type">' +

@@ -539,6 +539,7 @@
         .data-table td textarea { min-height: 60px; resize: vertical; }
         .data-table .cell-id { color: var(--text-secondary); font-weight: 600; }
         .data-table .cell-name { font-weight: 600; min-width: 150px; }
+        .data-table .cell-slug { min-width: 180px; }
         .data-table .cell-type, .data-table .cell-area { min-width: 120px; }
         .data-table .cell-description { min-width: 250px; max-width: 350px; }
         .data-table .cell-image { min-width: 200px; }
