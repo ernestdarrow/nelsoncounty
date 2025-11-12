@@ -1715,11 +1715,15 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             document.getElementById('adminAmenityFilter').value = '';
             currentAdminTypeFilter = '';
             
-            // Reset quick filter buttons
+            // Reset quick filter buttons - only activate "All Types" button
+            // Category buttons have both data-type="" and data-category, so we need to exclude those
             const buttons = document.querySelectorAll('#adminTab .type-filter-btn');
             buttons.forEach(function(btn) {
                 btn.classList.remove('active');
-                if (btn.dataset.type === '') {
+                // Only activate "All Types" button: it has data-type="" but NO data-category attribute
+                // OR it has the ID adminAllTypesBtn
+                if ((btn.id === 'adminAllTypesBtn') || 
+                    (btn.dataset.type === '' && !btn.dataset.category)) {
                     btn.classList.add('active');
                 }
             });
