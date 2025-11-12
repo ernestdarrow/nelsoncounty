@@ -522,6 +522,39 @@
             border-color: #007AFF; 
             color: white; 
         }
+        .type-filters-expanded {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .type-filter-see-more-btn {
+            width: 100%;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 0;
+            background: var(--card-bg);
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-align: center;
+            box-shadow: none;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            margin-top: 6px;
+        }
+        .type-filter-see-more-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: scale(0.98);
+            border-radius: 8px;
+        }
         
         .data-container { width: 100%; margin: 0; padding: 30px 20px; }
         .data-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }

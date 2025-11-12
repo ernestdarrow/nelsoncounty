@@ -3191,82 +3191,14 @@
                         </div>
                         <div class="filter-content">
                             <div class="filter-section">
-                                <div class="type-quick-filters">
+                                <div class="type-quick-filters" id="typeQuickFilters">
                                     <button class="type-filter-btn active" data-type="">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
                                         </svg>
                                         All Type
                                     </button>
-                                    <button class="type-filter-btn" data-type="Brewery">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"></path>
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 13.5a3 3 0 100-6 3 3 0 000 6z"></path>
-                                        </svg>
-                                        Brewery
-                                    </button>
-                                    <button class="type-filter-btn" data-type="Winery">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25z"></path>
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"></path>
-                                        </svg>
-                                        Winery
-                                    </button>
-                                    <button class="type-filter-btn" data-type="Hiking">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"></path>
-                                        </svg>
-                                        Hiking
-                                    </button>
-                                    <button class="type-filter-btn" data-type="Restaurant">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                        </svg>
-                                        Restaurant
-                                    </button>
-                                    <button class="type-filter-btn" data-type="Lodging">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"></path>
-                                        </svg>
-                                        Lodging
-                                    </button>
-                                    <button class="type-filter-btn" data-type="Outdoor">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"></path>
-                                        </svg>
-                                        Activity
-                                    </button>
-                                    <div class="type-filters-expanded" style="display: none;">
-                                        <button class="type-filter-btn" data-type="Cidery">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25z"></path>
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"></path>
-                                            </svg>
-                                            Cidery
-                                        </button>
-                                        <button class="type-filter-btn" data-type="Indoor Activity">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"></path>
-                                            </svg>
-                                            Indoor Activity
-                                        </button>
-                                        <button class="type-filter-btn" data-type="Attraction">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418"></path>
-                                            </svg>
-                                            Attraction
-                                        </button>
-                                        <button class="type-filter-btn" data-type="Farm & Orchard">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12H2.25m4.007 4.243l-1.591-1.591M12 18.75V21m-6.364-2.636l-1.591 1.591M18.75 12a6.75 6.75 0 11-13.5 0 6.75 6.75 0 0113.5 0z"></path>
-                                            </svg>
-                                            Farm & Orchard
-                                        </button>
-                                    </div>
-                                    <button class="type-filter-see-more-btn" onclick="toggleTypeFilters()">
-                                        <span class="see-more-text">See More</span>
-                                        <span class="see-less-text" style="display: none;">See Less</span>
-                                    </button>
+                                    <!-- Type filter buttons will be dynamically generated here based on data usage -->
                                 </div>
                             </div>
 
@@ -3918,6 +3850,182 @@ function extractFilterOptions(listings) {
     return { types, areas, amenities };
 }
 
+// Count type usage and sort by frequency (most used first)
+function getTypesByUsage(listings) {
+    const typeCounts = {};
+    
+    // Count occurrences of each type
+    listings.forEach(function(listing) {
+        if (listing.type) {
+            typeCounts[listing.type] = (typeCounts[listing.type] || 0) + 1;
+        }
+    });
+    
+    // Convert to array and sort by count (descending), then by name (ascending) for ties
+    const typesArray = Object.keys(typeCounts).map(function(type) {
+        return {
+            type: type,
+            count: typeCounts[type]
+        };
+    });
+    
+    // Sort by count (descending), then by type name (ascending)
+    typesArray.sort(function(a, b) {
+        if (b.count !== a.count) {
+            return b.count - a.count; // Most used first
+        }
+        return a.type.localeCompare(b.type); // Alphabetical for ties
+    });
+    
+    return typesArray;
+}
+
+// Dynamically render type filter buttons based on usage
+function renderTypeFilterButtons(listings, containerSelector, maxVisible) {
+    if (!listings || listings.length === 0) return;
+    
+    const container = document.querySelector(containerSelector);
+    if (!container) return;
+    
+    maxVisible = maxVisible || 6; // Default to showing top 6
+    
+    const typesByUsage = getTypesByUsage(listings);
+    if (typesByUsage.length === 0) return;
+    
+    const visibleTypes = typesByUsage.slice(0, maxVisible);
+    const hiddenTypes = typesByUsage.slice(maxVisible);
+    
+    // Clear existing buttons (except "All Type" button)
+    const existingButtons = container.querySelectorAll('.type-filter-btn[data-type]:not([data-type=""])');
+    existingButtons.forEach(function(btn) {
+        btn.remove();
+    });
+    
+    // Remove existing expanded section and see-more button if they exist
+    const existingExpanded = container.querySelector('.type-filters-expanded');
+    const existingSeeMore = container.querySelector('.type-filter-see-more-btn');
+    if (existingExpanded) existingExpanded.remove();
+    if (existingSeeMore) existingSeeMore.remove();
+    
+    // Get the "All Type" button to insert after it
+    const allTypeBtn = container.querySelector('.type-filter-btn[data-type=""]');
+    
+    // Render visible types - insert them right after the "All Type" button
+    const createdButtons = [];
+    visibleTypes.forEach(function(typeInfo) {
+        const btn = createTypeFilterButton(typeInfo.type);
+        createdButtons.push(btn);
+        attachTypeFilterButtonHandler(btn);
+        if (allTypeBtn) {
+            // Insert after "All Type" button
+            if (allTypeBtn.nextSibling) {
+                container.insertBefore(btn, allTypeBtn.nextSibling);
+            } else {
+                // If "All Type" button is the last child, append after it
+                container.appendChild(btn);
+            }
+        } else {
+            // If no "All Type" button, just append
+            container.appendChild(btn);
+        }
+    });
+    
+    // Render hidden types in expandable section (if there are any)
+    if (hiddenTypes.length > 0) {
+        const expandedDiv = document.createElement('div');
+        expandedDiv.className = 'type-filters-expanded';
+        expandedDiv.style.display = 'none';
+        
+        hiddenTypes.forEach(function(typeInfo) {
+            const btn = createTypeFilterButton(typeInfo.type);
+            createdButtons.push(btn);
+            attachTypeFilterButtonHandler(btn);
+            expandedDiv.appendChild(btn);
+        });
+        
+        container.appendChild(expandedDiv);
+        
+        // Add "See More" button
+        const seeMoreBtn = document.createElement('button');
+        seeMoreBtn.className = 'type-filter-see-more-btn';
+        seeMoreBtn.onclick = function() {
+            toggleTypeFilters();
+        };
+        seeMoreBtn.innerHTML = '<span class="see-more-text">See More</span><span class="see-less-text" style="display: none;">See Less</span>';
+        container.appendChild(seeMoreBtn);
+    }
+}
+
+// Create a type filter button element
+function createTypeFilterButton(type) {
+    const btn = document.createElement('button');
+    btn.className = 'type-filter-btn';
+    btn.setAttribute('data-type', type);
+    btn.textContent = type;
+    
+    return btn;
+}
+
+// Attach click handler to a single type filter button (same logic as DOMContentLoaded)
+function attachTypeFilterButtonHandler(btn) {
+    // Add clicking class on mousedown for visual feedback
+    btn.addEventListener('mousedown', function() {
+        this.classList.add('clicking');
+    });
+    // Remove clicking class on mouseup or mouseleave
+    btn.addEventListener('mouseup', function() {
+        this.classList.remove('clicking');
+    });
+    btn.addEventListener('mouseleave', function() {
+        this.classList.remove('clicking');
+    });
+    btn.addEventListener('click', function() {
+        // Remove clicking class after click
+        this.classList.remove('clicking');
+        const filterValue = this.dataset.type;
+        
+        // Special handling for "All Types" button (empty data-type)
+        if (filterValue === '') {
+            // Clear all selections and activate only "All Types"
+            currentTypeFilter = [];
+            document.querySelectorAll('.type-filter-btn').forEach(function(b) {
+                b.classList.remove('active');
+            });
+            this.classList.add('active');
+        } else {
+            // Toggle this type in the array
+            const index = currentTypeFilter.indexOf(filterValue);
+            if (index > -1) {
+                // Remove from array (deselect)
+                currentTypeFilter.splice(index, 1);
+                this.classList.remove('active');
+            } else {
+                // Add to array (select)
+                currentTypeFilter.push(filterValue);
+                this.classList.add('active');
+            }
+            
+            // If no types selected, activate "All Types" button
+            if (currentTypeFilter.length === 0) {
+                document.querySelectorAll('.type-filter-btn').forEach(function(b) {
+                    if (b.dataset.type === '') {
+                        b.classList.add('active');
+                    }
+                });
+            } else {
+                // Ensure "All Types" button is not active when specific types are selected
+                document.querySelectorAll('.type-filter-btn').forEach(function(b) {
+                    if (b.dataset.type === '') {
+                        b.classList.remove('active');
+                    }
+                });
+            }
+        }
+        
+        filterPreview();
+    });
+}
+
 // Extract URL parameters from referrer (works cross-origin for iframe embeds)
 function extractParamsFromReferrer() {
     try {
@@ -4408,6 +4516,10 @@ loadDataFromGoogleSheets()
         }
         
         console.log('🎯 About to render', data.listings.length, 'listings');
+        
+        // Render type filter buttons dynamically based on usage
+        renderTypeFilterButtons(data.listings, '.type-quick-filters', 6);
+        
         renderPreview();
         
         // Extract parameters from referrer (for cross-origin iframe support)
@@ -4439,6 +4551,10 @@ loadDataFromGoogleSheets()
         console.warn('⚠️ NOTE: You are seeing FALLBACK DATA (20 items). Google Sheets fetch failed!');
         // Update head meta from fallback so head isn't stale
         updateHeadFromData(data);
+        
+        // Render type filter buttons dynamically based on usage
+        renderTypeFilterButtons(data.listings, '.type-quick-filters', 6);
+        
         renderPreview();
         
         // Extract parameters from referrer (for cross-origin iframe support)
@@ -5033,15 +5149,24 @@ function clearPreviewFilters() {
 function filterByListingName(listingName) {
     if (!data) return;
     
-    // Clear all other filters
+    // Clear all other filters (both desktop and mobile)
     const searchInput = document.getElementById('previewSearchInput');
+    const mobileSearchInput = document.getElementById('previewSearchInputMobile');
     const areaFilter = document.getElementById('previewAreaFilter');
     const amenityFilter = document.getElementById('previewAmenityFilter');
+    const mobileTypeFilter = document.getElementById('mobileTypeFilter');
+    const mobileAreaFilter = document.getElementById('mobileAreaFilter');
+    const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
     
     if (searchInput) searchInput.value = '';
+    if (mobileSearchInput) mobileSearchInput.value = '';
     if (areaFilter) areaFilter.value = '';
     if (amenityFilter) amenityFilter.value = '';
+    if (mobileTypeFilter) mobileTypeFilter.value = '';
+    if (mobileAreaFilter) mobileAreaFilter.value = '';
+    if (mobileAmenityFilter) mobileAmenityFilter.value = '';
     currentTypeFilter = [];
+    currentFeaturedOnly = false;
     
     // Reset type filter buttons
     document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
@@ -5054,9 +5179,11 @@ function filterByListingName(listingName) {
         return listing.name === listingName;
     });
     
-    // Show clear button
+    // Show clear button (both desktop and mobile)
     const clearBtn = document.getElementById('clearFiltersBtn');
+    const mobileClearBtn = document.getElementById('mobileClearFiltersBtn');
     if (clearBtn) clearBtn.style.display = 'block';
+    if (mobileClearBtn) mobileClearBtn.style.display = 'block';
     
     renderPreview(filtered);
     

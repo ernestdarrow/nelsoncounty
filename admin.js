@@ -1304,6 +1304,11 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             if (!data || !data.filterOptions) return;
             refreshFilterSelect('adminAreaFilter', data.filterOptions.areas);
             refreshFilterSelect('adminAmenityFilter', data.filterOptions.amenities);
+            
+            // Render type filter buttons dynamically based on usage
+            if (data.listings) {
+                renderAdminTypeFilterButtons(data.listings, '#adminTab .type-quick-filters', 6);
+            }
         }
 
         function populatePreviewFilters() {
@@ -1311,6 +1316,150 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             refreshFilterSelect('previewAreaFilter', data.filterOptions.areas);
             refreshFilterSelect('previewAmenityFilter', data.filterOptions.amenities);
         }
+        
+        // Count type usage and sort by frequency (most used first)
+        function getTypesByUsage(listings) {
+            const typeCounts = {};
+            
+            // Count occurrences of each type
+            (Array.isArray(listings) ? listings : []).forEach(function(listing) {
+                if (listing && listing.type) {
+                    const type = normalizeFilterValue(listing.type);
+                    if (type) {
+                        typeCounts[type] = (typeCounts[type] || 0) + 1;
+                    }
+                }
+            });
+            
+            // Convert to array and sort by count (descending), then by name (ascending) for ties
+            const typesArray = Object.keys(typeCounts).map(function(type) {
+                return {
+                    type: type,
+                    count: typeCounts[type]
+                };
+            });
+            
+            // Sort by count (descending), then by type name (ascending)
+            typesArray.sort(function(a, b) {
+                if (b.count !== a.count) {
+                    return b.count - a.count; // Most used first
+                }
+                return a.type.localeCompare(b.type); // Alphabetical for ties
+            });
+            
+            return typesArray;
+        }
+        
+        // Dynamically render type filter buttons based on usage
+        function renderAdminTypeFilterButtons(listings, containerSelector, maxVisible) {
+            if (!listings || listings.length === 0) return;
+            
+            const container = document.querySelector(containerSelector);
+            if (!container) return;
+            
+            maxVisible = maxVisible || 6; // Default to showing top 6
+            
+            const typesByUsage = getTypesByUsage(listings);
+            if (typesByUsage.length === 0) return;
+            
+            const visibleTypes = typesByUsage.slice(0, maxVisible);
+            const hiddenTypes = typesByUsage.slice(maxVisible);
+            
+            // Clear existing buttons (except "All Types" button)
+            const existingButtons = container.querySelectorAll('.type-filter-btn[data-type]:not([data-type=""])');
+            existingButtons.forEach(function(btn) {
+                btn.remove();
+            });
+            
+            // Remove existing expanded section and see-more button if they exist
+            const existingExpanded = container.querySelector('.type-filters-expanded');
+            const existingSeeMore = container.querySelector('.type-filter-see-more-btn');
+            if (existingExpanded) existingExpanded.remove();
+            if (existingSeeMore) existingSeeMore.remove();
+            
+            // Get the "All Types" button to insert after it
+            const allTypeBtn = container.querySelector('.type-filter-btn[data-type=""]');
+            
+            // Render visible types - insert them right after the "All Types" button
+            visibleTypes.forEach(function(typeInfo) {
+                const btn = document.createElement('button');
+                btn.className = 'type-filter-btn';
+                btn.setAttribute('data-type', typeInfo.type);
+                btn.textContent = typeInfo.type;
+                btn.onclick = function() {
+                    filterAdminByType(typeInfo.type);
+                };
+                
+                if (allTypeBtn) {
+                    // Insert after "All Types" button
+                    if (allTypeBtn.nextSibling) {
+                        container.insertBefore(btn, allTypeBtn.nextSibling);
+                    } else {
+                        // If "All Types" button is the last child, append after it
+                        container.appendChild(btn);
+                    }
+                } else {
+                    // If no "All Types" button, just append
+                    container.appendChild(btn);
+                }
+            });
+            
+            // Render hidden types in expandable section (if there are any)
+            if (hiddenTypes.length > 0) {
+                const expandedDiv = document.createElement('div');
+                expandedDiv.className = 'type-filters-expanded';
+                expandedDiv.style.display = 'none';
+                
+                hiddenTypes.forEach(function(typeInfo) {
+                    const btn = document.createElement('button');
+                    btn.className = 'type-filter-btn';
+                    btn.setAttribute('data-type', typeInfo.type);
+                    btn.textContent = typeInfo.type;
+                    btn.onclick = function() {
+                        filterAdminByType(typeInfo.type);
+                    };
+                    expandedDiv.appendChild(btn);
+                });
+                
+                container.appendChild(expandedDiv);
+                
+                // Add "See More" button
+                const seeMoreBtn = document.createElement('button');
+                seeMoreBtn.className = 'type-filter-see-more-btn';
+                seeMoreBtn.onclick = function() {
+                    toggleAdminTypeFilters();
+                };
+                seeMoreBtn.innerHTML = '<span class="see-more-text">See More</span><span class="see-less-text" style="display: none;">See Less</span>';
+                container.appendChild(seeMoreBtn);
+            }
+        }
+        
+        // Toggle "See More" functionality for admin type filters
+        function toggleAdminTypeFilters() {
+            const container = document.querySelector('#adminTab .type-quick-filters');
+            if (!container) return;
+            
+            const expanded = container.querySelector('.type-filters-expanded');
+            const seeMoreBtn = container.querySelector('.type-filter-see-more-btn');
+            
+            if (expanded && seeMoreBtn) {
+                const seeMoreTextSpan = seeMoreBtn.querySelector('.see-more-text');
+                const seeLessTextSpan = seeMoreBtn.querySelector('.see-less-text');
+                
+                if (expanded.style.display === 'none' || !expanded.style.display) {
+                    expanded.style.display = 'block';
+                    if (seeMoreTextSpan) seeMoreTextSpan.style.display = 'none';
+                    if (seeLessTextSpan) seeLessTextSpan.style.display = 'inline';
+                } else {
+                    expanded.style.display = 'none';
+                    if (seeMoreTextSpan) seeMoreTextSpan.style.display = 'inline';
+                    if (seeLessTextSpan) seeLessTextSpan.style.display = 'none';
+                }
+            }
+        }
+        
+        // Make toggleAdminTypeFilters available globally
+        window.toggleAdminTypeFilters = toggleAdminTypeFilters;
         
         function renderAmenitiesCheckboxes() {
             const container = document.getElementById('amenitiesCheckboxes');
