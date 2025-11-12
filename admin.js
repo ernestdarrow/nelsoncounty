@@ -263,6 +263,88 @@ function normalizeFilterValue(value) {
     return trimmed;
 }
 
+// Category definitions with emoji, name, description, and type mappings (same as frontpage_framer.html)
+const TYPE_CATEGORIES = {
+    'taste': {
+        emoji: '🥘',
+        name: 'Taste',
+        description: 'Food and drink experiences of all kinds.',
+        types: ['Restaurant', 'Café', 'Coffee Shop', 'Bakery', 'Brewery', 'Winery', 'Cidery', 'Distillery', 'Bar', 'Cocktail Bar', 'Food Market', 'Farmers Market', 'Food Tour', 'Cooking Class']
+    },
+    'stay': {
+        emoji: '🛏️',
+        name: 'Stay',
+        description: 'Places to sleep or retreat.',
+        types: ['Lodging', 'Hotel', 'Resort', 'B&B', 'BnB', 'Inn', 'Cabin', 'Camping', 'Glamping', 'Hostel', 'Boutique Stay', 'Treehouse', 'Unique Stay']
+    },
+    'outdoor': {
+        emoji: '🌿',
+        name: 'Outdoor',
+        description: 'Nature, adventure, and recreation outside.',
+        types: ['Hiking', 'Outdoor', 'Outdoor Activity', 'Park', 'Beach', 'Trail', 'Camping', 'Climbing', 'Water Sports', 'Skiing', 'Scenic Drive', 'Viewpoint', 'Nature Walk', 'Biking', 'Cycling', 'Kayaking', 'Kayak', 'Farm & Orchard']
+    },
+    'culture': {
+        emoji: '🎭',
+        name: 'Culture',
+        description: 'Art, heritage, people, and traditions.',
+        types: ['Museum', 'Gallery', 'Art Gallery', 'Art', 'Architecture', 'Landmark', 'Historical Site', 'Festival', 'Cultural Tour', 'Craft', 'Music', 'Theater', 'Theatre', 'Dance', 'Attraction', 'Attractions']
+    },
+    'shop': {
+        emoji: '🛍️',
+        name: 'Shop',
+        description: 'Places to buy, browse, or discover goods.',
+        types: ['Boutique', 'Market', 'Concept Store', 'Artisan Shop', 'Vintage', 'Design Store', 'Local Brand', 'Maker', 'Shopping', 'Shop']
+    },
+    'wellness': {
+        emoji: '💆',
+        name: 'Wellness',
+        description: 'Mind, body, and relaxation.',
+        types: ['Spa', 'Retreat', 'Yoga Studio', 'Sauna', 'Hot Springs', 'Wellness Resort', 'Healing Center', 'Fitness', 'Meditation', 'Beauty', 'Health', 'Wellness']
+    },
+    'experience': {
+        emoji: '🌆',
+        name: 'Experience / Play',
+        description: 'Fun, entertainment, and activities.',
+        types: ['Activity', 'Activities', 'Indoor Activity', 'Event', 'Nightlife', 'Club', 'Amusement Park', 'Arcade', 'Live Show', 'Interactive Experience', 'Workshop', 'Tour', 'Entertainment']
+    },
+    'learn': {
+        emoji: '💡',
+        name: 'Learn',
+        description: 'Knowledge, discovery, and curiosity.',
+        types: ['Class', 'Workshop', 'Studio', 'Exhibit', 'Educational Tour', 'Library', 'Lab', 'Science Center', 'Learning', 'Education']
+    },
+    'work': {
+        emoji: '💼',
+        name: 'Work',
+        description: 'Remote and creative work spaces.',
+        types: ['Coworking', 'Café with Wi-Fi', 'Studio', 'Workshop', 'Creative Hub', 'Business Stay', 'Work Space']
+    },
+    'community': {
+        emoji: '💬',
+        name: 'Community',
+        description: 'Local people, causes, and collectives.',
+        types: ['Community Project', 'Volunteer Work', 'Local Profile', 'Maker', 'Story', 'Collective']
+    }
+};
+
+// Map individual types to categories (case-insensitive)
+function getCategoryForType(type) {
+    if (!type) return null;
+    const normalizedType = normalizeFilterValue(type);
+    
+    for (const categoryKey in TYPE_CATEGORIES) {
+        const category = TYPE_CATEGORIES[categoryKey];
+        if (category.types.some(function(catType) {
+            return catType.toLowerCase() === normalizedType.toLowerCase();
+        })) {
+            return categoryKey;
+        }
+    }
+    
+    // Default fallback for unmapped types
+    return 'experience'; // Default to Experience/Play
+}
+
 function collectUsedFilterOptions(listings) {
     const types = [];
     const areas = [];
@@ -1257,7 +1339,20 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 ].join(' ').toLowerCase();
                 
                 const matchesSearch = !searchTerm || searchableText.indexOf(searchTerm) > -1;
-                const matchesType = !currentAdminTypeFilter || listing.type === currentAdminTypeFilter;
+                // Check if type matches - either direct match or category match
+                let matchesType = true;
+                if (currentAdminTypeFilter) {
+                    // Check if it's a category key
+                    if (TYPE_CATEGORIES[currentAdminTypeFilter]) {
+                        const category = TYPE_CATEGORIES[currentAdminTypeFilter];
+                        matchesType = category.types.some(function(catType) {
+                            return catType.toLowerCase() === normalizeFilterValue(listing.type).toLowerCase();
+                        });
+                    } else {
+                        // Direct type match
+                        matchesType = listing.type === currentAdminTypeFilter;
+                    }
+                }
                 const matchesArea = !areaFilter || listing.area === areaFilter;
                 const matchesAmenity = !amenityFilter || listing.amenities.indexOf(amenityFilter) > -1;
                 
@@ -1267,14 +1362,15 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             renderListings(filtered);
         }
         
-        window.filterAdminByType = function filterAdminByType(type) {
-            currentAdminTypeFilter = type;
+        window.filterAdminByType = function filterAdminByType(typeOrCategory) {
+            currentAdminTypeFilter = typeOrCategory;
             
             // Update button active states
             const buttons = document.querySelectorAll('#adminTab .type-filter-btn');
             buttons.forEach(function(btn) {
                 btn.classList.remove('active');
-                if (btn.dataset.type === type) {
+                // Check if it matches by type or category
+                if (btn.dataset.type === typeOrCategory || btn.dataset.category === typeOrCategory) {
                     btn.classList.add('active');
                 }
             });
@@ -1317,40 +1413,41 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             refreshFilterSelect('previewAmenityFilter', data.filterOptions.amenities);
         }
         
-        // Count type usage and sort by frequency (most used first)
-        function getTypesByUsage(listings) {
-            const typeCounts = {};
+        // Count category usage and sort by frequency (most used first)
+        function getCategoriesByUsage(listings) {
+            const categoryCounts = {};
             
-            // Count occurrences of each type
+            // Count occurrences of each category
             (Array.isArray(listings) ? listings : []).forEach(function(listing) {
                 if (listing && listing.type) {
-                    const type = normalizeFilterValue(listing.type);
-                    if (type) {
-                        typeCounts[type] = (typeCounts[type] || 0) + 1;
+                    const category = getCategoryForType(listing.type);
+                    if (category) {
+                        categoryCounts[category] = (categoryCounts[category] || 0) + 1;
                     }
                 }
             });
             
             // Convert to array and sort by count (descending), then by name (ascending) for ties
-            const typesArray = Object.keys(typeCounts).map(function(type) {
+            const categoriesArray = Object.keys(categoryCounts).map(function(categoryKey) {
                 return {
-                    type: type,
-                    count: typeCounts[type]
+                    key: categoryKey,
+                    category: TYPE_CATEGORIES[categoryKey],
+                    count: categoryCounts[categoryKey]
                 };
             });
             
-            // Sort by count (descending), then by type name (ascending)
-            typesArray.sort(function(a, b) {
+            // Sort by count (descending), then by category name (ascending)
+            categoriesArray.sort(function(a, b) {
                 if (b.count !== a.count) {
                     return b.count - a.count; // Most used first
                 }
-                return a.type.localeCompare(b.type); // Alphabetical for ties
+                return a.category.name.localeCompare(b.category.name); // Alphabetical for ties
             });
             
-            return typesArray;
+            return categoriesArray;
         }
         
-        // Dynamically render type filter buttons based on usage
+        // Dynamically render category filter buttons based on usage
         function renderAdminTypeFilterButtons(listings, containerSelector, maxVisible) {
             if (!listings || listings.length === 0) return;
             
@@ -1359,14 +1456,14 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             
             maxVisible = maxVisible || 6; // Default to showing top 6
             
-            const typesByUsage = getTypesByUsage(listings);
-            if (typesByUsage.length === 0) return;
+            const categoriesByUsage = getCategoriesByUsage(listings);
+            if (categoriesByUsage.length === 0) return;
             
-            const visibleTypes = typesByUsage.slice(0, maxVisible);
-            const hiddenTypes = typesByUsage.slice(maxVisible);
+            const visibleCategories = categoriesByUsage.slice(0, maxVisible);
+            const hiddenCategories = categoriesByUsage.slice(maxVisible);
             
             // Clear existing buttons (except "All Types" button)
-            const existingButtons = container.querySelectorAll('.type-filter-btn[data-type]:not([data-type=""])');
+            const existingButtons = container.querySelectorAll('.type-filter-btn[data-category]:not([data-category=""])');
             existingButtons.forEach(function(btn) {
                 btn.remove();
             });
@@ -1380,14 +1477,34 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             // Get the "All Types" button to insert after it
             const allTypeBtn = container.querySelector('.type-filter-btn[data-type=""]');
             
-            // Render visible types - insert them right after the "All Types" button
-            visibleTypes.forEach(function(typeInfo) {
+            // Render visible categories - insert them right after the "All Types" button
+            visibleCategories.forEach(function(categoryInfo) {
                 const btn = document.createElement('button');
-                btn.className = 'type-filter-btn';
-                btn.setAttribute('data-type', typeInfo.type);
-                btn.textContent = typeInfo.type;
+                btn.className = 'type-filter-btn category-filter-btn';
+                btn.setAttribute('data-category', categoryInfo.key);
+                btn.setAttribute('data-type', ''); // Empty to indicate it's a category
+                
+                // Create button content with emoji and name
+                const emojiSpan = document.createElement('span');
+                emojiSpan.className = 'category-emoji';
+                emojiSpan.textContent = categoryInfo.category.emoji;
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'category-name';
+                nameSpan.textContent = categoryInfo.category.name;
+                
+                btn.appendChild(emojiSpan);
+                btn.appendChild(nameSpan);
+                btn.title = categoryInfo.category.description;
+                
+                // When clicked, filter by all types in this category
                 btn.onclick = function() {
-                    filterAdminByType(typeInfo.type);
+                    // Get all types in this category
+                    const categoryTypes = categoryInfo.category.types || [];
+                    // For admin, we'll filter by the first type in the category (or could implement multi-type filtering)
+                    // For simplicity, filter by category name as a string match
+                    currentAdminTypeFilter = categoryInfo.key;
+                    filterAdminByType(categoryInfo.key);
                 };
                 
                 if (allTypeBtn) {
@@ -1404,20 +1521,35 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 }
             });
             
-            // Render hidden types in expandable section (if there are any)
-            if (hiddenTypes.length > 0) {
+            // Render hidden categories in expandable section (if there are any)
+            if (hiddenCategories.length > 0) {
                 const expandedDiv = document.createElement('div');
                 expandedDiv.className = 'type-filters-expanded';
                 expandedDiv.style.display = 'none';
                 
-                hiddenTypes.forEach(function(typeInfo) {
+                hiddenCategories.forEach(function(categoryInfo) {
                     const btn = document.createElement('button');
-                    btn.className = 'type-filter-btn';
-                    btn.setAttribute('data-type', typeInfo.type);
-                    btn.textContent = typeInfo.type;
+                    btn.className = 'type-filter-btn category-filter-btn';
+                    btn.setAttribute('data-category', categoryInfo.key);
+                    btn.setAttribute('data-type', '');
+                    
+                    const emojiSpan = document.createElement('span');
+                    emojiSpan.className = 'category-emoji';
+                    emojiSpan.textContent = categoryInfo.category.emoji;
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'category-name';
+                    nameSpan.textContent = categoryInfo.category.name;
+                    
+                    btn.appendChild(emojiSpan);
+                    btn.appendChild(nameSpan);
+                    btn.title = categoryInfo.category.description;
+                    
                     btn.onclick = function() {
-                        filterAdminByType(typeInfo.type);
+                        currentAdminTypeFilter = categoryInfo.key;
+                        filterAdminByType(categoryInfo.key);
                     };
+                    
                     expandedDiv.appendChild(btn);
                 });
                 

@@ -1256,6 +1256,18 @@
             background: var(--card-bg); 
             color: var(--text-secondary); 
         }
+        .category-filter-btn {
+            padding: 12px 14px;
+        }
+        .category-filter-btn .category-emoji {
+            font-size: 18px;
+            line-height: 1;
+            margin-right: 2px;
+        }
+        .category-filter-btn .category-name {
+            flex: 1;
+            font-weight: 500;
+        }
         /* Icon container styling - circular with colored fill on hover/active */
         .type-filter-btn:hover::before,
         .type-filter-btn.active::before {
@@ -3850,37 +3862,123 @@ function extractFilterOptions(listings) {
     return { types, areas, amenities };
 }
 
-// Count type usage and sort by frequency (most used first)
-function getTypesByUsage(listings) {
-    const typeCounts = {};
+// Category definitions with emoji, name, description, and type mappings
+const TYPE_CATEGORIES = {
+    'taste': {
+        emoji: '🥘',
+        name: 'Taste',
+        description: 'Food and drink experiences of all kinds.',
+        types: ['Restaurant', 'Café', 'Coffee Shop', 'Bakery', 'Brewery', 'Winery', 'Cidery', 'Distillery', 'Bar', 'Cocktail Bar', 'Food Market', 'Farmers Market', 'Food Tour', 'Cooking Class']
+    },
+    'stay': {
+        emoji: '🛏️',
+        name: 'Stay',
+        description: 'Places to sleep or retreat.',
+        types: ['Lodging', 'Hotel', 'Resort', 'B&B', 'BnB', 'Inn', 'Cabin', 'Camping', 'Glamping', 'Hostel', 'Boutique Stay', 'Treehouse', 'Unique Stay']
+    },
+    'outdoor': {
+        emoji: '🌿',
+        name: 'Outdoor',
+        description: 'Nature, adventure, and recreation outside.',
+        types: ['Hiking', 'Outdoor', 'Outdoor Activity', 'Park', 'Beach', 'Trail', 'Camping', 'Climbing', 'Water Sports', 'Skiing', 'Scenic Drive', 'Viewpoint', 'Nature Walk', 'Biking', 'Cycling', 'Kayaking', 'Kayak', 'Farm & Orchard']
+    },
+    'culture': {
+        emoji: '🎭',
+        name: 'Culture',
+        description: 'Art, heritage, people, and traditions.',
+        types: ['Museum', 'Gallery', 'Art Gallery', 'Art', 'Architecture', 'Landmark', 'Historical Site', 'Festival', 'Cultural Tour', 'Craft', 'Music', 'Theater', 'Theatre', 'Dance', 'Attraction', 'Attractions']
+    },
+    'shop': {
+        emoji: '🛍️',
+        name: 'Shop',
+        description: 'Places to buy, browse, or discover goods.',
+        types: ['Boutique', 'Market', 'Concept Store', 'Artisan Shop', 'Vintage', 'Design Store', 'Local Brand', 'Maker', 'Shopping', 'Shop']
+    },
+    'wellness': {
+        emoji: '💆',
+        name: 'Wellness',
+        description: 'Mind, body, and relaxation.',
+        types: ['Spa', 'Retreat', 'Yoga Studio', 'Sauna', 'Hot Springs', 'Wellness Resort', 'Healing Center', 'Fitness', 'Meditation', 'Beauty', 'Health', 'Wellness']
+    },
+    'experience': {
+        emoji: '🌆',
+        name: 'Experience / Play',
+        description: 'Fun, entertainment, and activities.',
+        types: ['Activity', 'Activities', 'Indoor Activity', 'Event', 'Nightlife', 'Club', 'Amusement Park', 'Arcade', 'Live Show', 'Interactive Experience', 'Workshop', 'Tour', 'Entertainment']
+    },
+    'learn': {
+        emoji: '💡',
+        name: 'Learn',
+        description: 'Knowledge, discovery, and curiosity.',
+        types: ['Class', 'Workshop', 'Studio', 'Exhibit', 'Educational Tour', 'Library', 'Lab', 'Science Center', 'Learning', 'Education']
+    },
+    'work': {
+        emoji: '💼',
+        name: 'Work',
+        description: 'Remote and creative work spaces.',
+        types: ['Coworking', 'Café with Wi-Fi', 'Studio', 'Workshop', 'Creative Hub', 'Business Stay', 'Work Space']
+    },
+    'community': {
+        emoji: '💬',
+        name: 'Community',
+        description: 'Local people, causes, and collectives.',
+        types: ['Community Project', 'Volunteer Work', 'Local Profile', 'Maker', 'Story', 'Collective']
+    }
+};
+
+// Map individual types to categories (case-insensitive)
+function getCategoryForType(type) {
+    if (!type) return null;
+    const normalizedType = type.trim();
     
-    // Count occurrences of each type
+    for (const categoryKey in TYPE_CATEGORIES) {
+        const category = TYPE_CATEGORIES[categoryKey];
+        if (category.types.some(function(catType) {
+            return catType.toLowerCase() === normalizedType.toLowerCase();
+        })) {
+            return categoryKey;
+        }
+    }
+    
+    // Default fallback for unmapped types
+    return 'experience'; // Default to Experience/Play
+}
+
+// Count category usage and sort by frequency (most used first)
+function getCategoriesByUsage(listings) {
+    const categoryCounts = {};
+    
+    // Count occurrences of each category
     listings.forEach(function(listing) {
         if (listing.type) {
-            typeCounts[listing.type] = (typeCounts[listing.type] || 0) + 1;
+            const category = getCategoryForType(listing.type);
+            if (category) {
+                categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+            }
         }
     });
     
     // Convert to array and sort by count (descending), then by name (ascending) for ties
-    const typesArray = Object.keys(typeCounts).map(function(type) {
+    const categoriesArray = Object.keys(categoryCounts).map(function(categoryKey) {
         return {
-            type: type,
-            count: typeCounts[type]
+            key: categoryKey,
+            category: TYPE_CATEGORIES[categoryKey],
+            count: categoryCounts[categoryKey]
         };
     });
     
-    // Sort by count (descending), then by type name (ascending)
-    typesArray.sort(function(a, b) {
+    // Sort by count (descending), then by category name (ascending)
+    categoriesArray.sort(function(a, b) {
         if (b.count !== a.count) {
             return b.count - a.count; // Most used first
         }
-        return a.type.localeCompare(b.type); // Alphabetical for ties
+        return a.category.name.localeCompare(b.category.name); // Alphabetical for ties
     });
     
-    return typesArray;
+    return categoriesArray;
 }
 
-// Dynamically render type filter buttons based on usage
+// Dynamically render category filter buttons based on usage
 function renderTypeFilterButtons(listings, containerSelector, maxVisible) {
     if (!listings || listings.length === 0) return;
     
@@ -3889,14 +3987,14 @@ function renderTypeFilterButtons(listings, containerSelector, maxVisible) {
     
     maxVisible = maxVisible || 6; // Default to showing top 6
     
-    const typesByUsage = getTypesByUsage(listings);
-    if (typesByUsage.length === 0) return;
+    const categoriesByUsage = getCategoriesByUsage(listings);
+    if (categoriesByUsage.length === 0) return;
     
-    const visibleTypes = typesByUsage.slice(0, maxVisible);
-    const hiddenTypes = typesByUsage.slice(maxVisible);
+    const visibleCategories = categoriesByUsage.slice(0, maxVisible);
+    const hiddenCategories = categoriesByUsage.slice(maxVisible);
     
     // Clear existing buttons (except "All Type" button)
-    const existingButtons = container.querySelectorAll('.type-filter-btn[data-type]:not([data-type=""])');
+    const existingButtons = container.querySelectorAll('.type-filter-btn[data-category]:not([data-category=""])');
     existingButtons.forEach(function(btn) {
         btn.remove();
     });
@@ -3910,12 +4008,10 @@ function renderTypeFilterButtons(listings, containerSelector, maxVisible) {
     // Get the "All Type" button to insert after it
     const allTypeBtn = container.querySelector('.type-filter-btn[data-type=""]');
     
-    // Render visible types - insert them right after the "All Type" button
-    const createdButtons = [];
-    visibleTypes.forEach(function(typeInfo) {
-        const btn = createTypeFilterButton(typeInfo.type);
-        createdButtons.push(btn);
-        attachTypeFilterButtonHandler(btn);
+    // Render visible categories - insert them right after the "All Type" button
+    visibleCategories.forEach(function(categoryInfo) {
+        const btn = createCategoryFilterButton(categoryInfo.key, categoryInfo.category);
+        attachCategoryFilterButtonHandler(btn, categoryInfo.key, categoryInfo.category);
         if (allTypeBtn) {
             // Insert after "All Type" button
             if (allTypeBtn.nextSibling) {
@@ -3930,16 +4026,15 @@ function renderTypeFilterButtons(listings, containerSelector, maxVisible) {
         }
     });
     
-    // Render hidden types in expandable section (if there are any)
-    if (hiddenTypes.length > 0) {
+    // Render hidden categories in expandable section (if there are any)
+    if (hiddenCategories.length > 0) {
         const expandedDiv = document.createElement('div');
         expandedDiv.className = 'type-filters-expanded';
         expandedDiv.style.display = 'none';
         
-        hiddenTypes.forEach(function(typeInfo) {
-            const btn = createTypeFilterButton(typeInfo.type);
-            createdButtons.push(btn);
-            attachTypeFilterButtonHandler(btn);
+        hiddenCategories.forEach(function(categoryInfo) {
+            const btn = createCategoryFilterButton(categoryInfo.key, categoryInfo.category);
+            attachCategoryFilterButtonHandler(btn, categoryInfo.key, categoryInfo.category);
             expandedDiv.appendChild(btn);
         });
         
@@ -3956,18 +4051,33 @@ function renderTypeFilterButtons(listings, containerSelector, maxVisible) {
     }
 }
 
-// Create a type filter button element
-function createTypeFilterButton(type) {
+// Create a category filter button element
+function createCategoryFilterButton(categoryKey, category) {
     const btn = document.createElement('button');
-    btn.className = 'type-filter-btn';
-    btn.setAttribute('data-type', type);
-    btn.textContent = type;
+    btn.className = 'type-filter-btn category-filter-btn';
+    btn.setAttribute('data-category', categoryKey);
+    btn.setAttribute('data-type', ''); // Empty to indicate it's a category, not a specific type
+    
+    // Create button content with emoji and name
+    const emojiSpan = document.createElement('span');
+    emojiSpan.className = 'category-emoji';
+    emojiSpan.textContent = category.emoji;
+    
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'category-name';
+    nameSpan.textContent = category.name;
+    
+    btn.appendChild(emojiSpan);
+    btn.appendChild(nameSpan);
+    
+    // Add title attribute with description for tooltip
+    btn.title = category.description;
     
     return btn;
 }
 
-// Attach click handler to a single type filter button (same logic as DOMContentLoaded)
-function attachTypeFilterButtonHandler(btn) {
+// Attach click handler to a category filter button
+function attachCategoryFilterButtonHandler(btn, categoryKey, category) {
     // Add clicking class on mousedown for visual feedback
     btn.addEventListener('mousedown', function() {
         this.classList.add('clicking');
@@ -3982,10 +4092,10 @@ function attachTypeFilterButtonHandler(btn) {
     btn.addEventListener('click', function() {
         // Remove clicking class after click
         this.classList.remove('clicking');
-        const filterValue = this.dataset.type;
+        const filterCategory = this.dataset.category;
         
-        // Special handling for "All Types" button (empty data-type)
-        if (filterValue === '') {
+        // Special handling for "All Types" button (empty data-type and no category)
+        if (!filterCategory) {
             // Clear all selections and activate only "All Types"
             currentTypeFilter = [];
             document.querySelectorAll('.type-filter-btn').forEach(function(b) {
@@ -3993,29 +4103,46 @@ function attachTypeFilterButtonHandler(btn) {
             });
             this.classList.add('active');
         } else {
-            // Toggle this type in the array
-            const index = currentTypeFilter.indexOf(filterValue);
-            if (index > -1) {
-                // Remove from array (deselect)
-                currentTypeFilter.splice(index, 1);
+            // Get all types that belong to this category
+            const categoryTypes = category.types || [];
+            
+            // Toggle this category in the array
+            // If category is already selected, deselect all its types
+            // If category is not selected, select all its types
+            const hasCategoryTypes = categoryTypes.some(function(type) {
+                return currentTypeFilter.indexOf(type) > -1;
+            });
+            
+            if (hasCategoryTypes) {
+                // Remove all category types from filter
+                categoryTypes.forEach(function(type) {
+                    const index = currentTypeFilter.indexOf(type);
+                    if (index > -1) {
+                        currentTypeFilter.splice(index, 1);
+                    }
+                });
                 this.classList.remove('active');
             } else {
-                // Add to array (select)
-                currentTypeFilter.push(filterValue);
+                // Add all category types to filter
+                categoryTypes.forEach(function(type) {
+                    if (currentTypeFilter.indexOf(type) === -1) {
+                        currentTypeFilter.push(type);
+                    }
+                });
                 this.classList.add('active');
             }
             
             // If no types selected, activate "All Types" button
             if (currentTypeFilter.length === 0) {
                 document.querySelectorAll('.type-filter-btn').forEach(function(b) {
-                    if (b.dataset.type === '') {
+                    if (b.dataset.type === '' && !b.dataset.category) {
                         b.classList.add('active');
                     }
                 });
             } else {
                 // Ensure "All Types" button is not active when specific types are selected
                 document.querySelectorAll('.type-filter-btn').forEach(function(b) {
-                    if (b.dataset.type === '') {
+                    if (b.dataset.type === '' && !b.dataset.category) {
                         b.classList.remove('active');
                     }
                 });

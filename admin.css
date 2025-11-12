@@ -522,6 +522,18 @@
             border-color: #007AFF; 
             color: white; 
         }
+        .category-filter-btn {
+            padding: 12px 14px;
+        }
+        .category-filter-btn .category-emoji {
+            font-size: 18px;
+            line-height: 1;
+            margin-right: 2px;
+        }
+        .category-filter-btn .category-name {
+            flex: 1;
+            font-weight: 500;
+        }
         .type-filters-expanded {
             display: flex;
             flex-direction: column;
