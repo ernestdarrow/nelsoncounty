@@ -240,15 +240,19 @@
            Icons adapt automatically to theme
         ======================================== */
         
-        /* Light Mode - Make badge type icons match the badge color (green) */
+        /* Light Mode - Make badge type icons soft grey */
         .badge-type::before {
-            /* Convert black SVG icons to theme color */
-            filter: brightness(0) saturate(100%) invert(38%) sepia(15%) saturate(879%) hue-rotate(94deg) brightness(95%) contrast(89%);
+            /* Convert black SVG icons to soft grey */
+            filter: brightness(0) saturate(0%) invert(45%);
         }
         
-        /* Light Mode - Filter buttons default to green icons */
-        .type-filter-btn::before {
-            filter: brightness(0) saturate(100%) invert(38%) sepia(15%) saturate(879%) hue-rotate(94deg) brightness(95%) contrast(89%);
+        /* Light Mode - Filter buttons default to soft grey icons (but not category buttons) */
+        .type-filter-btn:not(.category-filter-btn)::before {
+            filter: brightness(0) saturate(0%) invert(45%);
+        }
+        /* Category buttons don't use filters - they use colored backgrounds */
+        .category-filter-btn::before {
+            filter: none !important;
         }
         
         /* Type-specific icon colors - Icons only */
@@ -354,13 +358,13 @@
             filter: brightness(0) invert(1) !important;
         }
         
-        /* Outdoor/Activity - Green (default) */
+        /* Outdoor/Activity - Soft grey (default) */
         .badge-type.icon-activity::before,
         .badge-type.icon-outdoor::before,
         .type-filter-btn[data-type="Outdoor"]::before,
         .type-filter-btn[data-type="Activity"]::before,
         .type-filter-btn[data-type="Activities"]::before {
-            filter: brightness(0) saturate(100%) invert(38%) sepia(15%) saturate(879%) hue-rotate(94deg) brightness(75%) contrast(100%);
+            filter: brightness(0) saturate(0%) invert(45%);
         }
         .type-filter-btn[data-type="Outdoor"]:hover::before,
         .type-filter-btn[data-type="Outdoor"].active::before,
@@ -368,7 +372,7 @@
         .type-filter-btn[data-type="Activity"].active::before,
         .type-filter-btn[data-type="Activities"]:hover::before,
         .type-filter-btn[data-type="Activities"].active::before {
-            background-color: #10b981 !important; /* Green */
+            background-color: #F1F6F7 !important; /* Very soft grey-blue */
         }
         .type-filter-btn[data-type="Outdoor"]:hover::after,
         .type-filter-btn[data-type="Outdoor"].active::after,
@@ -781,13 +785,15 @@
         .type-filter-btn[data-type="Farm & Orchard"]::before { background-image: var(--icon-farm); }
         .type-filter-btn[data-type="Shopping"]::before { background-image: var(--icon-shopping); }
         .type-filter-btn[data-type="Hotel"]::before { background-image: var(--icon-hotel); }
-        .type-filter-btn[data-type=""]::before { background-image: var(--icon-default); }
+        /* Category buttons (including All Types) don't use icon backgrounds - they use emojis */
+        .type-filter-btn[data-type=""]:not(.category-filter-btn)::before { background-image: var(--icon-default); }
+        .category-filter-btn[data-type=""]::before { background-image: none !important; }
         
         /* Dark mode - icons remain the same (currentColor adapts) */
         
         /* Hover states - icons turn white */
         .badge-type {
-            background: #ffffff !important;
+            background: transparent !important; /* Removed light green background */
             color: #212529 !important;
             padding: 0;
             border-radius: 6px;
@@ -815,7 +821,7 @@
             flex-shrink: 0;
         }
         .badge-type:hover {
-            background-color: #ffffff !important;
+            background-color: transparent !important; /* Removed light green background on hover */
             color: #212529 !important;
             letter-spacing: 0.8px;
             box-shadow: none !important;
@@ -1132,7 +1138,7 @@
         }
         
         
-        .type-quick-filters { display: flex; flex-direction: column; gap: 0; margin-bottom: 0; margin-left: 0; }
+        .type-quick-filters { display: flex; flex-direction: column; gap: 2px; margin-bottom: 0; margin-left: 0; }
         .type-filter-btn { 
             width: 100%;
             padding: 14px 18px 14px 10px; 
@@ -1192,46 +1198,19 @@
             border-radius: 16px;
         }
         .type-filter-btn svg {
-            display: none; /* Hide inline SVGs, using ::before now */
+            display: none; /* Hide inline SVGs */
         }
-        .type-filter-btn::before {
-            content: '';
-            width: 32px;
-            height: 32px;
-            min-width: 32px;
-            min-height: 32px;
-            background-size: 16px 16px;
-            background-repeat: no-repeat;
-            background-position: center;
-            display: inline-block;
-            flex-shrink: 0;
-            border-radius: 50%;
-            transition: background-color 0.2s ease, background-image 0s linear 0.2s;
-            box-sizing: border-box;
-            position: relative;
-            z-index: 1;
+        /* Remove circular icon backgrounds from sidebar buttons (but keep circular background for category buttons) */
+        .type-filter-btn:not(.category-filter-btn)::before {
+            display: none !important;
         }
-        /* Use ::after for the white icon overlay when hovered/active - positioned to match ::before */
+        /* Remove circular icon overlays from sidebar buttons (hide for all, including category buttons) */
         .type-filter-btn::after {
-            content: '';
-            position: absolute;
-            left: 10px; /* Match padding-left of button */
-            top: 50%;
-            transform: translateY(-50%);
-            width: 32px;
-            height: 32px;
-            min-width: 32px;
-            min-height: 32px;
-            background-size: 16px 16px;
-            background-repeat: no-repeat;
-            background-position: center;
-            border-radius: 50%;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-            pointer-events: none;
-            filter: brightness(0) invert(1) !important;
-            box-sizing: border-box;
-            z-index: 2;
+            display: none !important;
+        }
+        /* Category buttons use ::before only for circular background, not icons */
+        .category-filter-btn::before {
+            background-image: none !important;
         }
         .type-filter-btn {
             position: relative;
@@ -1257,86 +1236,177 @@
             color: var(--text-secondary); 
         }
         .category-filter-btn {
-            padding: 12px 14px;
+            padding: 10px 14px; /* Reduced vertical padding from 12px to 10px for less space */
+            position: relative;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s ease-in-out;
+            border-radius: 16px !important; /* Rounded corners on all sides, override any inherited styles */
+        }
+        /* Ensure category buttons always have rounded corners, regardless of position */
+        .category-filter-btn:first-child,
+        .category-filter-btn:last-child {
+            border-radius: 16px !important; /* Consistent rounded corners on all sides */
+            border-top-left-radius: 16px !important;
+            border-top-right-radius: 16px !important;
+            border-bottom-left-radius: 16px !important;
+            border-bottom-right-radius: 16px !important;
         }
         .category-filter-btn .category-emoji {
-            font-size: 18px;
-            line-height: 1;
-            margin-right: 2px;
+            font-size: 32px; /* Increased from 28px for larger emoji */
+            margin-right: 8px;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 48px; /* Increased from 44px to accommodate larger emoji */
+            height: 48px; /* Increased from 44px to accommodate larger emoji */
+            line-height: 0; /* Remove line-height to allow flexbox centering */
         }
         .category-filter-btn .category-name {
             flex: 1;
             font-weight: 500;
         }
-        /* Icon container styling - circular with colored fill on hover/active */
-        .type-filter-btn:hover::before,
-        .type-filter-btn.active::before {
-            background-color: #10b981 !important; /* Default green, will be overridden by type-specific colors */
+        /* Circular background behind emoji for category buttons on hover/active */
+        .category-filter-btn::before {
+            content: '';
+            position: absolute;
+            left: 14px; /* Align with button padding-left (14px) to match emoji container start */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 48px; /* Increased from 44px to match larger emoji container */
+            height: 48px; /* Increased from 44px to match larger emoji container */
+            border-radius: 50%;
+            background-color: transparent;
+            background-image: none !important; /* Remove any icon backgrounds */
+            filter: none !important; /* Remove any brightness/invert filters that might make it dark grey */
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: none; /* No shadow by default */
+            z-index: 1;
+            display: block !important;
+        }
+        /* Pure white background with soft drop shadow for hover, active/selected, and click states */
+        .category-filter-btn:hover::before,
+        .category-filter-btn.active::before,
+        .category-filter-btn.clicking::before,
+        .category-filter-btn:active::before {
+            background-color: #ffffff !important; /* Pure white background */
+            background-image: none !important; /* Ensure no icon is shown */
+            filter: none !important; /* Remove any brightness/invert filters */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; /* Visible soft drop shadow */
+        }
+        /* Ensure active state always shows the circle with pure white */
+        .category-filter-btn.active::before {
+            background-color: #ffffff !important;
+            filter: none !important; /* Remove any brightness/invert filters */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+        }
+        /* Button background stays transparent on hover - only the circle changes */
+        .category-filter-btn:hover,
+        .category-filter-btn.active,
+        .category-filter-btn.clicking,
+        .category-filter-btn:active {
+            background-color: transparent !important; /* No background change on button itself */
+        }
+        /* Dark mode support - ensure shadow is visible */
+        :root.dark-mode .category-filter-btn:hover::before,
+        :root.dark-mode .category-filter-btn.active::before,
+        :root.dark-mode .category-filter-btn.clicking::before,
+        :root.dark-mode .category-filter-btn:active::before {
+            background-color: #ffffff !important; /* Pure white for dark mode */
+            background-image: none !important; /* Ensure no icon is shown */
+            filter: none !important; /* Remove any brightness/invert filters */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25) !important; /* More visible shadow for dark mode */
+        }
+        :root.dark-mode .category-filter-btn:hover,
+        :root.dark-mode .category-filter-btn.active,
+        :root.dark-mode .category-filter-btn.clicking,
+        :root.dark-mode .category-filter-btn:active {
+            background-color: transparent !important; /* No background change on button itself in dark mode */
+        }
+        /* Hide ::after pseudo-element for category buttons (used for icon overlays) */
+        .category-filter-btn::after {
+            display: none !important;
+        }
+        /* Icon container styling - circular with colored fill on hover/active (only for non-category buttons) */
+        .type-filter-btn:not(.category-filter-btn):hover::before,
+        .type-filter-btn:not(.category-filter-btn).active::before {
+            background-color: #F1F6F7 !important; /* Default very soft grey-blue, will be overridden by type-specific colors */
             background-image: none !important; /* Hide the colored icon, show white version via ::after */
         }
-        .type-filter-btn:hover::after,
-        .type-filter-btn.active::after {
+        .type-filter-btn:not(.category-filter-btn):hover::after,
+        .type-filter-btn:not(.category-filter-btn).active::after {
             opacity: 1 !important;
             background-image: inherit !important;
         }
-        /* Click state - black background when physically clicking (using .clicking class from JS) */
-        .type-filter-btn.clicking::before,
-        .type-filter-btn[data-type="Hiking"].clicking::before,
-        .type-filter-btn[data-type="Hiking"]:active::before,
-        .type-filter-btn[data-type="Hiking"]:hover:active::before,
-        .type-filter-btn[data-type="Wine"].clicking::before,
-        .type-filter-btn[data-type="Wine"]:active::before,
-        .type-filter-btn[data-type="Wine"]:hover:active::before,
-        .type-filter-btn[data-type="Winery"].clicking::before,
-        .type-filter-btn[data-type="Winery"]:active::before,
-        .type-filter-btn[data-type="Winery"]:hover:active::before,
-        .type-filter-btn[data-type="Beer"].clicking::before,
-        .type-filter-btn[data-type="Beer"]:active::before,
-        .type-filter-btn[data-type="Beer"]:hover:active::before,
-        .type-filter-btn[data-type="Brewery"].clicking::before,
-        .type-filter-btn[data-type="Brewery"]:active::before,
-        .type-filter-btn[data-type="Brewery"]:hover:active::before,
-        .type-filter-btn[data-type="Restaurant"].clicking::before,
-        .type-filter-btn[data-type="Restaurant"]:active::before,
-        .type-filter-btn[data-type="Restaurant"]:hover:active::before,
-        .type-filter-btn[data-type="Lodging"].clicking::before,
-        .type-filter-btn[data-type="Lodging"]:active::before,
-        .type-filter-btn[data-type="Lodging"]:hover:active::before,
-        .type-filter-btn[data-type="Hotel"].clicking::before,
-        .type-filter-btn[data-type="Hotel"]:active::before,
-        .type-filter-btn[data-type="Hotel"]:hover:active::before,
-        .type-filter-btn[data-type="Outdoor"].clicking::before,
-        .type-filter-btn[data-type="Outdoor"]:active::before,
-        .type-filter-btn[data-type="Outdoor"]:hover:active::before,
-        .type-filter-btn[data-type="Activity"].clicking::before,
-        .type-filter-btn[data-type="Activity"]:active::before,
-        .type-filter-btn[data-type="Activity"]:hover:active::before,
-        .type-filter-btn[data-type="Activities"].clicking::before,
-        .type-filter-btn[data-type="Activities"]:active::before,
-        .type-filter-btn[data-type="Activities"]:hover:active::before,
-        .type-filter-btn[data-type="Coffee"].clicking::before,
-        .type-filter-btn[data-type="Coffee"]:active::before,
-        .type-filter-btn[data-type="Coffee"]:hover:active::before,
-        .type-filter-btn[data-type="Cidery"].clicking::before,
-        .type-filter-btn[data-type="Cidery"]:active::before,
-        .type-filter-btn[data-type="Cidery"]:hover:active::before,
-        .type-filter-btn[data-type="Indoor Activity"].clicking::before,
-        .type-filter-btn[data-type="Indoor Activity"]:active::before,
-        .type-filter-btn[data-type="Indoor Activity"]:hover:active::before,
-        .type-filter-btn[data-type="Attraction"].clicking::before,
-        .type-filter-btn[data-type="Attraction"]:active::before,
-        .type-filter-btn[data-type="Attraction"]:hover:active::before,
-        .type-filter-btn[data-type="Farm & Orchard"].clicking::before,
-        .type-filter-btn[data-type="Farm & Orchard"]:active::before,
-        .type-filter-btn[data-type="Farm & Orchard"]:hover:active::before,
-        .type-filter-btn[data-type=""].clicking::before,
-        .type-filter-btn[data-type=""]:active::before,
-        .type-filter-btn[data-type=""]:hover:active::before,
-        .type-filter-btn:active::before,
-        .type-filter-btn:hover:active::before {
+        /* Click state - black background when physically clicking (using .clicking class from JS) - but NOT for category buttons */
+        .type-filter-btn:not(.category-filter-btn).clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Hiking"].clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Hiking"]:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Hiking"]:hover:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Wine"].clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Wine"]:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Wine"]:hover:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Winery"].clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Winery"]:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Winery"]:hover:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Beer"].clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Beer"]:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Beer"]:hover:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Brewery"].clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Brewery"]:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Brewery"]:hover:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Restaurant"].clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Restaurant"]:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Restaurant"]:hover:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Lodging"].clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Lodging"]:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Lodging"]:hover:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Hotel"].clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Hotel"]:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Hotel"]:hover:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Outdoor"].clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Outdoor"]:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Outdoor"]:hover:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Activity"].clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Activity"]:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Activity"]:hover:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Activities"].clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Activities"]:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Activities"]:hover:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Coffee"].clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Coffee"]:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Coffee"]:hover:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Cidery"].clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Cidery"]:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Cidery"]:hover:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Indoor Activity"].clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Indoor Activity"]:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Indoor Activity"]:hover:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Attraction"].clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Attraction"]:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Attraction"]:hover:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Farm & Orchard"].clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Farm & Orchard"]:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type="Farm & Orchard"]:hover:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type=""].clicking::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type=""]:active::before,
+        .type-filter-btn:not(.category-filter-btn)[data-type=""]:hover:active::before,
+        .type-filter-btn:not(.category-filter-btn):active::before,
+        .type-filter-btn:not(.category-filter-btn):hover:active::before {
             background-color: #000000 !important;
             background-image: none !important;
             transition: none !important; /* Disable transition for immediate feedback */
+        }
+        /* Category buttons use pure white on click, not black */
+        .category-filter-btn.clicking::before,
+        .category-filter-btn:active::before,
+        .category-filter-btn:hover:active::before {
+            background-color: #ffffff !important;
+            filter: none !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
         }
         .type-filter-btn.clicking::after,
         .type-filter-btn[data-type="Hiking"].clicking::after,
@@ -1469,24 +1539,48 @@
         .type-filter-btn[data-type="Farm & Orchard"]:hover:active::after {
             background-image: var(--icon-farm) !important;
         }
-        .type-filter-btn[data-type=""].clicking::after,
-        .type-filter-btn[data-type=""]:active::after,
-        .type-filter-btn[data-type=""]:hover:active::after {
-            background-image: var(--icon-default) !important;
+        /* Category buttons (including All Types) don't show icons - only emojis */
+        .category-filter-btn::before,
+        .category-filter-btn:hover::before,
+        .category-filter-btn.active::before,
+        .category-filter-btn.clicking::before,
+        .category-filter-btn:active::before {
+            background-image: none !important;
         }
-        /* Ensure default (All Types) button shows plus icon on hover/active */
-        .type-filter-btn[data-type=""]:hover::after,
-        .type-filter-btn[data-type=""].active::after {
+        .category-filter-btn::after,
+        .category-filter-btn:hover::after,
+        .category-filter-btn.active::after,
+        .category-filter-btn.clicking::after,
+        .category-filter-btn:active::after {
+            display: none !important;
+        }
+        /* Non-category buttons can show icons */
+        .type-filter-btn[data-type=""]:not(.category-filter-btn).clicking::after,
+        .type-filter-btn[data-type=""]:not(.category-filter-btn):active::after,
+        .type-filter-btn[data-type=""]:not(.category-filter-btn):hover:active::after {
             background-image: var(--icon-default) !important;
         }
         
-        /* Dark mode icon filters */
-        :root.dark-mode body .type-filter-btn::before {
+        /* Dark mode icon filters (only for non-category buttons) */
+        :root.dark-mode body .type-filter-btn:not(.category-filter-btn)::before {
             filter: brightness(0) invert(1);
         }
-        /* In dark mode, still show colored backgrounds on hover/active */
-        :root.dark-mode body .type-filter-btn:hover::before,
-        :root.dark-mode body .type-filter-btn.active::before {
+        /* Category buttons don't have icons, so no filter needed - explicitly remove all filters */
+        .category-filter-btn::before,
+        .category-filter-btn:hover::before,
+        .category-filter-btn.active::before,
+        .category-filter-btn.clicking::before,
+        .category-filter-btn:active::before,
+        :root.dark-mode body .category-filter-btn::before,
+        :root.dark-mode body .category-filter-btn:hover::before,
+        :root.dark-mode body .category-filter-btn.active::before,
+        :root.dark-mode body .category-filter-btn.clicking::before,
+        :root.dark-mode body .category-filter-btn:active::before {
+            filter: none !important;
+        }
+        /* In dark mode, still show colored backgrounds on hover/active (only for non-category buttons) */
+        :root.dark-mode body .type-filter-btn:not(.category-filter-btn):hover::before,
+        :root.dark-mode body .type-filter-btn:not(.category-filter-btn).active::before {
             filter: brightness(0) invert(1); /* White icon */
         }
         
@@ -1503,6 +1597,18 @@
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06); }
 
         /* Ensure pin icon color stays consistent on hover/focus for Area dropdown */
+        #previewTypeFilter,
+        #previewTypeFilter:hover,
+        #previewTypeFilter:focus {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z'/%3E%3C/svg%3E"),
+                              url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat, no-repeat;
+            background-position: 14px center, right 16px center;
+            background-size: 16px 16px, 12px 12px;
+            padding-left: 40px;
+            padding-right: 36px;
+        }
+
         #previewAreaFilter,
         #previewAreaFilter:hover,
         #previewAreaFilter:focus {
@@ -1515,10 +1621,11 @@
             padding-right: 36px;
         }
 
-        /* Override the right-side dropdown icon for Amenities: use a plus symbol */
-        #previewAmenityFilter {
-            /* Left: plus icon, Right: caret */
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 5v14M5 12h14'/%3E%3C/svg%3E"),
+        /* Amenities dropdown - star icon on left (yellow/orange), caret on right */
+        #previewAmenityFilter,
+        #previewAmenityFilter:hover,
+        #previewAmenityFilter:focus {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23f59e0b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z'/%3E%3C/svg%3E"),
                               url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
             background-repeat: no-repeat, no-repeat;
             background-position: 14px center, right 16px center;
@@ -2802,6 +2909,7 @@
             display: block !important;
             flex-shrink: 0;
             scroll-snap-align: start;
+            filter: saturate(1.15) brightness(0.95); /* Increase saturation and slightly darken images */
         }
         .card-front-image-scroll::-webkit-scrollbar {
             display: none;
@@ -3204,11 +3312,9 @@
                         <div class="filter-content">
                             <div class="filter-section">
                                 <div class="type-quick-filters" id="typeQuickFilters">
-                                    <button class="type-filter-btn active" data-type="">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
-                                        </svg>
-                                        All Type
+                                    <button class="type-filter-btn category-filter-btn active" data-type="">
+                                        <span class="category-emoji">🌐</span>
+                                        <span class="category-name">All Types</span>
                                     </button>
                                     <!-- Type filter buttons will be dynamically generated here based on data usage -->
                                 </div>
@@ -3216,8 +3322,14 @@
 
                             <div class="filter-section">
                                 <div class="preview-filter-group">
+                                    <select id="previewTypeFilter" onchange="handleTypeFilter()">
+                                        <option value="">All Types</option>
+                                    </select>
+                                </div>
+
+                                <div class="preview-filter-group">
                                     <select id="previewAreaFilter" onchange="filterPreview()">
-                                        <option value="">All Area</option>
+                                        <option value="">All Areas</option>
                                     <option value="Afton">Afton</option><option value="Wintergreen">Wintergreen</option><option value="Lovingston">Lovingston</option><option value="Nellysford">Nellysford</option><option value="Montebello">Montebello</option><option value="Arrington">Arrington</option><option value="Roseland">Roseland</option><option value="Seymour">Seymour</option>
                                 </select>
                                 </div>
@@ -3269,7 +3381,7 @@
                         </div>
                         <div class="mobile-filter-group">
                             <select id="mobileTypeFilter" onchange="handleMobileTypeFilter()">
-                                <option value="">Type</option>
+                                <option value="">All Types</option>
                             </select>
                         </div>
                         <div class="mobile-filter-group">
@@ -3307,8 +3419,7 @@
                     <div class="preview-results" style="display: flex; justify-content: space-between; align-items: center;">
                         <span id="previewResultsCount">Showing 15 listings</span>
                         <select id="sortDropdown" onchange="sortListings()" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                            <option value="default" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Default Order</option>
-                            <option value="name-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Name (A-Z)</option>
+                            <option value="name-asc" selected style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Name (A-Z)</option>
                             <option value="name-desc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Name (Z-A)</option>
                             <option value="area-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Area (A-Z)</option>
                             <option value="type-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Type (A-Z)</option>
@@ -4008,21 +4119,21 @@ if (!ICON_MAPPINGS || Object.keys(ICON_MAPPINGS).length === 0) {
 // Default category definitions - comprehensive list
 const DEFAULT_TYPE_CATEGORIES = {
     'taste': {
-        emoji: '🥘',
+        emoji: '☕',
         name: 'Taste',
         description: 'Food and drink experiences of all kinds.',
         icon: 'icon-food',
         types: ['Restaurant', 'Café', 'Coffee Shop', 'Bakery', 'Brewery', 'Winery', 'Cidery', 'Distillery', 'Bar', 'Cocktail Bar', 'Food Market', 'Farmers Market', 'Food Tour', 'Cooking Class', 'Local Specialty', 'Street Food', 'Fine Dining']
     },
     'stay': {
-        emoji: '🛏️',
+        emoji: '🏠',
         name: 'Stay',
         description: 'Places to sleep or retreat.',
         icon: 'icon-lodging',
-        types: ['Lodging', 'Hotel', 'Resort', 'B&B', 'BnB', 'Inn', 'Cabin', 'Camping', 'Glamping', 'Hostel', 'Boutique Stay', 'Treehouse', 'Unique Stay', 'Airbnb', 'Lodge', 'Boat']
+        types: ['Lodging', 'Hotel', 'Resort', 'B&B', 'BnB', 'Inn', 'Cabin', 'Camping', 'Glamping', 'Hostel', 'Boutique Stay', 'Treehouse', 'Unique Stay', 'Airbnb', 'Lodge', 'Boat', 'Entire House', 'House Stay', 'House Rental', 'Vacation Rental', 'Rental', 'Apartment', 'Condo', 'Cottage', 'Villa', 'Home', 'Property']
     },
     'outdoor': {
-        emoji: '🌿',
+        emoji: '⛰️',
         name: 'Outdoor',
         description: 'Nature, adventure, and recreation outside.',
         icon: 'icon-outdoor',
@@ -4035,43 +4146,15 @@ const DEFAULT_TYPE_CATEGORIES = {
         icon: 'icon-culture',
         types: ['Museum', 'Gallery', 'Art Gallery', 'Art', 'Architecture', 'Landmark', 'Historical Site', 'Festival', 'Cultural Tour', 'Craft', 'Music', 'Theater', 'Theatre', 'Dance', 'Attraction', 'Attractions', 'Local Craft', 'Cultural Site']
     },
-    'shop': {
-        emoji: '🛍️',
-        name: 'Shop',
-        description: 'Places to buy, browse, or discover goods.',
-        icon: 'icon-shopping',
-        types: ['Boutique', 'Market', 'Concept Store', 'Artisan Shop', 'Vintage', 'Design Store', 'Local Brand', 'Maker', 'Shopping', 'Shop', 'Gas Station', 'Gas', 'Service Station', 'Convenience Store', 'Grocery Store', 'Supermarket']
-    },
-    'wellness': {
-        emoji: '💆',
-        name: 'Wellness',
-        description: 'Mind, body, and relaxation.',
-        icon: 'icon-wellness',
-        types: ['Spa', 'Retreat', 'Yoga Studio', 'Sauna', 'Hot Springs', 'Wellness Resort', 'Healing Center', 'Fitness', 'Meditation', 'Beauty', 'Health', 'Wellness']
-    },
     'experience': {
-        emoji: '🌆',
-        name: 'Experience / Play',
+        emoji: '🛼',
+        name: 'Experience',
         description: 'Fun, entertainment, and activities.',
         icon: 'icon-activity',
         types: ['Activity', 'Activities', 'Indoor Activity', 'Event', 'Nightlife', 'Club', 'Amusement Park', 'Arcade', 'Live Show', 'Interactive Experience', 'Workshop', 'Tour', 'Entertainment']
     },
-    'learn': {
-        emoji: '💡',
-        name: 'Learn',
-        description: 'Knowledge, discovery, and curiosity.',
-        icon: 'icon-class',
-        types: ['Class', 'Workshop', 'Studio', 'Exhibit', 'Educational Tour', 'Library', 'Lab', 'Science Center', 'Learning', 'Education', 'Museum']
-    },
-    'work': {
-        emoji: '💼',
-        name: 'Work',
-        description: 'Remote and creative work spaces.',
-        icon: 'icon-local',
-        types: ['Coworking', 'Café with Wi-Fi', 'Studio', 'Workshop', 'Creative Hub', 'Business Stay', 'Work Space']
-    },
     'community': {
-        emoji: '💬',
+        emoji: '💛',
         name: 'Community',
         description: 'Local people, causes, and collectives.',
         icon: 'icon-local',
@@ -4104,14 +4187,10 @@ if (!TYPE_CATEGORIES || Object.keys(TYPE_CATEGORIES).length === 0) {
 // Used when exact type match is not found in category types array
 const TYPE_KEYWORD_MAPPINGS = {
     'taste': ['coffee', 'cafe', 'café', 'restaurant', 'food', 'dining', 'bakery', 'brewery', 'winery', 'cidery', 'distillery', 'bar', 'cocktail', 'market', 'food', 'cuisine', 'cooking', 'chef', 'meal', 'eat', 'drink', 'beverage', 'wine', 'beer', 'spirit', 'liquor', 'tea', 'espresso', 'latte', 'pizza', 'burger', 'sandwich', 'deli', 'grocery', 'farmers market', 'food tour', 'culinary'],
-    'stay': ['hotel', 'lodging', 'resort', 'inn', 'bed and breakfast', 'bnb', 'cabin', 'camping', 'glamping', 'hostel', 'boutique stay', 'treehouse', 'unique stay', 'airbnb', 'lodge', 'accommodation', 'room', 'suite', 'retreat', 'getaway'],
+    'stay': ['hotel', 'lodging', 'resort', 'inn', 'bed and breakfast', 'bnb', 'cabin', 'camping', 'glamping', 'hostel', 'boutique stay', 'treehouse', 'unique stay', 'airbnb', 'lodge', 'accommodation', 'room', 'suite', 'retreat', 'getaway', 'entire house', 'house stay', 'house rental', 'vacation rental', 'rental', 'apartment', 'condo', 'cottage', 'villa', 'home', 'property', 'entire', 'house', 'vacation', 'short term rental', 'str', 'vrbo', 'booking', 'reservation'],
     'outdoor': ['hiking', 'hike', 'trail', 'park', 'beach', 'outdoor', 'nature', 'camping', 'climbing', 'water sports', 'skiing', 'snow', 'scenic', 'viewpoint', 'lookout', 'nature walk', 'biking', 'cycling', 'bike', 'kayaking', 'kayak', 'canoe', 'paddle', 'fishing', 'hunting', 'wildlife', 'forest', 'mountain', 'river', 'lake', 'national park', 'state park', 'garden', 'botanical'],
     'culture': ['museum', 'gallery', 'art', 'architecture', 'landmark', 'historical', 'history', 'heritage', 'festival', 'cultural', 'craft', 'music', 'theater', 'theatre', 'dance', 'performance', 'concert', 'show', 'exhibit', 'exhibition', 'monument', 'memorial', 'site', 'attraction', 'local craft', 'cultural site', 'tradition'],
-    'shop': ['boutique', 'market', 'shop', 'store', 'shopping', 'retail', 'artisan', 'vintage', 'design', 'maker', 'local brand', 'gift', 'souvenir', 'merchandise', 'boutique', 'concept store', 'gas', 'station', 'gas station', 'service station', 'convenience', 'grocery', 'supermarket', 'fuel', 'petrol'],
-    'wellness': ['spa', 'retreat', 'yoga', 'sauna', 'hot springs', 'wellness', 'healing', 'fitness', 'meditation', 'beauty', 'health', 'massage', 'therapy', 'relaxation', 'mindfulness', 'pilates', 'gym', 'workout', 'exercise'],
     'experience': ['activity', 'activities', 'indoor activity', 'indoor', 'event', 'nightlife', 'club', 'amusement', 'arcade', 'live show', 'interactive', 'entertainment', 'fun', 'play', 'game', 'adventure', 'experience', 'tour', 'excursion'],
-    'learn': ['class', 'workshop', 'studio', 'exhibit', 'educational', 'library', 'lab', 'science', 'learning', 'education', 'school', 'course', 'lesson', 'tutorial', 'seminar', 'lecture'],
-    'work': ['coworking', 'wifi', 'wi-fi', 'workspace', 'office', 'studio', 'creative hub', 'business', 'remote work', 'desk', 'meeting'],
     'community': ['community', 'volunteer', 'local profile', 'maker', 'story', 'collective', 'group', 'organization', 'nonprofit', 'charity', 'cause']
 };
 
@@ -4148,8 +4227,8 @@ function getCategoryForType(type, listing) {
         }
     }
     
-    // Step 3: Default fallback for unmapped types
-    return 'experience'; // Default to Experience/Play
+        // Step 3: Default fallback for unmapped types
+        return 'experience'; // Default to Experience
 }
 
 // Get all categories from TYPE_CATEGORIES
@@ -4229,7 +4308,7 @@ function renderTypeFilterButtons(listings, containerSelector, maxVisible) {
     const visibleCategories = categoriesByUsage.slice(0, effectiveMaxVisible);
     const hiddenCategories = categoriesByUsage.slice(effectiveMaxVisible);
     
-    // Clear existing buttons (except "All Type" button)
+    // Clear existing buttons (except "All Types" button)
     const existingButtons = container.querySelectorAll('.type-filter-btn[data-category]:not([data-category=""])');
     existingButtons.forEach(function(btn) {
         btn.remove();
@@ -4241,23 +4320,23 @@ function renderTypeFilterButtons(listings, containerSelector, maxVisible) {
     if (existingExpanded) existingExpanded.remove();
     if (existingSeeMore) existingSeeMore.remove();
     
-    // Get the "All Type" button to insert after it
+    // Get the "All Types" button to insert after it
     const allTypeBtn = container.querySelector('.type-filter-btn[data-type=""]');
     
-    // Render visible categories - insert them right after the "All Type" button
+    // Render visible categories - insert them right after the "All Types" button
     visibleCategories.forEach(function(categoryInfo) {
         const btn = createCategoryFilterButton(categoryInfo.key, categoryInfo.category);
         attachCategoryFilterButtonHandler(btn, categoryInfo.key, categoryInfo.category);
         if (allTypeBtn) {
-            // Insert after "All Type" button
+            // Insert after "All Types" button
             if (allTypeBtn.nextSibling) {
                 container.insertBefore(btn, allTypeBtn.nextSibling);
             } else {
-                // If "All Type" button is the last child, append after it
+                // If "All Types" button is the last child, append after it
                 container.appendChild(btn);
             }
         } else {
-            // If no "All Type" button, just append
+            // If no "All Types" button, just append
             container.appendChild(btn);
         }
     });
@@ -4343,9 +4422,10 @@ function attachCategoryFilterButtonHandler(btn, categoryKey, category) {
             this.classList.add('active');
         } else {
             // Only one category can be active at a time
-            // Check if this category is already active
-            if (currentCategoryFilter === categoryKey) {
+            // Check if this category is already active (use filterCategory from dataset)
+            if (currentCategoryFilter === filterCategory) {
                 // If clicking the same category, deselect it and show "All Types"
+                console.log('🔄 Clearing category filter:', filterCategory);
                 currentTypeFilter = [];
                 currentCategoryFilter = null;
                 // Remove active state from all category buttons
@@ -4359,13 +4439,15 @@ function attachCategoryFilterButtonHandler(btn, categoryKey, category) {
                     }
                 });
             } else {
-                // Clear previous category selection
-                currentCategoryFilter = categoryKey;
+                // Clear previous category selection and set new category
+                const selectedCategory = TYPE_CATEGORIES[filterCategory];
+                console.log('🎯 Filtering by category:', filterCategory, selectedCategory ? selectedCategory.name : 'unknown');
+                currentCategoryFilter = filterCategory;
                 
-                // Get all types that belong to this category
-                const categoryTypes = category.types || [];
+                // Get all types that belong to this category (for legacy support, but filtering now uses currentCategoryFilter)
+                const categoryTypes = selectedCategory ? (selectedCategory.types || []) : [];
                 
-                // Set filter to only this category's types
+                // Set filter to only this category's types (for legacy support)
                 currentTypeFilter = categoryTypes.slice(); // Copy the array
                 
                 // Remove active state from all category buttons (including "All Types")
@@ -4609,8 +4691,16 @@ function handleUrlParameters() {
         const categoryForType = getCategoryForType(typeValue, null);
         currentCategoryFilter = categoryForType;
         
+        var typeFilter = document.getElementById('previewTypeFilter');
         var mobileTypeFilter = document.getElementById('mobileTypeFilter');
-        if (mobileTypeFilter) mobileTypeFilter.value = typeParam;
+        if (typeFilter) {
+            ensureDropdownOption(typeFilter, typeValue, typeValue);
+            typeFilter.value = typeValue;
+        }
+        if (mobileTypeFilter) {
+            ensureDropdownOption(mobileTypeFilter, typeValue, typeValue);
+            mobileTypeFilter.value = typeValue;
+        }
         // Update type filter buttons - activate the category button if it exists, or "All Types" if no category
         document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
             btn.classList.remove('active');
@@ -4883,7 +4973,7 @@ loadDataFromGoogleSheets()
         // Render type filter buttons dynamically based on usage
         renderTypeFilterButtons(data.listings, '.type-quick-filters'); // Show all categories
         
-        renderPreview();
+        renderPreview(); // Sorting is now handled inside renderPreview
         
         // Extract parameters from referrer (for cross-origin iframe support)
         extractParamsFromReferrer();
@@ -4918,7 +5008,7 @@ loadDataFromGoogleSheets()
         // Render type filter buttons dynamically based on usage
         renderTypeFilterButtons(data.listings, '.type-quick-filters'); // Show all categories
         
-        renderPreview();
+        renderPreview(); // Sorting is now handled inside renderPreview
         
         // Extract parameters from referrer (for cross-origin iframe support)
         extractParamsFromReferrer();
@@ -5204,13 +5294,26 @@ function handleImageError(img, image1Src, image2Src, fallbackSrc) {
 
 // Sort listings function
 function sortListings() {
-    const sortValue = document.getElementById('sortDropdown').value;
+    const sortDropdown = document.getElementById('sortDropdown');
+    if (!sortDropdown) return; // Exit if dropdown doesn't exist
+    
+    // Get sort value, defaulting to name-asc if empty or invalid
+    let sortValue = sortDropdown.value;
+    if (!sortValue || sortValue === '') {
+        sortValue = 'name-asc';
+        sortDropdown.value = 'name-asc'; // Set it explicitly
+    }
+    
     const grid = document.getElementById('previewGrid');
+    if (!grid) return; // Exit if grid doesn't exist
+    
     const cards = Array.from(grid.querySelectorAll('.flip-card'));
+    if (cards.length === 0) return; // Exit if no cards to sort
+    
+    // Use the sort value (defaults to name-asc)
+    const sort = sortValue || 'name-asc';
     
     cards.sort(function(a, b) {
-        if (sortValue === 'default') return 0;
-        
         // Get listing data from the cards
         const aName = a.querySelector('.flip-card-front h3').textContent;
         const bName = b.querySelector('.flip-card-front h3').textContent;
@@ -5219,7 +5322,7 @@ function sortListings() {
         const aType = a.querySelector('.flip-card-front .badge-type')?.textContent || '';
         const bType = b.querySelector('.flip-card-front .badge-type')?.textContent || '';
         
-        switch(sortValue) {
+        switch(sort) {
             case 'name-asc':
                 return aName.localeCompare(bName);
             case 'name-desc':
@@ -5229,7 +5332,7 @@ function sortListings() {
             case 'type-asc':
                 return aType.localeCompare(bType);
             default:
-                return 0;
+                return aName.localeCompare(bName); // Default to name-asc
         }
     });
     
@@ -5287,7 +5390,12 @@ function filterByBadge(event, filterType, value) {
         const categoryForType = getCategoryForType(value, null);
         currentCategoryFilter = categoryForType;
         
+        const typeFilter = document.getElementById('previewTypeFilter');
         const mobileTypeFilter = document.getElementById('mobileTypeFilter');
+        if (typeFilter) {
+            ensureDropdownOption(typeFilter, value, value);
+            typeFilter.value = value;
+        }
         if (mobileTypeFilter) {
             ensureDropdownOption(mobileTypeFilter, value, value);
             mobileTypeFilter.value = value;
@@ -5377,16 +5485,28 @@ function filterPreview() {
             websiteText.includes(searchTerm) ||
             amenitiesText.includes(searchTerm);
         
-        // Handle type matching - treat "Activity" and "Outdoor" as equivalent
-        const matchesType = currentTypeFilter.length === 0 || currentTypeFilter.some(function(filterType) {
-            if (filterType === listing.type) return true;
-            // Handle Activity/Outdoor equivalence
-            if ((filterType === 'Activity' || filterType === 'Outdoor') && 
-                (listing.type === 'Activity' || listing.type === 'Outdoor')) {
-                return true;
-            }
-            return false;
-        });
+        // Handle type matching
+        // Priority 1: If a category filter is active (user clicked a category button), filter by category
+        // Priority 2: If only individual types are selected (user clicked a type badge/button), filter by exact type match
+        let matchesType = true;
+        if (currentCategoryFilter && currentTypeFilter.length > 1) {
+            // Category filter mode: User clicked a category button
+            // Filter by category using getCategoryForType (handles exact match, keyword match, and category override)
+            const listingCategory = getCategoryForType(listing.type, listing);
+            matchesType = listingCategory === currentCategoryFilter;
+        } else if (currentTypeFilter.length > 0) {
+            // Individual type filter mode: User selected specific type(s) via badge, URL param, mobile filter, or individual type button
+            // Filter by exact type match
+            matchesType = currentTypeFilter.some(function(filterType) {
+                if (filterType === listing.type) return true;
+                // Handle Activity/Outdoor equivalence
+                if ((filterType === 'Activity' || filterType === 'Outdoor') && 
+                    (listing.type === 'Activity' || listing.type === 'Outdoor')) {
+                    return true;
+                }
+                return false;
+            });
+        }
         const matchesArea = !selectedArea || listing.area === selectedArea;
         const matchesAmenity = !selectedAmenity || (listing.amenities && listing.amenities.includes(selectedAmenity));
         const matchesFeatured = !currentFeaturedOnly || !!listing.featured;
@@ -5394,15 +5514,36 @@ function filterPreview() {
         return matchesSearch && matchesType && matchesArea && matchesAmenity && matchesFeatured;
     });
     
+    // Debug logging for filtering
+    if (currentCategoryFilter && currentTypeFilter.length > 1) {
+        // Category filter mode
+        console.log('🔍 Filtering by category:', currentCategoryFilter, '| Filtered results:', filtered.length, 'of', data.listings.length);
+        if (filtered.length === 0) {
+            console.log('⚠️ No listings found for category:', currentCategoryFilter);
+            console.log('📋 Sample listing types in data:', data.listings.slice(0, 5).map(function(l) {
+                return l.type + ' -> ' + getCategoryForType(l.type, l);
+            }).join(', '));
+        }
+    } else if (currentTypeFilter.length > 0) {
+        // Individual type filter mode
+        console.log('🔍 Filtering by type(s):', currentTypeFilter.join(', '), '| Filtered results:', filtered.length, 'of', data.listings.length);
+    }
+    
     // Show/hide clear button based on whether any filters are active
     const clearBtn = document.getElementById('clearFiltersBtn');
     const mobileClearBtn = document.getElementById('mobileClearFiltersBtn');
-    const hasActiveFilters = searchTerm || currentTypeFilter.length > 0 || selectedArea || selectedAmenity || currentFeaturedOnly;
+    const hasActiveFilters = searchTerm || currentCategoryFilter || currentTypeFilter.length > 0 || selectedArea || selectedAmenity || currentFeaturedOnly;
     if (clearBtn) {
         clearBtn.style.display = hasActiveFilters ? 'block' : 'none';
     }
     if (mobileClearBtn) {
         mobileClearBtn.style.display = hasActiveFilters ? 'block' : 'none';
+    }
+    
+    // Ensure sort dropdown is set to default (name-asc) if not already set
+    const sortDropdown = document.getElementById('sortDropdown');
+    if (sortDropdown && !sortDropdown.value) {
+        sortDropdown.value = 'name-asc';
     }
     
     renderPreview(filtered);
@@ -5443,6 +5584,7 @@ function filterPreview() {
 function clearPreviewFilters() {
     const searchInput = document.getElementById('previewSearchInput');
     const mobileSearchInput = document.getElementById('previewSearchInputMobile');
+    const typeFilter = document.getElementById('previewTypeFilter');
     const areaFilter = document.getElementById('previewAreaFilter');
     const amenityFilter = document.getElementById('previewAmenityFilter');
     const clearBtn = document.getElementById('clearFiltersBtn');
@@ -5453,6 +5595,7 @@ function clearPreviewFilters() {
     
     if (searchInput) searchInput.value = '';
     if (mobileSearchInput) mobileSearchInput.value = '';
+    if (typeFilter) typeFilter.value = '';
     if (areaFilter) areaFilter.value = '';
     if (amenityFilter) amenityFilter.value = '';
     if (mobileTypeFilter) mobileTypeFilter.value = '';
@@ -5474,6 +5617,13 @@ function clearPreviewFilters() {
     if (clearBtn) clearBtn.style.display = 'none';
     const mobileClearBtn = document.getElementById('mobileClearFiltersBtn');
     if (mobileClearBtn) mobileClearBtn.style.display = 'none';
+    
+    // Ensure sort dropdown is set to default (name-asc) if not already set
+    // renderPreview will handle sorting automatically
+    const sortDropdown = document.getElementById('sortDropdown');
+    if (sortDropdown && !sortDropdown.value) {
+        sortDropdown.value = 'name-asc';
+    }
     
     if (data) {
         renderPreview(data.listings);
@@ -5547,7 +5697,14 @@ function filterByListingName(listingName) {
     if (clearBtn) clearBtn.style.display = 'block';
     if (mobileClearBtn) mobileClearBtn.style.display = 'block';
     
-    renderPreview(filtered);
+    // Ensure sort dropdown is set to default (name-asc) if not already set
+    // renderPreview will handle sorting automatically
+    const sortDropdown = document.getElementById('sortDropdown');
+    if (sortDropdown && !sortDropdown.value) {
+        sortDropdown.value = 'name-asc';
+    }
+    
+    renderPreview(filtered); // Sorting is now handled inside renderPreview
     
     // Report height after filtering to specific listing
     setTimeout(function() {
@@ -5691,6 +5848,16 @@ function renderPreview(filteredListings) {
     grid.innerHTML = '';
     
     // Populate filters on first render
+    const typeFilter = document.getElementById('previewTypeFilter');
+    if (typeFilter && typeFilter.options.length === 1 && data.filterOptions && data.filterOptions.types) {
+        data.filterOptions.types.forEach(function(type) {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type;
+            typeFilter.appendChild(option);
+        });
+    }
+    
     const areaFilter = document.getElementById('previewAreaFilter');
     if (areaFilter && areaFilter.options.length === 1 && data.filterOptions) {
         data.filterOptions.areas.forEach(function(area) {
@@ -5713,25 +5880,14 @@ function renderPreview(filteredListings) {
     
     // Populate mobile filter dropdowns
     const mobileTypeFilter = document.getElementById('mobileTypeFilter');
-    if (mobileTypeFilter && data.filterOptions) {
-        // Get all types from visible buttons plus expanded ones
-        const allTypes = ['Brewery', 'Winery', 'Hiking', 'Restaurant', 'Lodging', 'Outdoor', 
-                          'Cidery', 'Indoor Activity', 'Attraction', 'Farm & Orchard'];
-        // Only populate if this is the first time (only placeholder exists)
-        // Otherwise, just ensure all standard types exist without removing dynamic ones
-        if (mobileTypeFilter.options.length === 1) {
-            allTypes.forEach(function(type) {
-                const option = document.createElement('option');
-                option.value = type;
-                option.textContent = type;
-                mobileTypeFilter.appendChild(option);
-            });
-        } else {
-            // Preserve existing options, just add missing standard types
-            allTypes.forEach(function(type) {
-                ensureDropdownOption(mobileTypeFilter, type, type);
-            });
-        }
+    if (mobileTypeFilter && mobileTypeFilter.options.length === 1 && data.filterOptions && data.filterOptions.types) {
+        // Use the same complete list of types as desktop version
+        data.filterOptions.types.forEach(function(type) {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type;
+            mobileTypeFilter.appendChild(option);
+        });
     }
     
     const mobileAreaFilter = document.getElementById('mobileAreaFilter');
@@ -5754,20 +5910,53 @@ function renderPreview(filteredListings) {
         });
     }
     
+    // Sort listings before rendering (always default to name-asc)
+    const sortDropdown = document.getElementById('sortDropdown');
+    let sortValue = 'name-asc'; // Default to name-asc
+    if (sortDropdown && sortDropdown.value) {
+        sortValue = sortDropdown.value;
+    } else if (sortDropdown) {
+        // If dropdown exists but no value, set it to name-asc
+        sortDropdown.value = 'name-asc';
+    }
+    
+    // Sort the listings array based on current sort value
+    const sortedListings = listings.slice().sort(function(a, b) {
+        const aName = (a.name || '').toLowerCase();
+        const bName = (b.name || '').toLowerCase();
+        const aArea = (a.area || '').toLowerCase();
+        const bArea = (b.area || '').toLowerCase();
+        const aType = (a.type || '').toLowerCase();
+        const bType = (b.type || '').toLowerCase();
+        
+        switch(sortValue) {
+            case 'name-asc':
+                return aName.localeCompare(bName);
+            case 'name-desc':
+                return bName.localeCompare(aName);
+            case 'area-asc':
+                return aArea.localeCompare(bArea);
+            case 'type-asc':
+                return aType.localeCompare(bType);
+            default:
+                return aName.localeCompare(bName); // Default to name-asc
+        }
+    });
+    
     // Update results count
     const countEl = document.getElementById('previewResultsCount');
     if (countEl) {
-        countEl.textContent = 'Showing ' + listings.length + ' listing' + (listings.length !== 1 ? 's' : '');
+        countEl.textContent = 'Showing ' + sortedListings.length + ' listing' + (sortedListings.length !== 1 ? 's' : '');
     }
     
-    // Update map markers
+    // Update map markers (use original listings for map, not sorted)
     updateMapMarkers(listings);
     
-    // Render cards
-    console.log('🎨 About to render', listings.length, 'cards');
-    listings.forEach(function(listing, index) {
-        if (index < 3 || index >= listings.length - 3) {
-            console.log(`🎨 Rendering card ${index + 1}/${listings.length}:`, listing.name);
+    // Render cards (using sorted listings)
+    console.log('🎨 About to render', sortedListings.length, 'cards');
+    sortedListings.forEach(function(listing, index) {
+        if (index < 3 || index >= sortedListings.length - 3) {
+            console.log(`🎨 Rendering card ${index + 1}/${sortedListings.length}:`, listing.name);
         }
         // Create slug from listing name or use listing.slug if it exists
         const slug = listing.slug || listing.name.toLowerCase()
@@ -6577,6 +6766,38 @@ function handleMobileTypeFilter() {
     filterPreview();
 }
 
+function handleTypeFilter() {
+    const typeFilter = document.getElementById('previewTypeFilter');
+    const mobileTypeFilter = document.getElementById('mobileTypeFilter');
+    const value = typeFilter ? typeFilter.value : '';
+    
+    // Mobile dropdown is single-select, so set as single-item array or empty
+    currentTypeFilter = value ? [value] : [];
+    
+    // Determine which category this type belongs to
+    if (value) {
+        const categoryForType = getCategoryForType(value, null);
+        currentCategoryFilter = categoryForType;
+    } else {
+        currentCategoryFilter = null;
+    }
+    
+    // Sync with mobile dropdown
+    if (mobileTypeFilter) mobileTypeFilter.value = value;
+    
+    // Update sidebar buttons - activate the category button if it exists, or "All Types" if no category
+    document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (value && currentCategoryFilter && btn.dataset.category === currentCategoryFilter) {
+            btn.classList.add('active');
+        } else if (!value && btn.dataset.type === '' && !btn.dataset.category) {
+            btn.classList.add('active');
+        }
+    });
+    
+    filterPreview();
+}
+
 function handleMobileAreaFilter() {
     const mobileAreaFilter = document.getElementById('mobileAreaFilter');
     const areaFilter = document.getElementById('previewAreaFilter');
@@ -6600,11 +6821,17 @@ function syncMobileFilters() {
     const mobileTypeFilter = document.getElementById('mobileTypeFilter');
     const mobileAreaFilter = document.getElementById('mobileAreaFilter');
     const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
+    const typeFilter = document.getElementById('previewTypeFilter');
     const areaFilter = document.getElementById('previewAreaFilter');
     const amenityFilter = document.getElementById('previewAmenityFilter');
     
-    // For mobile dropdown, show first selected type or empty
-    if (mobileTypeFilter) mobileTypeFilter.value = currentTypeFilter.length > 0 ? currentTypeFilter[0] : '';
+    // Sync type filters
+    if (mobileTypeFilter && typeFilter) {
+        mobileTypeFilter.value = typeFilter.value || '';
+    } else if (mobileTypeFilter) {
+        // For mobile dropdown, show first selected type or empty
+        mobileTypeFilter.value = currentTypeFilter.length > 0 ? currentTypeFilter[0] : '';
+    }
     if (mobileAreaFilter && areaFilter) mobileAreaFilter.value = areaFilter.value || '';
     if (mobileAmenityFilter && amenityFilter) mobileAmenityFilter.value = amenityFilter.value || '';
 }

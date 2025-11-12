@@ -427,21 +427,21 @@ if (!ICON_MAPPINGS || Object.keys(ICON_MAPPINGS).length === 0) {
 // Default category definitions - comprehensive list based on user requirements
 const DEFAULT_TYPE_CATEGORIES = {
     'taste': {
-        emoji: '🥘',
+        emoji: '☕',
         name: 'Taste',
         description: 'Food and drink experiences of all kinds.',
         icon: 'icon-food',
         types: ['Restaurant', 'Café', 'Coffee Shop', 'Bakery', 'Brewery', 'Winery', 'Cidery', 'Distillery', 'Bar', 'Cocktail Bar', 'Food Market', 'Farmers Market', 'Food Tour', 'Cooking Class', 'Local Specialty', 'Street Food', 'Fine Dining']
     },
     'stay': {
-        emoji: '🛏️',
+        emoji: '🏠',
         name: 'Stay',
         description: 'Places to sleep or retreat.',
         icon: 'icon-lodging',
-        types: ['Lodging', 'Hotel', 'Resort', 'B&B', 'BnB', 'Inn', 'Cabin', 'Camping', 'Glamping', 'Hostel', 'Boutique Stay', 'Treehouse', 'Unique Stay', 'Airbnb', 'Lodge', 'Boat']
+        types: ['Lodging', 'Hotel', 'Resort', 'B&B', 'BnB', 'Inn', 'Cabin', 'Camping', 'Glamping', 'Hostel', 'Boutique Stay', 'Treehouse', 'Unique Stay', 'Airbnb', 'Lodge', 'Boat', 'Entire House', 'House Stay', 'House Rental', 'Vacation Rental', 'Rental', 'Apartment', 'Condo', 'Cottage', 'Villa', 'Home', 'Property']
     },
     'outdoor': {
-        emoji: '🌿',
+        emoji: '⛰️',
         name: 'Outdoor',
         description: 'Nature, adventure, and recreation outside.',
         icon: 'icon-outdoor',
@@ -454,43 +454,15 @@ const DEFAULT_TYPE_CATEGORIES = {
         icon: 'icon-culture',
         types: ['Museum', 'Gallery', 'Art Gallery', 'Art', 'Architecture', 'Landmark', 'Historical Site', 'Festival', 'Cultural Tour', 'Craft', 'Music', 'Theater', 'Theatre', 'Dance', 'Attraction', 'Attractions', 'Local Craft', 'Cultural Site']
     },
-    'shop': {
-        emoji: '🛍️',
-        name: 'Shop',
-        description: 'Places to buy, browse, or discover goods.',
-        icon: 'icon-shopping',
-        types: ['Boutique', 'Market', 'Concept Store', 'Artisan Shop', 'Vintage', 'Design Store', 'Local Brand', 'Maker', 'Shopping', 'Shop', 'Gas Station', 'Gas', 'Service Station', 'Convenience Store', 'Grocery Store', 'Supermarket']
-    },
-    'wellness': {
-        emoji: '💆',
-        name: 'Wellness',
-        description: 'Mind, body, and relaxation.',
-        icon: 'icon-wellness',
-        types: ['Spa', 'Retreat', 'Yoga Studio', 'Sauna', 'Hot Springs', 'Wellness Resort', 'Healing Center', 'Fitness', 'Meditation', 'Beauty', 'Health', 'Wellness']
-    },
     'experience': {
-        emoji: '🌆',
-        name: 'Experience / Play',
+        emoji: '🛼',
+        name: 'Experience',
         description: 'Fun, entertainment, and activities.',
         icon: 'icon-activity',
         types: ['Activity', 'Activities', 'Indoor Activity', 'Event', 'Nightlife', 'Club', 'Amusement Park', 'Arcade', 'Live Show', 'Interactive Experience', 'Workshop', 'Tour', 'Entertainment']
     },
-    'learn': {
-        emoji: '💡',
-        name: 'Learn',
-        description: 'Knowledge, discovery, and curiosity.',
-        icon: 'icon-class',
-        types: ['Class', 'Workshop', 'Studio', 'Exhibit', 'Educational Tour', 'Library', 'Lab', 'Science Center', 'Learning', 'Education', 'Museum']
-    },
-    'work': {
-        emoji: '💼',
-        name: 'Work',
-        description: 'Remote and creative work spaces.',
-        icon: 'icon-local',
-        types: ['Coworking', 'Café with Wi-Fi', 'Studio', 'Workshop', 'Creative Hub', 'Business Stay', 'Work Space']
-    },
     'community': {
-        emoji: '💬',
+        emoji: '💛',
         name: 'Community',
         description: 'Local people, causes, and collectives.',
         icon: 'icon-local',
@@ -531,14 +503,10 @@ if (!TYPE_CATEGORIES || Object.keys(TYPE_CATEGORIES).length === 0) {
 // Used when exact type match is not found in category types array
 const TYPE_KEYWORD_MAPPINGS = {
     'taste': ['coffee', 'cafe', 'café', 'restaurant', 'food', 'dining', 'bakery', 'brewery', 'winery', 'cidery', 'distillery', 'bar', 'cocktail', 'market', 'food', 'cuisine', 'cooking', 'chef', 'meal', 'eat', 'drink', 'beverage', 'wine', 'beer', 'spirit', 'liquor', 'tea', 'espresso', 'latte', 'pizza', 'burger', 'sandwich', 'deli', 'grocery', 'farmers market', 'food tour', 'culinary'],
-    'stay': ['hotel', 'lodging', 'resort', 'inn', 'bed and breakfast', 'bnb', 'cabin', 'camping', 'glamping', 'hostel', 'boutique stay', 'treehouse', 'unique stay', 'airbnb', 'lodge', 'accommodation', 'room', 'suite', 'retreat', 'getaway'],
+    'stay': ['hotel', 'lodging', 'resort', 'inn', 'bed and breakfast', 'bnb', 'cabin', 'camping', 'glamping', 'hostel', 'boutique stay', 'treehouse', 'unique stay', 'airbnb', 'lodge', 'accommodation', 'room', 'suite', 'retreat', 'getaway', 'entire house', 'house stay', 'house rental', 'vacation rental', 'rental', 'apartment', 'condo', 'cottage', 'villa', 'home', 'property', 'entire', 'house', 'vacation', 'short term rental', 'str', 'vrbo', 'booking', 'reservation'],
     'outdoor': ['hiking', 'hike', 'trail', 'park', 'beach', 'outdoor', 'nature', 'camping', 'climbing', 'water sports', 'skiing', 'snow', 'scenic', 'viewpoint', 'lookout', 'nature walk', 'biking', 'cycling', 'bike', 'kayaking', 'kayak', 'canoe', 'paddle', 'fishing', 'hunting', 'wildlife', 'forest', 'mountain', 'river', 'lake', 'national park', 'state park', 'garden', 'botanical'],
     'culture': ['museum', 'gallery', 'art', 'architecture', 'landmark', 'historical', 'history', 'heritage', 'festival', 'cultural', 'craft', 'music', 'theater', 'theatre', 'dance', 'performance', 'concert', 'show', 'exhibit', 'exhibition', 'monument', 'memorial', 'site', 'attraction', 'local craft', 'cultural site', 'tradition'],
-    'shop': ['boutique', 'market', 'shop', 'store', 'shopping', 'retail', 'artisan', 'vintage', 'design', 'maker', 'local brand', 'gift', 'souvenir', 'merchandise', 'boutique', 'concept store', 'gas', 'station', 'gas station', 'service station', 'convenience', 'grocery', 'supermarket', 'fuel', 'petrol'],
-    'wellness': ['spa', 'retreat', 'yoga', 'sauna', 'hot springs', 'wellness', 'healing', 'fitness', 'meditation', 'beauty', 'health', 'massage', 'therapy', 'relaxation', 'mindfulness', 'pilates', 'gym', 'workout', 'exercise'],
     'experience': ['activity', 'activities', 'indoor activity', 'indoor', 'event', 'nightlife', 'club', 'amusement', 'arcade', 'live show', 'interactive', 'entertainment', 'fun', 'play', 'game', 'adventure', 'experience', 'tour', 'excursion'],
-    'learn': ['class', 'workshop', 'studio', 'exhibit', 'educational', 'library', 'lab', 'science', 'learning', 'education', 'school', 'course', 'lesson', 'tutorial', 'seminar', 'lecture'],
-    'work': ['coworking', 'wifi', 'wi-fi', 'workspace', 'office', 'studio', 'creative hub', 'business', 'remote work', 'desk', 'meeting'],
     'community': ['community', 'volunteer', 'local profile', 'maker', 'story', 'collective', 'group', 'organization', 'nonprofit', 'charity', 'cause']
 };
 
@@ -575,8 +543,8 @@ function getCategoryForType(type, listing) {
         }
     }
     
-    // Step 3: Default fallback for unmapped types
-    return 'experience'; // Default to Experience/Play
+        // Step 3: Default fallback for unmapped types
+        return 'experience'; // Default to Experience
 }
 
 // Diagnostic function: Check which types don't have categories assigned
@@ -1540,7 +1508,14 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             const grid = document.getElementById('listingsGrid');
             grid.innerHTML = '';
             
-            listings.forEach(function(listing) {
+            // Sort listings by name (A-Z) before rendering
+            const sortedListings = listings.slice().sort(function(a, b) {
+                const aName = (a.name || '').toLowerCase();
+                const bName = (b.name || '').toLowerCase();
+                return aName.localeCompare(bName);
+            });
+            
+            sortedListings.forEach(function(listing) {
                 const card = document.createElement('div');
                 card.className = 'listing-card';
                 if (listing.featured) {
@@ -3303,7 +3278,16 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             const tbody = document.getElementById('dataTableBody');
             tbody.innerHTML = '';
             
-            data.listings.forEach(function(listing, index) {
+            // Sort listings by name (A-Z) before rendering
+            const sortedListings = data.listings.slice().sort(function(a, b) {
+                const aName = (a.name || '').toLowerCase();
+                const bName = (b.name || '').toLowerCase();
+                return aName.localeCompare(bName);
+            });
+            
+            sortedListings.forEach(function(listing, originalIndex) {
+                // Find the original index in the unsorted array for data manipulation
+                const index = data.listings.indexOf(listing);
                 const safe = (value) => (value === undefined || value === null) ? '' : value;
                 const safeArray = (value) => Array.isArray(value) ? value : [];
                 
