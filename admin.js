@@ -3157,8 +3157,10 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     '<span class="badge-area">' + listing.area + '</span>' +
                     (listing.featured ? '<span class="badge-featured">Featured</span>' : '') +
                     '</div>' +
-                    '<p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.6;">' + listing.description + '</p>' +
+                    // Use detailedDescription if available, otherwise fall back to description
+                    '<p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.6; white-space: pre-wrap;">' + (listing.detailedDescription && listing.detailedDescription.trim() ? listing.detailedDescription : listing.description) + '</p>' +
                     amenitiesHTML +
+                    // Address with icon
                     '<a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(listing.address) + '" target="_blank" class="card-info-item" style="text-decoration: none; cursor: pointer;" onclick="event.stopPropagation();">' +
                     '<div class="card-info-icon">' +
                     '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">' +
@@ -3168,6 +3170,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     '</div>' +
                     '<div class="card-info-text" style="color: var(--text-secondary);">' + listing.address + '</div>' +
                     '</a>' +
+                    // Phone with icon
                     (listing.phone ? 
                     '<a href="tel:' + listing.phone.replace(/[^0-9+]/g, '') + '" class="card-info-item" style="text-decoration: none; cursor: pointer;" onclick="event.stopPropagation();">' +
                     '<div class="card-info-icon">' +
@@ -3177,18 +3180,23 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     '</div>' +
                     '<div class="card-info-text" style="color: var(--text-secondary);">' + listing.phone + '</div>' +
                     '</a>' : '') +
-                    '<div style="margin-top: auto; display: flex; gap: 10px; padding-top: 15px;">' +
-                    '<a href="' + listing.website + '" target="_blank" style="flex: 1; background: #4E6B52; color: white; padding: 12px; text-align: center; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="event.stopPropagation();">' +
-                    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">' +
+                    // Website with icon
+                    (listing.website ? 
+                    '<a href="' + listing.website + '" target="_blank" class="card-info-item" style="text-decoration: none; cursor: pointer;" onclick="event.stopPropagation();">' +
+                    '<div class="card-info-icon">' +
+                    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">' +
                     '<path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />' +
                     '</svg>' +
-                    'Website' +
-                    '</a>' +
-                    '<a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(listing.address) + '" target="_blank" style="flex: 1; background: #E3795C; color: white; padding: 12px; text-align: center; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="event.stopPropagation();">' +
+                    '</div>' +
+                    '<div class="card-info-text" style="color: var(--text-secondary);">' + listing.website + '</div>' +
+                    '</a>' : '') +
+                    // Directions button (use directionsLink if available, otherwise generate Google Maps URL)
+                    '<div style="margin-top: auto; padding-top: 15px;">' +
+                    '<a href="' + (listing.directionsLink && listing.directionsLink.trim() ? listing.directionsLink : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(listing.address)) + '" target="_blank" style="width: 100%; background: #E3795C; color: white; padding: 12px; text-align: center; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="event.stopPropagation();">' +
                     '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">' +
                     '<path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />' +
                     '</svg>' +
-                    'Directions' +
+                    'Open Map' +
                     '</a>' +
                     '</div>';
                 
