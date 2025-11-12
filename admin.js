@@ -496,7 +496,23 @@ if (!TYPE_CATEGORIES || Object.keys(TYPE_CATEGORIES).length === 0) {
     saveCategoriesToStorage(TYPE_CATEGORIES);
 }
 
+// Keyword mappings for automatic category assignment based on type content
+// Used when exact type match is not found in category types array
+const TYPE_KEYWORD_MAPPINGS = {
+    'taste': ['coffee', 'cafe', 'café', 'restaurant', 'food', 'dining', 'bakery', 'brewery', 'winery', 'cidery', 'distillery', 'bar', 'cocktail', 'market', 'food', 'cuisine', 'cooking', 'chef', 'meal', 'eat', 'drink', 'beverage', 'wine', 'beer', 'spirit', 'liquor', 'tea', 'espresso', 'latte', 'pizza', 'burger', 'sandwich', 'deli', 'grocery', 'farmers market', 'food tour', 'culinary'],
+    'stay': ['hotel', 'lodging', 'resort', 'inn', 'bed and breakfast', 'bnb', 'cabin', 'camping', 'glamping', 'hostel', 'boutique stay', 'treehouse', 'unique stay', 'airbnb', 'lodge', 'accommodation', 'room', 'suite', 'retreat', 'getaway'],
+    'outdoor': ['hiking', 'hike', 'trail', 'park', 'beach', 'outdoor', 'nature', 'camping', 'climbing', 'water sports', 'skiing', 'snow', 'scenic', 'viewpoint', 'lookout', 'nature walk', 'biking', 'cycling', 'bike', 'kayaking', 'kayak', 'canoe', 'paddle', 'fishing', 'hunting', 'wildlife', 'forest', 'mountain', 'river', 'lake', 'national park', 'state park', 'garden', 'botanical'],
+    'culture': ['museum', 'gallery', 'art', 'architecture', 'landmark', 'historical', 'history', 'heritage', 'festival', 'cultural', 'craft', 'music', 'theater', 'theatre', 'dance', 'performance', 'concert', 'show', 'exhibit', 'exhibition', 'monument', 'memorial', 'site', 'attraction', 'local craft', 'cultural site', 'tradition'],
+    'shop': ['boutique', 'market', 'shop', 'store', 'shopping', 'retail', 'artisan', 'vintage', 'design', 'maker', 'local brand', 'gift', 'souvenir', 'merchandise', 'boutique', 'concept store'],
+    'wellness': ['spa', 'retreat', 'yoga', 'sauna', 'hot springs', 'wellness', 'healing', 'fitness', 'meditation', 'beauty', 'health', 'massage', 'therapy', 'relaxation', 'mindfulness', 'pilates', 'gym', 'workout', 'exercise'],
+    'experience': ['activity', 'activities', 'event', 'nightlife', 'club', 'amusement', 'arcade', 'live show', 'interactive', 'entertainment', 'fun', 'play', 'game', 'adventure', 'experience', 'tour', 'excursion'],
+    'learn': ['class', 'workshop', 'studio', 'exhibit', 'educational', 'library', 'lab', 'science', 'learning', 'education', 'school', 'course', 'lesson', 'tutorial', 'seminar', 'lecture'],
+    'work': ['coworking', 'wifi', 'wi-fi', 'workspace', 'office', 'studio', 'creative hub', 'business', 'remote work', 'desk', 'meeting'],
+    'community': ['community', 'volunteer', 'local profile', 'maker', 'story', 'collective', 'group', 'organization', 'nonprofit', 'charity', 'cause']
+};
+
 // Map individual types to categories (case-insensitive)
+// Uses exact match first, then keyword matching, then default fallback
 // Also checks for category override on listing
 function getCategoryForType(type, listing) {
     // If listing has a category override, use it
@@ -505,18 +521,30 @@ function getCategoryForType(type, listing) {
     }
     
     if (!type) return null;
-    const normalizedType = normalizeFilterValue(type);
+    const normalizedType = normalizeFilterValue(type).toLowerCase();
     
+    // Step 1: Try exact match (case-insensitive) against category types arrays
     for (const categoryKey in TYPE_CATEGORIES) {
         const category = TYPE_CATEGORIES[categoryKey];
         if (category.types.some(function(catType) {
-            return catType.toLowerCase() === normalizedType.toLowerCase();
+            return catType.toLowerCase() === normalizedType;
         })) {
             return categoryKey;
         }
     }
     
-    // Default fallback for unmapped types
+    // Step 2: Try keyword-based matching if exact match failed
+    // Check if the type contains keywords that suggest a category
+    for (const categoryKey in TYPE_KEYWORD_MAPPINGS) {
+        const keywords = TYPE_KEYWORD_MAPPINGS[categoryKey];
+        if (keywords.some(function(keyword) {
+            return normalizedType.indexOf(keyword.toLowerCase()) > -1;
+        })) {
+            return categoryKey;
+        }
+    }
+    
+    // Step 3: Default fallback for unmapped types
     return 'experience'; // Default to Experience/Play
 }
 
@@ -1493,7 +1521,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             document.getElementById('typesCount').textContent = Object.keys(uniqueTypes).length;
         }
         
-        let currentAdminTypeFilter = '';
+        let currentAdminTypeFilter = ''; // Track which category is currently active (empty string = "All Types")
         
         function filterListings() {
             const searchTerm = document.getElementById('adminSearchInput').value.toLowerCase().trim();
@@ -1541,15 +1569,23 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         }
         
         window.filterAdminByType = function filterAdminByType(typeOrCategory) {
-            currentAdminTypeFilter = typeOrCategory;
+            currentAdminTypeFilter = typeOrCategory || '';
             
-            // Update button active states
+            // Update button active states - only one category should be active at a time
             const buttons = document.querySelectorAll('#adminTab .type-filter-btn');
             buttons.forEach(function(btn) {
                 btn.classList.remove('active');
                 // Check if it matches by type or category
-                if (btn.dataset.type === typeOrCategory || btn.dataset.category === typeOrCategory) {
-                    btn.classList.add('active');
+                if (!typeOrCategory) {
+                    // "All Types" button - activate if no filter
+                    if (btn.dataset.type === '' && !btn.dataset.category) {
+                        btn.classList.add('active');
+                    }
+                } else {
+                    // Category button - activate if it matches the current filter
+                    if (btn.dataset.category === typeOrCategory) {
+                        btn.classList.add('active');
+                    }
                 }
             });
             
@@ -1581,7 +1617,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             
             // Render type filter buttons dynamically based on usage
             if (data.listings) {
-                renderAdminTypeFilterButtons(data.listings, '#adminTab .type-quick-filters', 10); // Show all categories that have types in data
+                renderAdminTypeFilterButtons(data.listings, '#adminTab .type-quick-filters'); // Show all categories
             }
         }
 
@@ -1591,62 +1627,47 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             refreshFilterSelect('previewAmenityFilter', data.filterOptions.amenities);
         }
         
-        // Get categories based on TYPES that exist in the data
-        // Only returns categories that have at least one type in the current data
+        // Get all categories from TYPE_CATEGORIES
+        // Returns ALL categories regardless of whether they have matching types in the data
+        // Categories with matching types will have a count > 0
         function getCategoriesByUsage(listings) {
-            if (!listings || listings.length === 0) {
-                return [];
+            // Initialize counts for all categories (0 if no listings)
+            const categoryCounts = {};
+            const categoryTypesMap = {};
+            
+            // Initialize all categories from TYPE_CATEGORIES
+            for (const categoryKey in TYPE_CATEGORIES) {
+                categoryCounts[categoryKey] = 0;
+                categoryTypesMap[categoryKey] = [];
             }
             
-            // Step 1: Extract all unique types from the data
-            const uniqueTypes = [...new Set(listings.map(function(listing) {
-                return listing.type;
-            }).filter(Boolean))];
-            
-            // Step 2: Map each unique type to its category
-            const categoryMap = {};
-            const categoryCounts = {};
-            
-            uniqueTypes.forEach(function(type) {
-                // Find a listing with this type to check for category override
-                const listingWithType = listings.find(function(l) { return l.type === type; });
-                const category = getCategoryForType(type, listingWithType);
-                
-                if (category) {
-                    // Track which types map to which categories
-                    if (!categoryMap[category]) {
-                        categoryMap[category] = [];
+            // Count listings for each category if we have listings
+            if (listings && listings.length > 0) {
+                listings.forEach(function(listing) {
+                    if (listing.type) {
+                        const listingCategory = getCategoryForType(listing.type, listing);
+                        if (listingCategory && TYPE_CATEGORIES[listingCategory]) {
+                            categoryCounts[listingCategory] = (categoryCounts[listingCategory] || 0) + 1;
+                            // Track which types belong to this category
+                            if (categoryTypesMap[listingCategory].indexOf(listing.type) === -1) {
+                                categoryTypesMap[listingCategory].push(listing.type);
+                            }
+                        }
                     }
-                    categoryMap[category].push(type);
-                    
-                    // Initialize count for this category
-                    if (!categoryCounts[category]) {
-                        categoryCounts[category] = 0;
-                    }
-                }
-            });
+                });
+            }
             
-            // Step 3: Count actual listings for each category
-            listings.forEach(function(listing) {
-                if (listing.type) {
-                    const listingCategory = getCategoryForType(listing.type, listing);
-                    if (listingCategory && categoryCounts.hasOwnProperty(listingCategory)) {
-                        categoryCounts[listingCategory] = (categoryCounts[listingCategory] || 0) + 1;
-                    }
-                }
-            });
-            
-            // Step 4: Convert to array - only include categories that have types in the data
-            const categoriesArray = Object.keys(categoryMap).map(function(categoryKey) {
+            // Convert all categories to array
+            const categoriesArray = Object.keys(TYPE_CATEGORIES).map(function(categoryKey) {
                 return {
                     key: categoryKey,
                     category: TYPE_CATEGORIES[categoryKey],
                     count: categoryCounts[categoryKey] || 0,
-                    types: categoryMap[categoryKey] // Keep track of which types belong to this category
+                    types: categoryTypesMap[categoryKey] || [] // Types found in data for this category
                 };
             });
             
-            // Step 5: Sort by count (descending), then by category name (ascending) for ties
+            // Sort by count (descending), then by category name (ascending) for ties
             categoriesArray.sort(function(a, b) {
                 if (b.count !== a.count) {
                     return b.count - a.count; // Most used first
@@ -1657,32 +1678,31 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             return categoriesArray;
         }
         
-        // Dynamically render category filter buttons based on TYPES in the data
-        // Only shows categories that have at least one type in the current data
+        // Dynamically render category filter buttons
+        // Shows ALL categories from TYPE_CATEGORIES regardless of whether they have matching types
         function renderAdminTypeFilterButtons(listings, containerSelector, maxVisible) {
             const container = document.querySelector(containerSelector);
             if (!container) return;
             
-            if (!listings || listings.length === 0) {
-                console.log('⚠️ No listings provided, cannot determine categories from types');
-                return;
-            }
+            // Get ALL categories (will show all regardless of usage)
+            const categoriesByUsage = getCategoriesByUsage(listings || []);
             
-            maxVisible = maxVisible || 10; // Default to showing up to 10 categories
-            
-            // Get categories based on types that exist in the data
-            const categoriesByUsage = getCategoriesByUsage(listings);
             if (categoriesByUsage.length === 0) {
-                console.log('⚠️ No categories found for types in data');
+                console.log('⚠️ No categories defined in TYPE_CATEGORIES');
                 return;
             }
             
-            console.log('📊 Admin: Categories found from types in data:', categoriesByUsage.map(function(c) {
-                return c.category.name + ' (' + c.count + ' listings, types: ' + c.types.join(', ') + ')';
+            console.log('📊 Admin: All categories (showing all regardless of usage):', categoriesByUsage.map(function(c) {
+                return c.category.name + ' (' + c.count + ' listings)';
             }).join(', '));
             
-            const visibleCategories = categoriesByUsage.slice(0, maxVisible);
-            const hiddenCategories = categoriesByUsage.slice(maxVisible);
+            // Show ALL categories - if maxVisible is not specified or is less than total, show all
+            // Otherwise respect maxVisible but default to showing all
+            const totalCategories = categoriesByUsage.length;
+            const effectiveMaxVisible = maxVisible && maxVisible >= totalCategories ? maxVisible : totalCategories;
+            
+            const visibleCategories = categoriesByUsage.slice(0, effectiveMaxVisible);
+            const hiddenCategories = categoriesByUsage.slice(effectiveMaxVisible);
             
             // Clear existing buttons (except "All Types" button)
             const existingButtons = container.querySelectorAll('.type-filter-btn[data-category]:not([data-category=""])');
@@ -1720,13 +1740,18 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 btn.title = categoryInfo.category.description;
                 
                 // When clicked, filter by all types in this category
+                // Only one category can be active at a time
                 btn.onclick = function() {
-                    // Get all types in this category
-                    const categoryTypes = categoryInfo.category.types || [];
-                    // For admin, we'll filter by the first type in the category (or could implement multi-type filtering)
-                    // For simplicity, filter by category name as a string match
-                    currentAdminTypeFilter = categoryInfo.key;
-                    filterAdminByType(categoryInfo.key);
+                    // Check if this category is already active
+                    if (currentAdminTypeFilter === categoryInfo.key) {
+                        // If clicking the same category, clear the filter and show "All Types"
+                        currentAdminTypeFilter = '';
+                        filterAdminByType('');
+                    } else {
+                        // Clear previous selection and set this category as active
+                        currentAdminTypeFilter = categoryInfo.key;
+                        filterAdminByType(categoryInfo.key);
+                    }
                 };
                 
                 if (allTypeBtn) {
@@ -1767,9 +1792,18 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     btn.appendChild(nameSpan);
                     btn.title = categoryInfo.category.description;
                     
+                    // Only one category can be active at a time
                     btn.onclick = function() {
-                        currentAdminTypeFilter = categoryInfo.key;
-                        filterAdminByType(categoryInfo.key);
+                        // Check if this category is already active
+                        if (currentAdminTypeFilter === categoryInfo.key) {
+                            // If clicking the same category, clear the filter and show "All Types"
+                            currentAdminTypeFilter = '';
+                            filterAdminByType('');
+                        } else {
+                            // Clear previous selection and set this category as active
+                            currentAdminTypeFilter = categoryInfo.key;
+                            filterAdminByType(categoryInfo.key);
+                        }
                     };
                     
                     expandedDiv.appendChild(btn);
