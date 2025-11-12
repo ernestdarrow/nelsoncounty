@@ -429,60 +429,70 @@ const DEFAULT_TYPE_CATEGORIES = {
         emoji: '🥘',
         name: 'Taste',
         description: 'Food and drink experiences of all kinds.',
+        icon: 'icon-food',
         types: ['Restaurant', 'Café', 'Coffee Shop', 'Bakery', 'Brewery', 'Winery', 'Cidery', 'Distillery', 'Bar', 'Cocktail Bar', 'Food Market', 'Farmers Market', 'Food Tour', 'Cooking Class', 'Local Specialty', 'Street Food', 'Fine Dining']
     },
     'stay': {
         emoji: '🛏️',
         name: 'Stay',
         description: 'Places to sleep or retreat.',
+        icon: 'icon-lodging',
         types: ['Lodging', 'Hotel', 'Resort', 'B&B', 'BnB', 'Inn', 'Cabin', 'Camping', 'Glamping', 'Hostel', 'Boutique Stay', 'Treehouse', 'Unique Stay', 'Airbnb', 'Lodge', 'Boat']
     },
     'outdoor': {
         emoji: '🌿',
         name: 'Outdoor',
         description: 'Nature, adventure, and recreation outside.',
+        icon: 'icon-outdoor',
         types: ['Hiking', 'Outdoor', 'Outdoor Activity', 'Park', 'Beach', 'Trail', 'Camping', 'Climbing', 'Water Sports', 'Skiing', 'Scenic Drive', 'Viewpoint', 'Nature Walk', 'Biking', 'Cycling', 'Kayaking', 'Kayak', 'Farm & Orchard', 'National Park', 'Hike']
     },
     'culture': {
         emoji: '🎭',
         name: 'Culture',
         description: 'Art, heritage, people, and traditions.',
+        icon: 'icon-culture',
         types: ['Museum', 'Gallery', 'Art Gallery', 'Art', 'Architecture', 'Landmark', 'Historical Site', 'Festival', 'Cultural Tour', 'Craft', 'Music', 'Theater', 'Theatre', 'Dance', 'Attraction', 'Attractions', 'Local Craft', 'Cultural Site']
     },
     'shop': {
         emoji: '🛍️',
         name: 'Shop',
         description: 'Places to buy, browse, or discover goods.',
+        icon: 'icon-shopping',
         types: ['Boutique', 'Market', 'Concept Store', 'Artisan Shop', 'Vintage', 'Design Store', 'Local Brand', 'Maker', 'Shopping', 'Shop']
     },
     'wellness': {
         emoji: '💆',
         name: 'Wellness',
         description: 'Mind, body, and relaxation.',
+        icon: 'icon-wellness',
         types: ['Spa', 'Retreat', 'Yoga Studio', 'Sauna', 'Hot Springs', 'Wellness Resort', 'Healing Center', 'Fitness', 'Meditation', 'Beauty', 'Health', 'Wellness']
     },
     'experience': {
         emoji: '🌆',
         name: 'Experience / Play',
         description: 'Fun, entertainment, and activities.',
+        icon: 'icon-activity',
         types: ['Activity', 'Activities', 'Indoor Activity', 'Event', 'Nightlife', 'Club', 'Amusement Park', 'Arcade', 'Live Show', 'Interactive Experience', 'Workshop', 'Tour', 'Entertainment']
     },
     'learn': {
         emoji: '💡',
         name: 'Learn',
         description: 'Knowledge, discovery, and curiosity.',
+        icon: 'icon-class',
         types: ['Class', 'Workshop', 'Studio', 'Exhibit', 'Educational Tour', 'Library', 'Lab', 'Science Center', 'Learning', 'Education', 'Museum']
     },
     'work': {
         emoji: '💼',
         name: 'Work',
         description: 'Remote and creative work spaces.',
+        icon: 'icon-local',
         types: ['Coworking', 'Café with Wi-Fi', 'Studio', 'Workshop', 'Creative Hub', 'Business Stay', 'Work Space']
     },
     'community': {
         emoji: '💬',
         name: 'Community',
         description: 'Local people, causes, and collectives.',
+        icon: 'icon-local',
         types: ['Community Project', 'Volunteer Work', 'Local Profile', 'Maker', 'Story', 'Collective']
     }
 };
@@ -490,9 +500,24 @@ const DEFAULT_TYPE_CATEGORIES = {
 // Initialize TYPE_CATEGORIES from storage or defaults
 let TYPE_CATEGORIES = loadCategoriesFromStorage() || DEFAULT_TYPE_CATEGORIES;
 
-// Ensure we always have the default structure
+// Ensure we always have the default structure and icons
 if (!TYPE_CATEGORIES || Object.keys(TYPE_CATEGORIES).length === 0) {
-    TYPE_CATEGORIES = DEFAULT_TYPE_CATEGORIES;
+    TYPE_CATEGORIES = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES));
+    saveCategoriesToStorage(TYPE_CATEGORIES);
+} else {
+    // Ensure all categories have icons from defaults
+    for (const categoryKey in DEFAULT_TYPE_CATEGORIES) {
+        if (TYPE_CATEGORIES[categoryKey]) {
+            // If category exists but doesn't have an icon, set it from defaults
+            if (!TYPE_CATEGORIES[categoryKey].icon && DEFAULT_TYPE_CATEGORIES[categoryKey].icon) {
+                TYPE_CATEGORIES[categoryKey].icon = DEFAULT_TYPE_CATEGORIES[categoryKey].icon;
+            }
+        } else {
+            // If category is missing, add it from defaults
+            TYPE_CATEGORIES[categoryKey] = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES[categoryKey]));
+        }
+    }
+    // Save updated categories if we made changes
     saveCategoriesToStorage(TYPE_CATEGORIES);
 }
 
@@ -505,7 +530,7 @@ const TYPE_KEYWORD_MAPPINGS = {
     'culture': ['museum', 'gallery', 'art', 'architecture', 'landmark', 'historical', 'history', 'heritage', 'festival', 'cultural', 'craft', 'music', 'theater', 'theatre', 'dance', 'performance', 'concert', 'show', 'exhibit', 'exhibition', 'monument', 'memorial', 'site', 'attraction', 'local craft', 'cultural site', 'tradition'],
     'shop': ['boutique', 'market', 'shop', 'store', 'shopping', 'retail', 'artisan', 'vintage', 'design', 'maker', 'local brand', 'gift', 'souvenir', 'merchandise', 'boutique', 'concept store'],
     'wellness': ['spa', 'retreat', 'yoga', 'sauna', 'hot springs', 'wellness', 'healing', 'fitness', 'meditation', 'beauty', 'health', 'massage', 'therapy', 'relaxation', 'mindfulness', 'pilates', 'gym', 'workout', 'exercise'],
-    'experience': ['activity', 'activities', 'event', 'nightlife', 'club', 'amusement', 'arcade', 'live show', 'interactive', 'entertainment', 'fun', 'play', 'game', 'adventure', 'experience', 'tour', 'excursion'],
+    'experience': ['activity', 'activities', 'indoor activity', 'indoor', 'event', 'nightlife', 'club', 'amusement', 'arcade', 'live show', 'interactive', 'entertainment', 'fun', 'play', 'game', 'adventure', 'experience', 'tour', 'excursion'],
     'learn': ['class', 'workshop', 'studio', 'exhibit', 'educational', 'library', 'lab', 'science', 'learning', 'education', 'school', 'course', 'lesson', 'tutorial', 'seminar', 'lecture'],
     'work': ['coworking', 'wifi', 'wi-fi', 'workspace', 'office', 'studio', 'creative hub', 'business', 'remote work', 'desk', 'meeting'],
     'community': ['community', 'volunteer', 'local profile', 'maker', 'story', 'collective', 'group', 'organization', 'nonprofit', 'charity', 'cause']
@@ -1461,7 +1486,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 content.innerHTML = 
                     '<h3>' + listing.name + '</h3>' +
                     '<div class="listing-meta">' +
-                    '<span class="badge badge-type ' + getIconClass(listing.type) + '">' + listing.type + '</span>' +
+                    '<span class="badge badge-type ' + getIconClass(listing.type, listing) + '">' + listing.type + '</span>' +
                     '<span class="badge badge-area">' + listing.area + '</span>' +
                     '</div>' +
                     '<p class="listing-desc">' + listing.description + '</p>' +
@@ -2247,13 +2272,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 document.getElementById('categoriesTab').classList.add('active');
                 header.style.display = 'block';
                 renderCategories();
-            } else if (tab === 'icons') {
-                document.querySelectorAll('.tab-btn')[3].classList.add('active');
-                document.getElementById('iconsTab').classList.add('active');
-                header.style.display = 'block';
-                renderIconMappings();
             } else if (tab === 'settings') {
-                document.querySelectorAll('.tab-btn')[4].classList.add('active');
+                document.querySelectorAll('.tab-btn')[3].classList.add('active');
                 document.getElementById('settingsTab').classList.add('active');
                 header.style.display = 'block';
                 renderSettings();
@@ -2680,8 +2700,20 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             category.name = document.getElementById('categoryName_' + categoryKey).value.trim();
             category.description = document.getElementById('categoryDesc_' + categoryKey).value.trim();
             
+            // Note: Icons are set in DEFAULT_TYPE_CATEGORIES and not editable
+            // If icon is missing, preserve it from defaults or use category key as fallback
+            if (!category.icon && DEFAULT_TYPE_CATEGORIES[categoryKey]) {
+                category.icon = DEFAULT_TYPE_CATEGORIES[categoryKey].icon || 'icon-default';
+            }
+            
             saveCategoriesToStorage(TYPE_CATEGORIES);
             renderCategories();
+            
+            // Refresh admin filters and listings to show updated category info
+            if (data && data.listings) {
+                populateAdminFilters();
+                renderListings(data.listings);
+            }
         };
         
         window.addTypeToCategory = function addTypeToCategory(categoryKey) {
@@ -2941,10 +2973,17 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         
         // Icon mapping function - uses shared icon mappings from localStorage
         // Changes made here will sync to front page automatically
-        function getIconClass(type) {
+        function getIconClass(type, listing) {
             if (!type) return 'icon-default';
-            // Use shared icon mappings (synced with front page)
-            return ICON_MAPPINGS[type] || 'icon-default';
+            
+            // Get the category for this type
+            const categoryKey = getCategoryForType(type, listing);
+            if (categoryKey && TYPE_CATEGORIES[categoryKey] && TYPE_CATEGORIES[categoryKey].icon) {
+                return TYPE_CATEGORIES[categoryKey].icon;
+            }
+            
+            // Fallback to default icon
+            return 'icon-default';
         }
         
         function renderPreview(filteredListings) {
@@ -3003,7 +3042,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     '<div style="padding: 20px;">' +
                     '<h3 style="font-size: 20px; margin-bottom: 10px; color: var(--text-primary);">' + listing.name + '</h3>' +
                     '<div style="display: flex; gap: 8px; margin-bottom: 10px;">' +
-                    '<span class="badge-type ' + getIconClass(listing.type) + '" data-type="' + listing.type + '" onclick="filterByBadge(event, \'type\', \'' + listing.type + '\')">' + listing.type + '</span>' +
+                    '<span class="badge-type ' + getIconClass(listing.type, listing) + '" data-type="' + listing.type + '" onclick="filterByBadge(event, \'type\', \'' + listing.type + '\')">' + listing.type + '</span>' +
                     '<span class="badge-area" data-area="' + listing.area + '" onclick="filterByBadge(event, \'area\', \'' + listing.area + '\')">' + listing.area + '</span>' +
                     '</div>' +
                     '<p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5;">' + listing.description.substring(0, 100) + '...</p>' +
@@ -3042,7 +3081,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     imagesHTML +
                     '<h3 style="font-size: 22px; margin-bottom: 12px; color: var(--text-primary);">' + listing.name + '</h3>' +
                     '<div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">' +
-                    '<span class="badge-type ' + getIconClass(listing.type) + '">' + listing.type + '</span>' +
+                    '<span class="badge-type ' + getIconClass(listing.type, listing) + '">' + listing.type + '</span>' +
                     '<span class="badge-area">' + listing.area + '</span>' +
                     (listing.featured ? '<span class="badge-featured">Featured</span>' : '') +
                     '</div>' +

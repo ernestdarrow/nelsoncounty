@@ -4011,60 +4011,70 @@ const DEFAULT_TYPE_CATEGORIES = {
         emoji: '🥘',
         name: 'Taste',
         description: 'Food and drink experiences of all kinds.',
+        icon: 'icon-food',
         types: ['Restaurant', 'Café', 'Coffee Shop', 'Bakery', 'Brewery', 'Winery', 'Cidery', 'Distillery', 'Bar', 'Cocktail Bar', 'Food Market', 'Farmers Market', 'Food Tour', 'Cooking Class', 'Local Specialty', 'Street Food', 'Fine Dining']
     },
     'stay': {
         emoji: '🛏️',
         name: 'Stay',
         description: 'Places to sleep or retreat.',
+        icon: 'icon-lodging',
         types: ['Lodging', 'Hotel', 'Resort', 'B&B', 'BnB', 'Inn', 'Cabin', 'Camping', 'Glamping', 'Hostel', 'Boutique Stay', 'Treehouse', 'Unique Stay', 'Airbnb', 'Lodge', 'Boat']
     },
     'outdoor': {
         emoji: '🌿',
         name: 'Outdoor',
         description: 'Nature, adventure, and recreation outside.',
+        icon: 'icon-outdoor',
         types: ['Hiking', 'Outdoor', 'Outdoor Activity', 'Park', 'Beach', 'Trail', 'Camping', 'Climbing', 'Water Sports', 'Skiing', 'Scenic Drive', 'Viewpoint', 'Nature Walk', 'Biking', 'Cycling', 'Kayaking', 'Kayak', 'Farm & Orchard', 'National Park', 'Hike']
     },
     'culture': {
         emoji: '🎭',
         name: 'Culture',
         description: 'Art, heritage, people, and traditions.',
+        icon: 'icon-culture',
         types: ['Museum', 'Gallery', 'Art Gallery', 'Art', 'Architecture', 'Landmark', 'Historical Site', 'Festival', 'Cultural Tour', 'Craft', 'Music', 'Theater', 'Theatre', 'Dance', 'Attraction', 'Attractions', 'Local Craft', 'Cultural Site']
     },
     'shop': {
         emoji: '🛍️',
         name: 'Shop',
         description: 'Places to buy, browse, or discover goods.',
+        icon: 'icon-shopping',
         types: ['Boutique', 'Market', 'Concept Store', 'Artisan Shop', 'Vintage', 'Design Store', 'Local Brand', 'Maker', 'Shopping', 'Shop']
     },
     'wellness': {
         emoji: '💆',
         name: 'Wellness',
         description: 'Mind, body, and relaxation.',
+        icon: 'icon-wellness',
         types: ['Spa', 'Retreat', 'Yoga Studio', 'Sauna', 'Hot Springs', 'Wellness Resort', 'Healing Center', 'Fitness', 'Meditation', 'Beauty', 'Health', 'Wellness']
     },
     'experience': {
         emoji: '🌆',
         name: 'Experience / Play',
         description: 'Fun, entertainment, and activities.',
+        icon: 'icon-activity',
         types: ['Activity', 'Activities', 'Indoor Activity', 'Event', 'Nightlife', 'Club', 'Amusement Park', 'Arcade', 'Live Show', 'Interactive Experience', 'Workshop', 'Tour', 'Entertainment']
     },
     'learn': {
         emoji: '💡',
         name: 'Learn',
         description: 'Knowledge, discovery, and curiosity.',
+        icon: 'icon-class',
         types: ['Class', 'Workshop', 'Studio', 'Exhibit', 'Educational Tour', 'Library', 'Lab', 'Science Center', 'Learning', 'Education', 'Museum']
     },
     'work': {
         emoji: '💼',
         name: 'Work',
         description: 'Remote and creative work spaces.',
+        icon: 'icon-local',
         types: ['Coworking', 'Café with Wi-Fi', 'Studio', 'Workshop', 'Creative Hub', 'Business Stay', 'Work Space']
     },
     'community': {
         emoji: '💬',
         name: 'Community',
         description: 'Local people, causes, and collectives.',
+        icon: 'icon-local',
         types: ['Community Project', 'Volunteer Work', 'Local Profile', 'Maker', 'Story', 'Collective']
     }
 };
@@ -4072,9 +4082,22 @@ const DEFAULT_TYPE_CATEGORIES = {
 // Initialize TYPE_CATEGORIES from storage or defaults
 let TYPE_CATEGORIES = loadCategoriesFromStorage() || DEFAULT_TYPE_CATEGORIES;
 
-// Ensure we always have the default structure
+// Ensure we always have the default structure and icons
 if (!TYPE_CATEGORIES || Object.keys(TYPE_CATEGORIES).length === 0) {
-    TYPE_CATEGORIES = DEFAULT_TYPE_CATEGORIES;
+    TYPE_CATEGORIES = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES));
+} else {
+    // Ensure all categories have icons from defaults
+    for (const categoryKey in DEFAULT_TYPE_CATEGORIES) {
+        if (TYPE_CATEGORIES[categoryKey]) {
+            // If category exists but doesn't have an icon, set it from defaults
+            if (!TYPE_CATEGORIES[categoryKey].icon && DEFAULT_TYPE_CATEGORIES[categoryKey].icon) {
+                TYPE_CATEGORIES[categoryKey].icon = DEFAULT_TYPE_CATEGORIES[categoryKey].icon;
+            }
+        } else {
+            // If category is missing, add it from defaults
+            TYPE_CATEGORIES[categoryKey] = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES[categoryKey]));
+        }
+    }
 }
 
 // Keyword mappings for automatic category assignment based on type content
@@ -4086,7 +4109,7 @@ const TYPE_KEYWORD_MAPPINGS = {
     'culture': ['museum', 'gallery', 'art', 'architecture', 'landmark', 'historical', 'history', 'heritage', 'festival', 'cultural', 'craft', 'music', 'theater', 'theatre', 'dance', 'performance', 'concert', 'show', 'exhibit', 'exhibition', 'monument', 'memorial', 'site', 'attraction', 'local craft', 'cultural site', 'tradition'],
     'shop': ['boutique', 'market', 'shop', 'store', 'shopping', 'retail', 'artisan', 'vintage', 'design', 'maker', 'local brand', 'gift', 'souvenir', 'merchandise', 'boutique', 'concept store'],
     'wellness': ['spa', 'retreat', 'yoga', 'sauna', 'hot springs', 'wellness', 'healing', 'fitness', 'meditation', 'beauty', 'health', 'massage', 'therapy', 'relaxation', 'mindfulness', 'pilates', 'gym', 'workout', 'exercise'],
-    'experience': ['activity', 'activities', 'event', 'nightlife', 'club', 'amusement', 'arcade', 'live show', 'interactive', 'entertainment', 'fun', 'play', 'game', 'adventure', 'experience', 'tour', 'excursion'],
+    'experience': ['activity', 'activities', 'indoor activity', 'indoor', 'event', 'nightlife', 'club', 'amusement', 'arcade', 'live show', 'interactive', 'entertainment', 'fun', 'play', 'game', 'adventure', 'experience', 'tour', 'excursion'],
     'learn': ['class', 'workshop', 'studio', 'exhibit', 'educational', 'library', 'lab', 'science', 'learning', 'education', 'school', 'course', 'lesson', 'tutorial', 'seminar', 'lecture'],
     'work': ['coworking', 'wifi', 'wi-fi', 'workspace', 'office', 'studio', 'creative hub', 'business', 'remote work', 'desk', 'meeting'],
     'community': ['community', 'volunteer', 'local profile', 'maker', 'story', 'collective', 'group', 'organization', 'nonprofit', 'charity', 'cause']
@@ -5122,10 +5145,17 @@ function updateStructuredData(listings) {
 
 // Icon mapping function - uses shared icon mappings from localStorage
 // Changes made in admin will sync here automatically
-function getIconClass(type) {
+function getIconClass(type, listing) {
     if (!type) return 'icon-default';
-    // Use shared icon mappings (synced with admin)
-    return ICON_MAPPINGS[type] || 'icon-default';
+    
+    // Get the category for this type
+    const categoryKey = getCategoryForType(type, listing);
+    if (categoryKey && TYPE_CATEGORIES[categoryKey] && TYPE_CATEGORIES[categoryKey].icon) {
+        return TYPE_CATEGORIES[categoryKey].icon;
+    }
+    
+    // Fallback to default icon
+    return 'icon-default';
 }
 
 // Fallback placeholder image (SVG data URI) - forest green background with white camera icon
@@ -5943,7 +5973,7 @@ function renderPreview(filteredListings) {
             : removeLineBreaksForDisplay(fixedDescription);
         
         let badgesHtml = 
-            '<span class="badge-type ' + getIconClass(listing.type) + '" data-type="' + escapeHtml(listing.type) + '" onclick="event.preventDefault(); event.stopPropagation(); filterByBadge(event, \'type\', \'' + escapeHtml(listing.type) + '\'); return false;">' + escapeHtml(fixedType) + '</span>' +
+            '<span class="badge-type ' + getIconClass(listing.type, listing) + '" data-type="' + escapeHtml(listing.type) + '" onclick="event.preventDefault(); event.stopPropagation(); filterByBadge(event, \'type\', \'' + escapeHtml(listing.type) + '\'); return false;">' + escapeHtml(fixedType) + '</span>' +
             '<span class="badge-area" data-area="' + escapeHtml(listing.area) + '" onclick="event.preventDefault(); event.stopPropagation(); filterByBadge(event, \'area\', \'' + escapeHtml(listing.area) + '\'); return false;">' + escapeHtml(fixedArea) + '</span>';
         contentDiv.innerHTML = 
             '<h3 style="font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--text-primary); line-height: 1.2;">' + escapeHtml(fixedName) + '</h3>' +
@@ -6817,7 +6847,7 @@ function updateMapMarkers(listings) {
                     '<div style="padding: 20px 16px; margin: 0; line-height: normal;">' +
                     '<div class="map-popup-title">' + escapeHtml(fixEncoding(listing.name)) + '</div>' +
                     '<div class="map-popup-badges">' +
-                    '<span class="badge badge-type ' + getIconClass(listing.type) + '" onclick="filterByBadge(event, \'type\', \'' + listing.type.replace(/'/g, "\\'") + '\'); google.maps.event.trigger(map, \'click\');">' + listing.type + '</span>' +
+                    '<span class="badge badge-type ' + getIconClass(listing.type, listing) + '" onclick="filterByBadge(event, \'type\', \'' + listing.type.replace(/'/g, "\\'") + '\'); google.maps.event.trigger(map, \'click\');">' + listing.type + '</span>' +
                     '<span class="badge badge-area" onclick="filterByBadge(event, \'area\', \'' + listing.area.replace(/'/g, "\\'") + '\'); google.maps.event.trigger(map, \'click\');">' + listing.area + '</span>' +
                     '</div>' +
                     imageHtml +

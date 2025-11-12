@@ -241,7 +241,6 @@
             <button class="tab-btn active" onclick="switchTab('admin')">Admin</button>
             <button class="tab-btn" onclick="switchTab('data')">Data Table</button>
             <button class="tab-btn" onclick="switchTab('categories')">Categories</button>
-            <button class="tab-btn" onclick="switchTab('icons')">Icons</button>
             <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
         </div>
     </div>
@@ -438,40 +437,6 @@
                 <input type="file" id="importCategoriesFile" accept=".json" style="display: none;" onchange="importCategories(event)" />
                 <p style="margin: 15px 0 0 0; color: #6c757d; font-size: 14px;">
                     <strong>Note:</strong> Changes are saved automatically to your browser's local storage. Categories sync between admin panel and front page.
-                </p>
-            </div>
-        </div>
-    </div>
-    
-    <div id="iconsTab" class="tab-content">
-        <div class="settings-container" style="width: 100%; margin: 0; padding: 20px;">
-            <div style="margin-bottom: 30px;">
-                <h2 style="margin: 0 0 10px 0; color: #212529;">Icon Mapping Management</h2>
-                <p style="color: #6c757d; margin: 0;">Manage which icons are displayed for each listing type. Changes sync automatically to the front page.</p>
-            </div>
-            
-            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #4E6B52;">
-                <p style="margin: 0; color: #6c757d;">
-                    <strong>How it works:</strong> Each listing type is mapped to an icon class. When a listing has that type, it displays the corresponding icon. You can change which icon is used for any type, or add new type-to-icon mappings.
-                </p>
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <button onclick="addIconMapping()" class="btn btn-primary" style="margin-right: 10px;">+ Add New Mapping</button>
-                <input type="text" id="iconMappingSearch" placeholder="Search types or icons..." style="padding: 8px 12px; border: 1px solid #dee2e6; border-radius: 4px; width: 300px;" onkeyup="filterIconMappings()" />
-            </div>
-            
-            <div id="iconsList" style="display: grid; gap: 15px; margin-bottom: 30px;">
-                <!-- Icon mappings will be rendered here -->
-            </div>
-            
-            <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
-                <button onclick="resetIconMappingsToDefaults()" class="btn btn-secondary" style="margin-right: 10px;">Reset to Defaults</button>
-                <button onclick="exportIconMappings()" class="btn btn-primary" style="margin-right: 10px;">Export Icon Mappings</button>
-                <button onclick="document.getElementById('importIconMappingsFile').click()" class="btn btn-primary">Import Icon Mappings</button>
-                <input type="file" id="importIconMappingsFile" accept=".json" style="display: none;" onchange="importIconMappings(event)" />
-                <p style="margin: 15px 0 0 0; color: #6c757d; font-size: 14px;">
-                    <strong>Note:</strong> Changes are saved automatically to your browser's local storage. Icon mappings sync between admin panel and front page in real-time.
                 </p>
             </div>
         </div>
