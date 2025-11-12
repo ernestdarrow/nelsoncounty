@@ -1549,13 +1549,18 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 let matchesType = true;
                 if (currentAdminTypeFilter) {
                     // Check if it's a category key
-                    if (TYPE_CATEGORIES[currentAdminTypeFilter]) {
+                    if (TYPE_CATEGORIES && TYPE_CATEGORIES[currentAdminTypeFilter]) {
                         // Use getCategoryForType to determine the listing's category
                         // This handles both automatic type mapping and category overrides
                         const listingCategory = getCategoryForType(listing.type, listing);
                         matchesType = listingCategory === currentAdminTypeFilter;
+                        
+                        // Debug logging
+                        if (listingCategory !== currentAdminTypeFilter) {
+                            // This listing doesn't match the selected category
+                        }
                     } else {
-                        // Direct type match
+                        // Direct type match (legacy support)
                         matchesType = listing.type === currentAdminTypeFilter;
                     }
                 }
@@ -1565,11 +1570,25 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 return matchesSearch && matchesType && matchesArea && matchesAmenity;
             });
             
+            console.log('📊 filterListings result:', filtered.length, 'of', data.listings.length, 'listings match filter');
+            if (currentAdminTypeFilter) {
+                console.log('📊 Filtering by category:', currentAdminTypeFilter);
+                console.log('📊 Sample filtered types:', filtered.slice(0, 5).map(function(l) {
+                    return l.type + ' -> ' + getCategoryForType(l.type, l);
+                }).join(', '));
+            }
+            
             renderListings(filtered);
         }
         
         window.filterAdminByType = function filterAdminByType(typeOrCategory) {
             currentAdminTypeFilter = typeOrCategory || '';
+            
+            console.log('🔍 filterAdminByType called with:', typeOrCategory, '| currentAdminTypeFilter:', currentAdminTypeFilter);
+            console.log('📋 TYPE_CATEGORIES available:', TYPE_CATEGORIES ? 'YES' : 'NO');
+            if (TYPE_CATEGORIES && typeOrCategory) {
+                console.log('📋 Category exists in TYPE_CATEGORIES:', TYPE_CATEGORIES[typeOrCategory] ? 'YES' : 'NO');
+            }
             
             // Update button active states - only one category should be active at a time
             const buttons = document.querySelectorAll('#adminTab .type-filter-btn');
@@ -1589,6 +1608,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 }
             });
             
+            // Call filterListings to apply the filter
             filterListings();
         }
         
@@ -1618,6 +1638,28 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             // Render type filter buttons dynamically based on usage
             if (data.listings) {
                 renderAdminTypeFilterButtons(data.listings, '#adminTab .type-quick-filters'); // Show all categories
+                
+                // Make sure "All Types" button has correct handler after categories are rendered
+                // Use ID selector first, then fallback to querySelector
+                const allTypesBtn = document.getElementById('adminAllTypesBtn') || 
+                                    document.querySelector('#adminTab .type-filter-btn[data-type=""]:not([data-category])');
+                if (allTypesBtn) {
+                    // Remove any existing onclick handlers
+                    allTypesBtn.onclick = null;
+                    // Remove any existing event listeners by cloning and replacing
+                    const newAllTypesBtn = allTypesBtn.cloneNode(true);
+                    allTypesBtn.parentNode.replaceChild(newAllTypesBtn, allTypesBtn);
+                    // Set ID on new button
+                    newAllTypesBtn.id = 'adminAllTypesBtn';
+                    // Add handler
+                    newAllTypesBtn.onclick = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🔄 All Types button clicked');
+                        currentAdminTypeFilter = '';
+                        filterAdminByType('');
+                    };
+                }
             }
         }
 
@@ -1741,14 +1783,19 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 
                 // When clicked, filter by all types in this category
                 // Only one category can be active at a time
-                btn.onclick = function() {
+                btn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
                     // Check if this category is already active
                     if (currentAdminTypeFilter === categoryInfo.key) {
                         // If clicking the same category, clear the filter and show "All Types"
+                        console.log('🔄 Clearing category filter');
                         currentAdminTypeFilter = '';
                         filterAdminByType('');
                     } else {
                         // Clear previous selection and set this category as active
+                        console.log('🎯 Filtering by category:', categoryInfo.key, categoryInfo.category.name);
                         currentAdminTypeFilter = categoryInfo.key;
                         filterAdminByType(categoryInfo.key);
                     }
@@ -1793,14 +1840,19 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     btn.title = categoryInfo.category.description;
                     
                     // Only one category can be active at a time
-                    btn.onclick = function() {
+                    btn.onclick = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
                         // Check if this category is already active
                         if (currentAdminTypeFilter === categoryInfo.key) {
                             // If clicking the same category, clear the filter and show "All Types"
+                            console.log('🔄 Clearing category filter (hidden category)');
                             currentAdminTypeFilter = '';
                             filterAdminByType('');
                         } else {
                             // Clear previous selection and set this category as active
+                            console.log('🎯 Filtering by category (hidden):', categoryInfo.key, categoryInfo.category.name);
                             currentAdminTypeFilter = categoryInfo.key;
                             filterAdminByType(categoryInfo.key);
                         }
@@ -3463,13 +3515,23 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             initImageUploadButtons();
             
             // Add event listeners to quick filter buttons in admin tab
-            document.querySelectorAll('#adminTab .type-filter-btn').forEach(function(btn) {
+            // Skip category buttons (they have data-category attribute) - they have their own handlers
+            document.querySelectorAll('#adminTab .type-filter-btn:not([data-category])').forEach(function(btn) {
+                // Only handle buttons without data-category (like "All Types" button)
+                // Category buttons are handled by their own onclick handlers set in renderAdminTypeFilterButtons
+                
                 // Remove any existing onclick handlers to avoid conflicts
                 btn.onclick = null;
                 
                 btn.addEventListener('click', function() {
-                    const type = this.dataset.type || '';
-                    filterAdminByType(type);
+                    // Check if this is the "All Types" button
+                    if (this.dataset.type === '' && !this.dataset.category) {
+                        filterAdminByType('');
+                    } else {
+                        // Legacy individual type button (shouldn't exist with category system)
+                        const type = this.dataset.type || '';
+                        filterAdminByType(type);
+                    }
                 });
             });
         });
