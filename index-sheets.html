@@ -293,11 +293,11 @@
             box-sizing: border-box;
         }
         
-        .listing-contact { font-size: 13px; color: var(--text-secondary); margin-bottom: 15px; }
+        .listing-contact { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
         .listing-actions { 
             display: flex; 
             gap: 10px; 
-            padding: 15px 20px 20px 20px; 
+            padding: 8px 20px 20px 20px; 
             margin-top: auto;
             margin-left: -20px;
             margin-right: -20px;
@@ -3245,6 +3245,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     rightArrow.className = 'scroll-arrow scroll-arrow-right';
                     rightArrow.style.opacity = '1'; // Always visible
                     rightArrow.style.pointerEvents = 'auto'; // Ensure clickable
+                    rightArrow.style.position = 'absolute'; // Position relative to front
+                    rightArrow.style.zIndex = '15'; // Above images
                     rightArrow.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
@@ -3257,7 +3259,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
                     });
                     
-                    imgContainer.appendChild(rightArrow);
+                    // Append to front so it doesn't scroll with images
+                    front.appendChild(rightArrow);
                 }
                 
                 // Featured badge
@@ -3368,11 +3371,10 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     descriptionHTML +
                     (listing.amenities && listing.amenities.length > 0 ? 
                     '<div class="listing-amenities">' +
-                    listing.amenities.slice(0, 4).map(function(a) {
+                    listing.amenities.map(function(a) {
                         const escapedAmenity = a.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
                         return '<span class="amenity" onclick="filterByAdminBadge(event, \'amenity\', \'' + escapedAmenity + '\')" style="cursor: pointer;">' + a + '</span>';
                     }).join('') +
-                    (listing.amenities.length > 4 ? '<span class="amenity">+' + (listing.amenities.length - 4) + ' more</span>' : '') +
                     '</div>' : '') +
                     contactHtml;
                 
@@ -5253,6 +5255,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     rightArrow.className = 'scroll-arrow scroll-arrow-right';
                     rightArrow.style.opacity = '1'; // Always visible
                     rightArrow.style.pointerEvents = 'auto'; // Ensure clickable
+                    rightArrow.style.position = 'absolute'; // Position relative to front
+                    rightArrow.style.zIndex = '15'; // Above images
                     
                     rightArrow.addEventListener('click', function(e) {
                         e.preventDefault();
@@ -5266,7 +5270,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
                     });
                     
-                    imgContainer.appendChild(rightArrow);
+                    // Append to front so it doesn't scroll with images
+                    front.appendChild(rightArrow);
                 }
                 
                 // Add card content below images
