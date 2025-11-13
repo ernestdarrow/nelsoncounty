@@ -584,7 +584,7 @@ function generateImageDescriptionWithOpenAI(imageUrl, apiKey) {
         'content': [
           {
             'type': 'text',
-            'text': 'Write a brief summary of this image in exactly 10-15 words. Focus only on the main subject and key visual elements. Be concise and descriptive.'
+            'text': 'Write a very brief image description in exactly 10-15 words maximum. Describe only the main subject and key visual elements. Be extremely concise - do not exceed 15 words. Example: "Red apples hanging from green tree branch in sunlight" (8 words).'
           },
           {
             'type': 'image_url',
@@ -595,7 +595,7 @@ function generateImageDescriptionWithOpenAI(imageUrl, apiKey) {
         ]
       }
     ],
-    'max_tokens': 50  // Reduced to 50 since we only want 10-15 words (~15-25 tokens)
+    'max_tokens': 150  // Increased to 150 to ensure we get output (10-15 words needs ~15-25 tokens, but model may need buffer)
   };
   
   const options = {
@@ -666,7 +666,7 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
       {
         'parts': [
           {
-            'text': 'Write a brief summary of this image in exactly 10-15 words. Focus only on the main subject and key visual elements. Be concise and descriptive.'
+            'text': 'Write a very brief image description in exactly 10-15 words maximum. Describe only the main subject and key visual elements. Be extremely concise - do not exceed 15 words. Example: "Red apples hanging from green tree branch in sunlight" (8 words).'
           },
           {
             'inline_data': {
@@ -678,7 +678,7 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
       }
     ],
     'generationConfig': {
-      'maxOutputTokens': 100,  // Reduced to 100 since we only want 10-15 words (~15-25 tokens)
+      'maxOutputTokens': 200,  // Increased to 200 to ensure we get output (10-15 words needs ~15-25 tokens, but model may need buffer)
       'temperature': 0.5  // Lower temperature for more focused, consistent short summaries
     }
   };
@@ -771,26 +771,24 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
       }
     }
     
-    // Check for finish reason - if MAX_TOKENS, we might still have partial content
-    if (candidate && candidate.finishReason === 'MAX_TOKENS') {
-      Logger.log('⚠️ Warning: Response hit MAX_TOKENS limit.');
-      Logger.log('  - Usage shows ' + (responseData.usageMetadata ? responseData.usageMetadata.totalTokenCount : 'unknown') + ' total tokens used');
-      Logger.log('  - Prompt tokens: ' + (responseData.usageMetadata ? responseData.usageMetadata.promptTokenCount : 'unknown'));
-      Logger.log('  - Output tokens: ' + (responseData.usageMetadata ? (responseData.usageMetadata.totalTokenCount - responseData.usageMetadata.promptTokenCount) : 'unknown'));
-      Logger.log('  - Thoughts tokens: ' + (responseData.usageMetadata && responseData.usageMetadata.thoughtsTokenCount ? responseData.usageMetadata.thoughtsTokenCount : 'none'));
-      Logger.log('  - Cached tokens: ' + (responseData.usageMetadata && responseData.usageMetadata.cachedContentTokenCount ? responseData.usageMetadata.cachedContentTokenCount : 'none'));
-      
-      // If we hit MAX_TOKENS with no content, the limit might be too low
-      // or the model needs more tokens to generate output
-      Logger.log('  - Note: If no description found, try increasing maxOutputTokens further');
-    }
-    
     // Try to extract description from various possible response formats
     let description = null;
     
     // Debug: Log the full candidate structure
     if (candidate) {
       Logger.log('Full candidate structure: ' + JSON.stringify(candidate).substring(0, 1000));
+    }
+    
+    // Check for finish reason - if MAX_TOKENS, we might still have partial content
+    const finishReason = candidate ? candidate.finishReason : null;
+    if (finishReason === 'MAX_TOKENS') {
+      Logger.log('⚠️ Warning: Response hit MAX_TOKENS limit.');
+      Logger.log('  - Usage shows ' + (responseData.usageMetadata ? responseData.usageMetadata.totalTokenCount : 'unknown') + ' total tokens used');
+      Logger.log('  - Prompt tokens: ' + (responseData.usageMetadata ? responseData.usageMetadata.promptTokenCount : 'unknown'));
+      Logger.log('  - Output tokens: ' + (responseData.usageMetadata ? (responseData.usageMetadata.totalTokenCount - responseData.usageMetadata.promptTokenCount) : 'unknown'));
+      Logger.log('  - Thoughts tokens: ' + (responseData.usageMetadata && responseData.usageMetadata.thoughtsTokenCount ? responseData.usageMetadata.thoughtsTokenCount : 'none'));
+      Logger.log('  - Cached tokens: ' + (responseData.usageMetadata && responseData.usageMetadata.cachedContentTokenCount ? responseData.usageMetadata.cachedContentTokenCount : 'none'));
+      Logger.log('  - Attempting to extract partial content...');
     }
     
     // Standard format: parts array with text
@@ -802,6 +800,7 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
         if (part.text) {
           description = part.text.trim();
           Logger.log('  Found text in part ' + i + ', length: ' + description.length);
+          Logger.log('  Text preview: ' + description.substring(0, 200));
           break;
         }
       }
@@ -833,8 +832,20 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
     
     if (description && description.length > 0) {
       Logger.log('✅ Gemini description extracted successfully!');
-      Logger.log('Description length: ' + description.length + ' characters');
-      Logger.log('Description preview: ' + description.substring(0, 150) + '...');
+      Logger.log('Original description length: ' + description.length + ' characters');
+      
+      // Truncate to ~15 words maximum if it's too long
+      // Split into words and take first 15 words, then rejoin
+      const words = description.trim().split(/\s+/);
+      const maxWords = 15;
+      if (words.length > maxWords) {
+        Logger.log('⚠️ Description has ' + words.length + ' words, truncating to ' + maxWords + ' words');
+        description = words.slice(0, maxWords).join(' ');
+        Logger.log('Truncated description: ' + description);
+        Logger.log('Truncated description length: ' + description.length + ' characters');
+      }
+      
+      Logger.log('Final description preview: ' + description.substring(0, 150) + (description.length > 150 ? '...' : ''));
       
       return ContentService
         .createTextOutput(JSON.stringify({
@@ -843,14 +854,22 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
         }))
         .setMimeType(ContentService.MimeType.JSON);
     } else {
-      // If we hit MAX_TOKENS and have no description, try increasing tokens and retrying
+      // If we hit MAX_TOKENS, provide more helpful error message
       if (candidate && candidate.finishReason === 'MAX_TOKENS') {
-        Logger.log('⚠️ MAX_TOKENS hit and no description found. This shouldn\'t happen with 500 token limit.');
+        Logger.log('⚠️ MAX_TOKENS hit but no text content found in response.');
+        Logger.log('This may indicate the model needs more tokens to generate output, or the response structure is different.');
+        Logger.log('Try increasing maxOutputTokens or check if the model is returning content in a different format.');
       }
       
       Logger.log('❌ Could not extract description from response');
-      Logger.log('Full response structure: ' + JSON.stringify(responseData, null, 2).substring(0, 1000));
-      throw new Error('Could not extract description from Gemini response. Finish reason: ' + (candidate ? candidate.finishReason : 'unknown') + '. Response structure may have changed.');
+      Logger.log('Full response structure: ' + JSON.stringify(responseData, null, 2).substring(0, 2000));
+      
+      // Provide more detailed error based on finish reason
+      if (candidate && candidate.finishReason === 'MAX_TOKENS') {
+        throw new Error('Gemini API hit MAX_TOKENS limit and no description was generated. Try increasing maxOutputTokens or simplifying the prompt. Finish reason: MAX_TOKENS');
+      } else {
+        throw new Error('Could not extract description from Gemini response. Finish reason: ' + (candidate ? candidate.finishReason : 'unknown') + '. Response structure may have changed.');
+      }
     }
   } else {
     Logger.log('❌ Gemini API error (' + status + '): ' + responseText);
@@ -1121,9 +1140,23 @@ function updateImageKitFileMetadata(filePathOrId, customMetadata, imageUrl) {
     
     // If customMetadata contains a description, use it for the standard description field
     // and also keep it in customMetadata for backwards compatibility
+    // ImageKit has a 500 character limit for descriptions, so truncate if necessary
     if (customMetadata && customMetadata.description) {
-      updatePayload.description = customMetadata.description;
-      Logger.log('Setting standard description field: ' + customMetadata.description.substring(0, 100) + '...');
+      let description = customMetadata.description;
+      const maxLength = 500;
+      
+      // Truncate description if it exceeds ImageKit's 500 character limit
+      if (description.length > maxLength) {
+        Logger.log('⚠️ Description exceeds ' + maxLength + ' characters (' + description.length + '). Truncating...');
+        description = description.substring(0, maxLength);
+        Logger.log('Truncated description length: ' + description.length + ' characters');
+      }
+      
+      updatePayload.description = description;
+      Logger.log('Setting standard description field: ' + description.substring(0, 100) + '...');
+      
+      // Update customMetadata with truncated description
+      customMetadata.description = description;
     }
     
     // Merge existing customMetadata with new values

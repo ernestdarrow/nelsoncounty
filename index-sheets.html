@@ -4670,6 +4670,54 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 alert('"' + listing.name + '" has been added locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.');
             }
             
+            // Update ImageKit metadata for all images that have descriptions and ImageKit URLs
+            // This ensures descriptions are synced to ImageKit when saving
+            async function syncImageDescriptionsToImageKit() {
+                const imageFields = ['listingImage1', 'listingImage2', 'listingImage3'];
+                const descFields = ['listingImage1Desc', 'listingImage2Desc', 'listingImage3Desc'];
+                
+                for (let i = 0; i < imageFields.length; i++) {
+                    const imageField = document.getElementById(imageFields[i]);
+                    const descField = document.getElementById(descFields[i]);
+                    
+                    if (!imageField || !descField) continue;
+                    
+                    const imageUrl = imageField.value.trim();
+                    const description = descField.value.trim();
+                    
+                    // Only update if both description and image URL are present and it's an ImageKit URL
+                    if (description && imageUrl && imageUrl.includes('ik.imagekit.io')) {
+                        try {
+                            // Try to get fileId from the image input's data attribute (if stored during upload)
+                            const storedFileId = imageField.dataset.imagekitFileId || null;
+                            
+                            console.log('Syncing ImageKit metadata on save:', {
+                                image: imageUrl.substring(0, 50) + '...',
+                                description: description.substring(0, 50) + '...',
+                                fileId: storedFileId || 'not available'
+                            });
+                            
+                            // Update ImageKit metadata
+                            if (storedFileId) {
+                                await updateImageKitMetadata(imageUrl, description, storedFileId);
+                            } else {
+                                await updateImageKitMetadata(imageUrl, description);
+                            }
+                            
+                            console.log('✅ ImageKit metadata synced for', imageFields[i]);
+                        } catch (error) {
+                            console.warn('Failed to sync ImageKit metadata for', imageFields[i], ':', error);
+                            // Don't fail the save if ImageKit update fails
+                        }
+                    }
+                }
+            }
+            
+            // Sync image descriptions to ImageKit (don't await - do it in background)
+            syncImageDescriptionsToImageKit().catch(function(error) {
+                console.warn('Some ImageKit metadata syncs may have failed:', error);
+            });
+            
             // Update filter options, refresh display, and close modal
             applyFilterOptionCleanup();
             renderListings();
@@ -4740,6 +4788,46 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         
         document.getElementById('listingModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
+        });
+        
+        // Keyboard shortcut: Cmd+S (Mac) or Ctrl+S (Windows) to save listing
+        document.addEventListener('keydown', function(e) {
+            // Check if modal is open
+            const modal = document.getElementById('listingModal');
+            if (!modal || !modal.classList.contains('active')) {
+                return;
+            }
+            
+            // Check if Cmd+S (Mac) or Ctrl+S (Windows) is pressed
+            const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+            const isSaveShortcut = (isMac && e.metaKey && e.key === 's') || (!isMac && e.ctrlKey && e.key === 's');
+            
+            if (isSaveShortcut) {
+                // Prevent default browser save dialog
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Trigger form submission (which calls saveListing via onsubmit)
+                const form = document.getElementById('listingForm');
+                if (form) {
+                    // Validate form first
+                    if (form.checkValidity()) {
+                        // Use requestSubmit() if available (triggers onsubmit handler and validation)
+                        // Otherwise, create a synthetic submit event and call saveListing directly
+                        if (typeof form.requestSubmit === 'function') {
+                            form.requestSubmit();
+                        } else {
+                            // Fallback: Create synthetic event and call saveListing directly
+                            const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+                            // Call saveListing directly with the event
+                            saveListing(submitEvent);
+                        }
+                    } else {
+                        // If form is invalid, show validation errors
+                        form.reportValidity();
+                    }
+                }
+            }
         });
         
         // Auto-populate Google Maps directions link when address changes
