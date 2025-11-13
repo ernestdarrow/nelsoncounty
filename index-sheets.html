@@ -1504,7 +1504,7 @@
                             <div class="filter-section search-section">
                                 <div class="preview-search">
                                     <label>Search Listings</label>
-                                    <input type="text" id="adminSearchInput" placeholder="Search by name, type, area, or description..." onkeyup="filterListings()" />
+                                    <input type="text" id="adminSearchInput" placeholder="Search all fields (name, description, tags, amenities, contact info...)" onkeyup="filterListings()" />
                                 </div>
                             </div>
                             
@@ -3872,19 +3872,28 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             const amenityFilter = document.getElementById('adminAmenityFilter').value;
             
             const filtered = data.listings.filter(function(listing) {
+                // Build comprehensive searchable text from all listing fields
                 const searchableText = [
-                    listing.name,
-                    listing.slug,
-                    listing.type,
-                    listing.area,
-                    listing.description,
-                listing.detailedDescription,
-                listing.address,
-                listing.authorName,
-                listing.publishedDate,
-                listing.modifiedDate,
-                listing.directionsLink,
-                listing.amenities.join(' ')
+                    listing.name || '',
+                    listing.slug || '',
+                    listing.id || '',
+                    listing.type || '',
+                    listing.category || '',
+                    listing.area || '',
+                    listing.description || '',
+                    listing.detailedDescription || '',
+                    listing.address || '',
+                    listing.phone || '',
+                    listing.website || '',
+                    listing.authorName || '',
+                    listing.publishedDate || '',
+                    listing.modifiedDate || '',
+                    listing.directionsLink || '',
+                    listing.googleMapsUrl || '',
+                    listing.image1Desc || '',
+                    listing.image2Desc || '',
+                    listing.image3Desc || '',
+                    Array.isArray(listing.amenities) ? listing.amenities.join(' ') : (listing.amenities || '')
                 ].join(' ').toLowerCase();
                 
                 const matchesSearch = !searchTerm || searchableText.indexOf(searchTerm) > -1;
