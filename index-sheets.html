@@ -12,6 +12,8 @@
         window.g_id_onload = null;
     </script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDysf1CQM7-kZd_mhDcBIhp92o7Tb6SmAQ&libraries=places&callback=initMap" async defer></script>
     <!-- Local Stylesheet for Admin Panel -->
     <style>
 /* =================================           CENTRALIZED SVG ICON LIBRARY
@@ -959,6 +961,192 @@
                 grid-template-columns: 1fr;
             }
         }
+        
+        /* Map Styles */
+        .map-container {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 0;
+            margin-top: 25px;
+            margin-bottom: 30px;
+            box-shadow: none;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .map-container.map-collapsed {
+            background: transparent !important;
+        }
+        
+        @media (max-width: 968px) {
+            .map-container {
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 16px !important;
+                margin-top: 30px !important;
+                position: relative;
+            }
+            .map-header {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                z-index: 1000;
+                margin: 0 !important;
+                justify-content: flex-start;
+            }
+            .map-collapsed .map-header {
+                left: 50%;
+                top: 1px;
+                transform: translateX(-50%);
+                justify-content: center;
+            }
+            .map-header h2 {
+                display: none !important;
+            }
+            .map-toggle-btn {
+                width: 36px;
+                height: 36px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+                gap: 6px;
+            }
+            .map-collapsed .map-toggle-btn {
+                width: auto !important;
+                padding: 10px 14px !important;
+                transform: translateY(-30px) !important;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+            }
+            .map-toggle-text {
+                font-size: 12px;
+            }
+            #map {
+                border-radius: 20px;
+                height: 33.333vh !important;
+            }
+        }
+        .map-collapsed {
+            padding: 0;
+            margin-top: 0;
+            margin-bottom: -20px;
+            background: transparent !important;
+        }
+        .map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            margin: 0;
+            justify-content: flex-start;
+        }
+        .map-collapsed .map-header {
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            top: 23px;
+        }
+        .map-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            transition: all 0.3s;
+        }
+        .map-collapsed .map-header h2 {
+            font-size: 16px;
+        }
+        .map-toggle-btn {
+            background: white;
+            color: var(--text-primary);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            transition: all 0.3s;
+            padding: 0;
+            gap: 8px;
+        }
+        .map-toggle-text {
+            display: none;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .map-collapsed .map-toggle-btn {
+            width: auto;
+            border-radius: 12px;
+            padding: 10px 24px 10px 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            height: auto;
+        }
+        .map-collapsed .map-toggle-text {
+            display: inline;
+        }
+        .map-toggle-btn:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+        .map-toggle-btn svg {
+            display: block;
+        }
+        .map-collapsed .map-toggle-btn svg {
+            stroke: #22c55e;
+            color: #22c55e;
+        }
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: 24px;
+            overflow: hidden;
+        }
+        .map-collapsed #map {
+            display: none;
+        }
+        
+        /* Hide Google Maps attribution, copyright, and footer links at the bottom */
+        .gm-style-cc {
+            display: none !important;
+        }
+        .gm-style-cc a,
+        .gm-style-cc button,
+        .gm-style-cc span,
+        .gm-style-cc div {
+            display: none !important;
+        }
+        
+        /* Hide keyboard shortcuts notice (specific button) */
+        .gm-style button[title*="keyboard" i],
+        .gm-style button[title*="Keyboard" i],
+        .gm-style button[aria-label*="keyboard" i],
+        .gm-style button[aria-label*="Keyboard" i] {
+            display: none !important;
+        }
+        
+        /* Hide specific attribution links - be very specific */
+        .gm-style a[href*="terms"],
+        .gm-style a[href*="Report a map error"],
+        .gm-style a[href*="report"] {
+            display: none !important;
+        }
+        
+        /* Clean up map appearance - but don't hide the map itself */
+        .gm-style {
+            font-family: inherit !important;
+        }
+        
+        /* Ensure map controls are styled nicely */
+        .gm-style-iw-t::after {
+            background: transparent !important;
+        }
     </style>
     
     <!-- Quick check: If auth is disabled, hide login immediately -->
@@ -1311,6 +1499,19 @@
                 </aside>
                 
                 <main class="preview-main">
+                    <div class="map-container map-collapsed" id="mapContainer">
+                        <div class="map-header">
+                            <h2 style="display: none;">Map View</h2>
+                            <button class="map-toggle-btn" onclick="toggleMap()">
+                                <svg id="mapToggleIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m7-7H5"></path>
+                                </svg>
+                                <span class="map-toggle-text">Open Map</span>
+                            </button>
+                        </div>
+                        <div id="map"></div>
+                    </div>
+                    
                     <h2 class="section-title">All Listings</h2>
                     <div id="listingsGrid" class="listings-grid"></div>
                 </main>
@@ -3442,6 +3643,11 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             });
             
             updateStats(listings);
+            
+            // Update map markers with the listings
+            if (typeof updateMapMarkers === 'function') {
+                updateMapMarkers(listings);
+            }
         }
         
         function updateStats(listings) {
@@ -6469,6 +6675,354 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 }
             }, 2000);
         });
+        
+        // Google Maps functionality
+        let map = null;
+        let markers = [];
+        let markerCluster = null;
+        let mapVisible = false; // Start collapsed
+        let infoWindow = null;
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function fixEncoding(text) {
+            if (!text) return '';
+            return text.replace(/â€™/g, "'").replace(/â€"/g, '"').replace(/â€"/g, '"');
+        }
+        
+        function normalizeImageUrl(url) {
+            if (!url) return '';
+            // If it's a base64 image, return as is
+            if (url.startsWith('data:image/')) return url;
+            // If it's a relative path, make it absolute
+            if (url.startsWith('/')) return url;
+            // If it's a full URL, return as is
+            if (url.startsWith('http://') || url.startsWith('https://')) return url;
+            // Otherwise, assume it's an ImageKit URL
+            return url;
+        }
+        
+        function initMap() {
+            // Check if Google Maps API is loaded
+            if (typeof google === 'undefined' || typeof google.maps === 'undefined' || typeof google.maps.Map === 'undefined') {
+                console.log('Google Maps API not loaded yet, retrying...');
+                // Retry after a short delay
+                setTimeout(initMap, 100);
+                return;
+            }
+            
+            if (!map) {
+                try {
+                    // Initialize Google Map centered on Nelson County, VA
+                    map = new google.maps.Map(document.getElementById('map'), {
+                        center: { lat: 37.8, lng: -79.0 },
+                        zoom: 10,
+                        mapTypeControl: false,
+                        zoomControl: true,
+                        zoomControlOptions: {
+                            position: google.maps.ControlPosition ? google.maps.ControlPosition.RIGHT_TOP : 1
+                        },
+                        streetViewControl: false,
+                        fullscreenControl: false,
+                        keyboardShortcuts: false,
+                        gestureHandling: 'cooperative',
+                        styles: [
+                            // Hide all points of interest
+                            {
+                                featureType: "poi",
+                                elementType: "labels",
+                                stylers: [{ visibility: "off" }]
+                            },
+                            {
+                                featureType: "poi.business",
+                                stylers: [{ visibility: "off" }]
+                            },
+                            {
+                                featureType: "poi",
+                                stylers: [{ visibility: "off" }]
+                            },
+                            // Hide transit
+                            {
+                                featureType: "transit",
+                                elementType: "labels",
+                                stylers: [{ visibility: "off" }]
+                            },
+                            {
+                                featureType: "transit.station",
+                                stylers: [{ visibility: "off" }]
+                            },
+                            {
+                                featureType: "transit.line",
+                                stylers: [{ visibility: "off" }]
+                            },
+                            // Simplify administrative boundaries
+                            {
+                                featureType: "administrative",
+                                elementType: "geometry.stroke",
+                                stylers: [{ visibility: "off" }]
+                            },
+                            {
+                                featureType: "administrative.locality",
+                                elementType: "labels",
+                                stylers: [{ visibility: "simplified" }]
+                            },
+                            {
+                                featureType: "administrative.neighborhood",
+                                elementType: "labels",
+                                stylers: [{ visibility: "off" }]
+                            },
+                            {
+                                featureType: "administrative.land_parcel",
+                                stylers: [{ visibility: "off" }]
+                            },
+                            // Hide minor/local roads and their labels
+                            {
+                                featureType: "road.local",
+                                elementType: "labels",
+                                stylers: [{ visibility: "off" }]
+                            },
+                            {
+                                featureType: "road.local",
+                                stylers: [{ visibility: "off" }]
+                            },
+                            {
+                                featureType: "road",
+                                elementType: "labels.text.fill",
+                                stylers: [{ visibility: "simplified" }]
+                            },
+                            // Hide water labels
+                            {
+                                featureType: "water",
+                                elementType: "labels",
+                                stylers: [{ visibility: "off" }]
+                            },
+                            {
+                                featureType: "water",
+                                elementType: "labels.text",
+                                stylers: [{ visibility: "off" }]
+                            },
+                            // Natural features
+                            {
+                                featureType: "landscape.natural",
+                                stylers: [
+                                    { color: "#E1F3C9" }
+                                ]
+                            },
+                            {
+                                featureType: "water",
+                                stylers: [
+                                    { color: "#CAE8F2" }
+                                ]
+                            }
+                        ]
+                    });
+                    
+                    // Apply rounded corners to zoom controls after map loads
+                    setTimeout(() => {
+                        const mapContainer = document.getElementById('map');
+                        if (mapContainer) {
+                            const buttons = mapContainer.querySelectorAll('button');
+                            buttons.forEach(button => {
+                                if (button.getAttribute('aria-label') && button.getAttribute('aria-label').includes('Zoom')) {
+                                    button.style.borderRadius = '16px';
+                                }
+                            });
+                            
+                            const zoomControls = mapContainer.querySelectorAll('[aria-label*="Zoom"]');
+                            zoomControls.forEach(control => {
+                                const parent = control.closest('div[style*="position"]');
+                                if (parent) {
+                                    parent.style.borderRadius = '16px';
+                                    parent.style.overflow = 'hidden';
+                                }
+                            });
+                        }
+                    }, 500);
+                    
+                    // Also apply on map idle event
+                    map.addListener('idle', () => {
+                        const mapContainer = document.getElementById('map');
+                        if (mapContainer) {
+                            const buttons = mapContainer.querySelectorAll('button');
+                            buttons.forEach(button => {
+                                if (button.getAttribute('aria-label') && button.getAttribute('aria-label').includes('Zoom')) {
+                                    button.style.borderRadius = '16px';
+                                }
+                                const parent = button.parentElement;
+                                if (parent && parent.style.position === 'absolute') {
+                                    parent.style.borderRadius = '16px';
+                                    parent.style.overflow = 'hidden';
+                                }
+                            });
+                        }
+                    });
+                    
+                    // Create single info window to reuse
+                    infoWindow = new google.maps.InfoWindow();
+                } catch (e) {
+                    console.error('Error initializing map:', e);
+                    setTimeout(function() {
+                        if (!map) {
+                            initMap();
+                        }
+                    }, 500);
+                }
+            }
+        }
+        
+        function updateMapMarkers(listings) {
+            if (!map) return;
+            
+            // Clear existing clusterer if it exists
+            if (markerCluster) {
+                markerCluster.clearMarkers();
+                markerCluster = null;
+            }
+            
+            // Clear existing markers
+            markers.forEach(function(marker) {
+                marker.setMap(null);
+            });
+            markers = [];
+            
+            // Create bounds
+            var bounds = new google.maps.LatLngBounds();
+            var markersToAdd = [];
+            var geocodeCount = 0;
+            var totalListings = listings.length;
+            
+            // Add markers for each listing
+            listings.forEach(function(listing) {
+                geocodeAddress(listing.address, function(lat, lng) {
+                    if (lat && lng) {
+                        var position = { lat: lat, lng: lng };
+                        
+                        // Create custom marker icon (SVG)
+                        var markerIcon = {
+                            path: 'M 12,2 C 8.1340068,2 5,5.1340068 5,9 c 0,5.25 7,13 7,13 0,0 7,-7.75 7,-13 0,-3.8659932 -3.134007,-7 -7,-7 z',
+                            fillColor: '#E3795C',
+                            fillOpacity: 1,
+                            strokeColor: '#ffffff',
+                            strokeWeight: 2,
+                            scale: 1.5,
+                            anchor: new google.maps.Point(12, 22)
+                        };
+                        
+                        // Create marker
+                        var marker = new google.maps.Marker({
+                            position: position,
+                            icon: markerIcon,
+                            title: fixEncoding(listing.name),
+                            animation: google.maps.Animation.DROP
+                        });
+                        
+                        // Create popup content
+                        var imageUrl = listing.image1 ? normalizeImageUrl(listing.image1) : 'https://via.placeholder.com/400x400?text=No+Image';
+                        var cardWidth = (window.innerWidth < 969) ? 120 : 200;
+                        var cardHeight = cardWidth; // Square
+                        var fontSize = (window.innerWidth < 969) ? 12 : 14;
+                        var gradientHeight = (window.innerWidth < 969) ? 50 : 60;
+                        var simpleContent = '<div style="padding: 0 12px 16px 12px !important; margin: 0 !important; text-align: center; cursor: pointer; width: ' + cardWidth + 'px; height: ' + cardHeight + 'px; position: relative; overflow: hidden; border-radius: 12px; line-height: 0; font-size: 0; background-image: url(\'' + imageUrl + '\'); background-size: cover !important; background-position: center center !important; background-repeat: no-repeat !important; display: flex; flex-direction: column; justify-content: flex-end; border: 4px solid #ffffff; outline: 0; box-sizing: border-box; min-width: ' + cardWidth + 'px; min-height: ' + cardHeight + 'px;" onclick="if(window.filterByListingName) filterByListingName(\'' + escapeHtml(fixEncoding(listing.name)).replace(/'/g, "\\'") + '\'); if(window.google && window.google.maps) google.maps.event.trigger(map, \'click\');">' + 
+                            '<div style="position: absolute; bottom: 0; left: 0; right: 0; height: ' + gradientHeight + 'px; background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0)); pointer-events: none; z-index: 1; margin: 0; padding: 0;"></div>' +
+                            '<div style="font-size: ' + fontSize + 'px; font-weight: 600; color: #ffffff; line-height: 1.1; padding: 0 10px 18px 10px; margin: 0; position: relative; z-index: 2; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">' + escapeHtml(fixEncoding(listing.name)) + '</div>' +
+                            '</div>';
+                        
+                        // Add click listener to show info window
+                        marker.addListener('click', function() {
+                            infoWindow.setContent(simpleContent);
+                            infoWindow.open(map, marker);
+                        });
+                        
+                        markers.push(marker);
+                        markersToAdd.push(marker);
+                        bounds.extend(position);
+                    }
+                    
+                    geocodeCount++;
+                    // When all geocoding is done, add markers to map
+                    if (geocodeCount === totalListings) {
+                        // Add markers directly to map (no clustering for now)
+                        markersToAdd.forEach(function(marker) {
+                            marker.setMap(map);
+                        });
+                        
+                        // Fit bounds with animation if there are markers
+                        if (markers.length > 0) {
+                            setTimeout(function() {
+                                map.fitBounds(bounds);
+                                
+                                // Limit max zoom
+                                var listener = google.maps.event.addListener(map, "idle", function() {
+                                    if (map.getZoom() > 13) map.setZoom(13);
+                                    google.maps.event.removeListener(listener);
+                                });
+                            }, 500);
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Simple geocoding function (uses approximate coordinates for demo)
+        function geocodeAddress(address, callback) {
+            if (!address) {
+                callback(37.8 + (Math.random() - 0.5) * 0.1, -79.0 + (Math.random() - 0.5) * 0.1);
+                return;
+            }
+            
+            // Approximate coordinates for Nelson County area locations
+            var locations = {
+                'Roseland': [37.8167, -79.0833],
+                'Montebello': [37.8500, -79.1333],
+                'Wintergreen': [37.9167, -79.0000],
+                'Afton': [38.0333, -78.8333],
+                'Lovingston': [37.7667, -78.8667],
+                'Nellysford': [37.9000, -78.8833]
+            };
+            
+            // Try to match address to known locations
+            for (var loc in locations) {
+                if (address.includes(loc)) {
+                    var coords = locations[loc];
+                    // Add small random offset for multiple locations in same area
+                    var lat = coords[0] + (Math.random() - 0.5) * 0.02;
+                    var lng = coords[1] + (Math.random() - 0.5) * 0.02;
+                    callback(lat, lng);
+                    return;
+                }
+            }
+            
+            // Default to center of Nelson County with random offset
+            callback(37.8 + (Math.random() - 0.5) * 0.1, -79.0 + (Math.random() - 0.5) * 0.1);
+        }
+        
+        function toggleMap() {
+            var container = document.getElementById('mapContainer');
+            var toggleIcon = document.getElementById('mapToggleIcon');
+            
+            if (!container || !toggleIcon) return;
+            
+            if (mapVisible) {
+                container.classList.add('map-collapsed');
+                // Change to plus icon
+                toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m7-7H5"></path>';
+                mapVisible = false;
+            } else {
+                container.classList.remove('map-collapsed');
+                // Change to X icon
+                toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>';
+                mapVisible = true;
+                // Trigger resize to fix display issues
+                setTimeout(function() {
+                    if (map) google.maps.event.trigger(map, 'resize');
+                }, 100);
+            }
+        }
     </script>
     
     </div> <!-- End main-container -->
