@@ -5598,27 +5598,53 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     return;
                 }
                 
+                if (!description || !description.trim()) {
+                    console.warn('Empty description provided, skipping ImageKit metadata update');
+                    return;
+                }
+                
                 // Extract file path from ImageKit URL
                 // ImageKit URLs look like: https://ik.imagekit.io/OE/folder/file.jpg
                 // Or filePath from API: /folder/file.jpg
                 let filePath = null;
                 if (imageUrl.includes('ik.imagekit.io')) {
-                    const urlParts = imageUrl.split('/');
-                    // Remove protocol and domain parts, keep the path
-                    // URL structure: https://ik.imagekit.io/OE/folder/file.jpg
-                    // We need: /folder/file.jpg
-                    filePath = '/' + urlParts.slice(4).join('/').split('?')[0];
+                    try {
+                        const urlObj = new URL(imageUrl);
+                        // URL structure: https://ik.imagekit.io/OE/folder/file.jpg
+                        // Pathname will be: /OE/folder/file.jpg
+                        // We need: /folder/file.jpg (remove the /OE part)
+                        const pathname = urlObj.pathname;
+                        const pathParts = pathname.split('/').filter(p => p); // Remove empty parts
+                        
+                        // Remove the first part (usually the ImageKit ID like 'OE')
+                        if (pathParts.length > 1) {
+                            filePath = '/' + pathParts.slice(1).join('/');
+                        } else {
+                            filePath = pathname;
+                        }
+                        
+                        // Remove query string if present
+                        filePath = filePath.split('?')[0];
+                    } catch (urlError) {
+                        // Fallback to old method
+                        const urlParts = imageUrl.split('/');
+                        filePath = '/' + urlParts.slice(4).join('/').split('?')[0];
+                    }
                 } else if (imageUrl.startsWith('/')) {
                     // Already a file path
                     filePath = imageUrl.split('?')[0];
                 }
                 
                 if (!filePath) {
-                    console.warn('Could not extract file path from URL:', imageUrl);
-                    return;
+                    console.error('Could not extract file path from URL:', imageUrl);
+                    throw new Error('Could not extract file path from ImageKit URL: ' + imageUrl);
                 }
                 
-                console.log('Updating ImageKit metadata for file path:', filePath, 'with description length:', description.length);
+                console.log('Updating ImageKit metadata:');
+                console.log('  - Image URL:', imageUrl);
+                console.log('  - File Path:', filePath);
+                console.log('  - Description length:', description.length);
+                console.log('  - Description preview:', description.substring(0, 100) + '...');
                 
                 // Use GET request with query parameters to avoid CORS issues
                 const params = new URLSearchParams({
@@ -5629,24 +5655,42 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     t: Date.now().toString()
                 });
                 
-                const response = await fetch(GOOGLE_APPS_SCRIPT_URL + '?' + params.toString(), {
+                const requestUrl = GOOGLE_APPS_SCRIPT_URL + '?' + params.toString();
+                console.log('Request URL (first 200 chars):', requestUrl.substring(0, 200) + '...');
+                
+                const response = await fetch(requestUrl, {
                     method: 'GET',
                     mode: 'cors'
                 });
                 
+                console.log('Response status:', response.status, response.statusText);
+                
                 if (!response.ok) {
                     const errorText = await response.text();
+                    console.error('Response error:', errorText);
                     throw new Error('Failed to update ImageKit metadata: HTTP ' + response.status + ' - ' + errorText);
                 }
                 
-                const result = await response.json();
+                const responseText = await response.text();
+                console.log('Response text:', responseText);
+                
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('Failed to parse response:', parseError);
+                    throw new Error('Invalid JSON response: ' + responseText.substring(0, 200));
+                }
+                
                 if (result.success) {
-                    console.log('ImageKit metadata updated successfully');
+                    console.log('✅ ImageKit metadata updated successfully:', result);
                 } else {
+                    console.error('❌ ImageKit metadata update failed:', result);
                     throw new Error(result.error || 'Failed to update ImageKit metadata');
                 }
             } catch (error) {
-                console.error('Error updating ImageKit metadata:', error);
+                console.error('❌ Error updating ImageKit metadata:', error);
+                console.error('Error stack:', error.stack);
                 throw error;
             }
         }
