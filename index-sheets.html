@@ -4413,10 +4413,35 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             if (categoryInput) {
                 categoryInput.value = listing.category || '';
             }
-            document.getElementById('listingImage1').value = listing.image1 || '';
-            document.getElementById('listingImage2').value = listing.image2 || '';
+            const image1Input = document.getElementById('listingImage1');
+            if (image1Input) {
+                image1Input.value = listing.image1 || '';
+                // Store fileId from listing data (if available) for ImageKit metadata updates
+                if (listing.image1FileId) {
+                    image1Input.dataset.imagekitFileId = listing.image1FileId;
+                    console.log('Loaded image1FileId from listing:', listing.image1FileId);
+                }
+            }
+            
+            const image2Input = document.getElementById('listingImage2');
+            if (image2Input) {
+                image2Input.value = listing.image2 || '';
+                // Store fileId from listing data (if available) for ImageKit metadata updates
+                if (listing.image2FileId) {
+                    image2Input.dataset.imagekitFileId = listing.image2FileId;
+                    console.log('Loaded image2FileId from listing:', listing.image2FileId);
+                }
+            }
+            
             const image3Input = document.getElementById('listingImage3');
-            if (image3Input) image3Input.value = listing.image3 || '';
+            if (image3Input) {
+                image3Input.value = listing.image3 || '';
+                // Store fileId from listing data (if available) for ImageKit metadata updates
+                if (listing.image3FileId) {
+                    image3Input.dataset.imagekitFileId = listing.image3FileId;
+                    console.log('Loaded image3FileId from listing:', listing.image3FileId);
+                }
+            }
             
             // Set image descriptions
             const image1DescInput = document.getElementById('listingImage1Desc');
@@ -4667,6 +4692,11 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             // Get category override, if provided
             const categoryOverride = getValue('listingCategory');
             
+            // Get fileIds from dataset attributes (stored during upload or loaded from listing data)
+            const image1Field = document.getElementById('listingImage1');
+            const image2Field = document.getElementById('listingImage2');
+            const image3Field = document.getElementById('listingImage3');
+            
             const listingUpdates = {
                 id: generatedId,
                 name: getValue('listingName'),
@@ -4681,6 +4711,10 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 image1Desc: getValue('listingImage1Desc'),
                 image2Desc: getValue('listingImage2Desc'),
                 image3Desc: getValue('listingImage3Desc'),
+                // Store fileIds for ImageKit metadata updates (preserved when duplicating)
+                image1FileId: image1Field && image1Field.dataset.imagekitFileId ? image1Field.dataset.imagekitFileId : (existingListing && existingListing.image1FileId ? existingListing.image1FileId : undefined),
+                image2FileId: image2Field && image2Field.dataset.imagekitFileId ? image2Field.dataset.imagekitFileId : (existingListing && existingListing.image2FileId ? existingListing.image2FileId : undefined),
+                image3FileId: image3Field && image3Field.dataset.imagekitFileId ? image3Field.dataset.imagekitFileId : (existingListing && existingListing.image3FileId ? existingListing.image3FileId : undefined),
                 website: getValue('listingWebsite'),
                 phone: getValue('listingPhone'),
                 address: getValue('listingAddress'),
@@ -4733,21 +4767,30 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     // Only update if both description and image URL are present and it's an ImageKit URL
                     if (description && imageUrl && imageUrl.includes('ik.imagekit.io')) {
                         try {
-                            // Try to get fileId from the image input's data attribute (if stored during upload)
+                            // Try to get fileId from multiple sources:
+                            // 1. From the image input's data attribute (stored during upload or loaded from listing)
+                            // 2. From the current listing data (for duplicated listings)
+                            // 3. From the existing listing data (if available)
                             const storedFileId = imageField.dataset.imagekitFileId || null;
+                            const listingFileIdKey = imageFields[i] === 'listingImage1' ? 'image1FileId' : 
+                                                     imageFields[i] === 'listingImage2' ? 'image2FileId' : 
+                                                     imageFields[i] === 'listingImage3' ? 'image3FileId' : null;
+                            // Check the listing we're about to save (includes fileIds from duplicate)
+                            const currentListingFileId = listingFileIdKey && listing[listingFileIdKey] ? listing[listingFileIdKey] : null;
+                            // Also check the existing listing (for updates)
+                            const existingListingFileId = listingFileIdKey && existingListing && existingListing[listingFileIdKey] ? existingListing[listingFileIdKey] : null;
+                            // Use the most reliable source: stored in DOM > current listing > existing listing
+                            const fileIdToUse = storedFileId || currentListingFileId || existingListingFileId || null;
                             
                             console.log('Syncing ImageKit metadata on save:', {
                                 image: imageUrl.substring(0, 50) + '...',
                                 description: description.substring(0, 50) + '...',
-                                fileId: storedFileId || 'not available'
+                                fileId: fileIdToUse || 'not available (will search by path)',
+                                source: storedFileId ? 'DOM' : (currentListingFileId ? 'current listing' : (existingListingFileId ? 'existing listing' : 'none'))
                             });
                             
-                            // Update ImageKit metadata
-                            if (storedFileId) {
-                                await updateImageKitMetadata(imageUrl, description, storedFileId);
-                            } else {
-                                await updateImageKitMetadata(imageUrl, description);
-                            }
+                            // Update ImageKit metadata - if fileId is not available, search by path
+                            await updateImageKitMetadata(imageUrl, description, fileIdToUse);
                             
                             console.log('✅ ImageKit metadata synced for', imageFields[i]);
                         } catch (error) {

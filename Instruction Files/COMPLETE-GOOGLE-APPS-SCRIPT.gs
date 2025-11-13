@@ -330,6 +330,18 @@ function getData(sheet) {
           listing.image2 = String(value || '');
         } else if (['image3', 'image 3', 'image url 3'].includes(headerLower)) {
           listing.image3 = String(value || '');
+        } else if (['image1desc', 'image1 desc', 'image 1 desc', 'image description 1'].includes(headerLower)) {
+          listing.image1Desc = String(value || '');
+        } else if (['image2desc', 'image2 desc', 'image 2 desc', 'image description 2'].includes(headerLower)) {
+          listing.image2Desc = String(value || '');
+        } else if (['image3desc', 'image3 desc', 'image 3 desc', 'image description 3'].includes(headerLower)) {
+          listing.image3Desc = String(value || '');
+        } else if (['image1fileid', 'image1 fileid', 'image 1 fileid', 'image1fileId', 'image1 fileId'].includes(headerLower)) {
+          listing.image1FileId = String(value || '');
+        } else if (['image2fileid', 'image2 fileid', 'image 2 fileid', 'image2fileId', 'image2 fileId'].includes(headerLower)) {
+          listing.image2FileId = String(value || '');
+        } else if (['image3fileid', 'image3 fileid', 'image 3 fileid', 'image3fileId', 'image3 fileId'].includes(headerLower)) {
+          listing.image3FileId = String(value || '');
         } else if (['external website', 'website', 'url'].includes(headerLower)) {
           listing.website = String(value || '');
         } else if (headerLower === 'phone') {
@@ -648,7 +660,7 @@ function generateImageDescriptionWithOpenAI(imageUrl, apiKey) {
         ]
       }
     ],
-    'max_tokens': 200  // 200 tokens = ~50 words, plenty for 10-15 word requirement with buffer
+    'max_tokens': 500  // 500 tokens per render attempt - gives AI more room to generate descriptions
   };
   
   const options = {
@@ -721,7 +733,7 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
     throw new Error('Failed to fetch image: ' + imageError.toString());
   }
   
-  // Optimized payload - 150 tokens is plenty for 10-15 words
+  // Optimized payload - 500 tokens per render attempt with 4 attempts per model
   const payload = {
     'contents': [
       {
@@ -739,7 +751,7 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
       }
     ],
     'generationConfig': {
-      'maxOutputTokens': 200,  // 200 tokens = ~50 words, plenty for 10-15 word requirement with buffer
+      'maxOutputTokens': 500,  // 500 tokens per render attempt - gives AI more room to generate descriptions
       'temperature': 0.3  // Lower temperature for more focused, consistent short summaries
     }
   };
@@ -766,8 +778,9 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
     
     Logger.log('Trying model ' + (modelIndex + 1) + '/' + models.length + ': ' + model);
     
-    // Retry with exponential backoff: 3 retries with delays of 2s, 4s, 8s
-    const maxRetries = 3;
+    // Retry with exponential backoff: 3 retries = 4 total attempts (initial + 3 retries)
+    // Delays: 2s, 4s, 8s for a total of 4 attempts per model
+    const maxRetries = 3;  // 3 retries = 4 total attempts (initial attempt + 3 retries)
     const retryDelays = [2000, 4000, 8000]; // milliseconds
     
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -1075,17 +1088,42 @@ function updateImageKitFileMetadata(filePathOrId, customMetadata, imageUrl) {
           // Look through the files array for a matching path
           if (files.length > 0) {
             Logger.log('Found ' + files.length + ' file(s) in search result');
+            // Normalize the search path (remove leading/trailing slashes for comparison)
+            const normalizedSearchPath = filePathOrId.replace(/^\/+|\/+$/g, '');
             for (let i = 0; i < files.length; i++) {
               const file = files[i];
-              Logger.log('File ' + i + ' path: ' + file.filePath + ', fileId: ' + file.fileId);
-              if (file.filePath === filePathOrId || file.filePath === filePathOrId.substring(1)) {
+              const normalizedFilePath = (file.filePath || '').replace(/^\/+|\/+$/g, '');
+              Logger.log('File ' + i + ' path: ' + file.filePath + ' (normalized: ' + normalizedFilePath + '), fileId: ' + file.fileId);
+              // Try multiple matching strategies:
+              // 1. Exact match (with or without leading slash)
+              // 2. Normalized match (without leading/trailing slashes)
+              // 3. Match by filename (last part of path)
+              if (file.filePath === filePathOrId || 
+                  file.filePath === filePathOrId.substring(1) || 
+                  file.filePath === '/' + filePathOrId ||
+                  normalizedFilePath === normalizedSearchPath) {
                 fileId = file.fileId;
                 Logger.log('✅ Found matching fileId: ' + fileId);
                 break;
               }
             }
             
-            // If no exact match, use the first file (might be the one we want)
+            // If no exact match, try matching by filename (last part of path)
+            if (!fileId) {
+              const searchFilename = normalizedSearchPath.split('/').pop();
+              Logger.log('Trying to match by filename: ' + searchFilename);
+              for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileFilename = (file.filePath || '').split('/').pop();
+                if (fileFilename === searchFilename) {
+                  fileId = file.fileId;
+                  Logger.log('✅ Found matching fileId by filename: ' + fileId);
+                  break;
+                }
+              }
+            }
+            
+            // If still no match, use the first file (might be the one we want)
             if (!fileId && files[0] && files[0].fileId) {
               fileId = files[0].fileId;
               Logger.log('Using first file from search result: ' + fileId);
