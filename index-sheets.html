@@ -1788,6 +1788,7 @@
                             <input type="text" id="listingImage1" required placeholder="https:// or data:image..." />
                             <button type="button" class="btn btn-secondary btn-upload-image" data-target="listingImage1">Upload</button>
                         </div>
+                        <input type="text" id="listingImage1Desc" placeholder="Image description (auto-generated on upload)" style="margin-top: 8px; width: 100%;" />
                     </div>
                     
                     <div class="form-group">
@@ -1796,6 +1797,7 @@
                             <input type="text" id="listingImage2" placeholder="https:// or data:image..." />
                             <button type="button" class="btn btn-secondary btn-upload-image" data-target="listingImage2">Upload</button>
                         </div>
+                        <input type="text" id="listingImage2Desc" placeholder="Image description (auto-generated on upload)" style="margin-top: 8px; width: 100%;" />
                     </div>
                     <div class="form-group">
                         <label>Image URL 3</label>
@@ -1803,6 +1805,7 @@
                             <input type="text" id="listingImage3" placeholder="https:// or data:image..." />
                             <button type="button" class="btn btn-secondary btn-upload-image" data-target="listingImage3">Upload</button>
                         </div>
+                        <input type="text" id="listingImage3Desc" placeholder="Image description (auto-generated on upload)" style="margin-top: 8px; width: 100%;" />
                     </div>
                 </div>
                 
@@ -2691,6 +2694,11 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         const IMAGEKIT_URL_ENDPOINT = 'https://ik.imagekit.io/OE';
         const IMAGEKIT_AUTH_ACTION = 'getImageKitUploadParams';
         
+        // OpenAI API configuration for image description generation
+        // Set your API key in the Google Apps Script or use environment variable
+        const OPENAI_API_KEY = ''; // Leave empty to use server-side via Google Apps Script
+        const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+        
         // Initialize data with initialData (will be updated from Google Sheets on load)
         let data = JSON.parse(JSON.stringify(initialData));
         data.listings = (data.listings || []).map(function(listing) {
@@ -2866,6 +2874,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 image1: getField('Photo', ['photo', 'Image', 'image', 'Image1', 'image1', 'Image 1']),
                 image2: getField('Image2', ['image2', 'Image 2', 'Photo 2', 'photo2', 'Photo2', 'Second Photo', 'Secondary Photo']),
                 image3: image3Value || galleryValue,
+                image1Desc: getField('Image1 Desc', ['image1Desc', 'Image1 Description', 'image1 description', 'Image 1 Description', 'Photo 1 Description']),
+                image2Desc: getField('Image2 Desc', ['image2Desc', 'Image2 Description', 'image2 description', 'Image 2 Description', 'Photo 2 Description']),
+                image3Desc: getField('Image3 Desc', ['image3Desc', 'Image3 Description', 'image3 description', 'Image 3 Description', 'Photo 3 Description']),
                 website: getField('External Website', ['Website', 'website', 'URL', 'url', 'website url', 'site url', 'business website', 'website link']),
                 phone: getField('Phone', ['phone', 'phone number', 'business phone', 'contact phone', 'primary phone']),
                 address: getField('Address', ['address', 'street address', 'business address', 'physical address', 'location']),
@@ -4385,10 +4396,18 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             if (categoryInput) {
                 categoryInput.value = listing.category || '';
             }
-            document.getElementById('listingImage1').value = listing.image1;
+            document.getElementById('listingImage1').value = listing.image1 || '';
             document.getElementById('listingImage2').value = listing.image2 || '';
             const image3Input = document.getElementById('listingImage3');
             if (image3Input) image3Input.value = listing.image3 || '';
+            
+            // Set image descriptions
+            const image1DescInput = document.getElementById('listingImage1Desc');
+            if (image1DescInput) image1DescInput.value = listing.image1Desc || '';
+            const image2DescInput = document.getElementById('listingImage2Desc');
+            if (image2DescInput) image2DescInput.value = listing.image2Desc || '';
+            const image3DescInput = document.getElementById('listingImage3Desc');
+            if (image3DescInput) image3DescInput.value = listing.image3Desc || '';
             document.getElementById('listingWebsite').value = listing.website;
             document.getElementById('listingPhone').value = listing.phone || '';
             document.getElementById('listingAddress').value = listing.address || '';
@@ -4597,6 +4616,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 image1: getValue('listingImage1'),
                 image2: getValue('listingImage2'),
                 image3: getValue('listingImage3'),
+                image1Desc: getValue('listingImage1Desc'),
+                image2Desc: getValue('listingImage2Desc'),
+                image3Desc: getValue('listingImage3Desc'),
                 website: getValue('listingWebsite'),
                 phone: getValue('listingPhone'),
                 address: getValue('listingAddress'),
@@ -5430,6 +5452,84 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 }
             }
         }
+        
+        // Generate AI description for an image using OpenAI API
+        async function generateImageDescription(imageUrl) {
+            try {
+                // Use Google Apps Script to call OpenAI API (to avoid exposing API key)
+                // Action: 'generateImageDescription'
+                if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
+                    console.warn('Google Apps Script URL not configured, skipping AI description generation');
+                    return null;
+                }
+                
+                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'generateImageDescription',
+                        imageUrl: imageUrl
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to generate description: HTTP ' + response.status);
+                }
+                
+                const result = await response.json();
+                if (result.success && result.description) {
+                    return result.description;
+                } else {
+                    throw new Error(result.error || 'Failed to generate description');
+                }
+            } catch (error) {
+                console.error('Error generating image description:', error);
+                // Fallback: try direct OpenAI API if API key is configured (not recommended for production)
+                if (OPENAI_API_KEY) {
+                    try {
+                        const response = await fetch(OPENAI_API_URL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ' + OPENAI_API_KEY
+                            },
+                            body: JSON.stringify({
+                                model: 'gpt-4o',
+                                messages: [
+                                    {
+                                        role: 'user',
+                                        content: [
+                                            {
+                                                type: 'text',
+                                                text: 'Describe this image in detail for use as an alt text or meta description. Keep it concise (50-150 words), descriptive, and SEO-friendly. Focus on what is visible in the image.'
+                                            },
+                                            {
+                                                type: 'image_url',
+                                                image_url: { url: imageUrl }
+                                            }
+                                        ]
+                                    }
+                                ],
+                                max_tokens: 200
+                            })
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('OpenAI API error: ' + response.status);
+                        }
+                        
+                        const data = await response.json();
+                        if (data.choices && data.choices[0] && data.choices[0].message) {
+                            return data.choices[0].message.content.trim();
+                        }
+                    } catch (directError) {
+                        console.error('Direct OpenAI API call failed:', directError);
+                        return null;
+                    }
+                }
+                return null;
+            }
+        }
 
         async function uploadImageToImageKit(file, onProgress) {
             let token, expire, signature, folder;
@@ -5672,6 +5772,24 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                             const imageUrl = result.url || result.filePath || '';
                             if (imageUrl) {
                                 input.value = imageUrl;
+                                
+                                // Generate AI description for the uploaded image
+                                try {
+                                    button.textContent = 'Generating description...';
+                                    const description = await generateImageDescription(imageUrl);
+                                    if (description) {
+                                        // Find the corresponding description field
+                                        const descFieldId = targetId + 'Desc';
+                                        const descField = document.getElementById(descFieldId);
+                                        if (descField) {
+                                            descField.value = description;
+                                        }
+                                    }
+                                } catch (descError) {
+                                    console.warn('Failed to generate image description:', descError);
+                                    // Don't fail the upload if description generation fails
+                                }
+                                
                                 alert('Image uploaded successfully!\nURL: ' + imageUrl);
                             } else {
                                 throw new Error('No URL returned from upload');
