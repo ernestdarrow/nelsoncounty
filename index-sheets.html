@@ -1788,7 +1788,7 @@
                             <input type="text" id="listingImage1" required placeholder="https:// or data:image..." />
                             <button type="button" class="btn btn-secondary btn-upload-image" data-target="listingImage1">Upload</button>
                         </div>
-                        <textarea id="listingImage1Desc" placeholder="Image description (auto-generated on upload)" rows="3" style="margin-top: 8px; width: 100%; padding: 8px; font-family: inherit; font-size: 14px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
+                        <textarea id="listingImage1Desc" placeholder="Image description (optional)" rows="3" style="margin-top: 8px; width: 100%; padding: 8px; font-family: inherit; font-size: 14px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
                     </div>
                     
                     <div class="form-group">
@@ -1797,7 +1797,7 @@
                             <input type="text" id="listingImage2" placeholder="https:// or data:image..." />
                             <button type="button" class="btn btn-secondary btn-upload-image" data-target="listingImage2">Upload</button>
                         </div>
-                        <textarea id="listingImage2Desc" placeholder="Image description (auto-generated on upload)" rows="3" style="margin-top: 8px; width: 100%; padding: 8px; font-family: inherit; font-size: 14px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
+                        <textarea id="listingImage2Desc" placeholder="Image description (optional)" rows="3" style="margin-top: 8px; width: 100%; padding: 8px; font-family: inherit; font-size: 14px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Image URL 3</label>
@@ -1805,7 +1805,7 @@
                             <input type="text" id="listingImage3" placeholder="https:// or data:image..." />
                             <button type="button" class="btn btn-secondary btn-upload-image" data-target="listingImage3">Upload</button>
                         </div>
-                        <textarea id="listingImage3Desc" placeholder="Image description (auto-generated on upload)" rows="3" style="margin-top: 8px; width: 100%; padding: 8px; font-family: inherit; font-size: 14px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
+                        <textarea id="listingImage3Desc" placeholder="Image description (optional)" rows="3" style="margin-top: 8px; width: 100%; padding: 8px; font-family: inherit; font-size: 14px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
                     </div>
                 </div>
                 
@@ -5959,74 +5959,11 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                                             console.log('Stored fileId for later use:', fileId);
                                         }
                                         
-                                        // Reset button text before generating description
+                                        // Reset button text
                                         button.textContent = 'Upload';
                                         
-                                        // Generate AI description for the uploaded image
-                                        let description = null;
-                                        try {
-                                            button.textContent = 'Generating description...';
-                                            console.log('Generating description for image:', imageUrl);
-                                            description = await generateImageDescription(imageUrl);
-                                            console.log('Description generated:', description ? 'Yes (' + description.length + ' chars)' : 'No');
-                                            
-                                            if (description && description.trim()) {
-                                                // Find the corresponding description field
-                                                const descFieldId = targetId + 'Desc';
-                                                const descField = document.getElementById(descFieldId);
-                                                if (descField) {
-                                                    descField.value = description;
-                                                    console.log('Description saved to field:', descFieldId, 'Value length:', description.length);
-                                                    
-                                                    // Trigger input event to ensure form recognizes the change
-                                                    descField.dispatchEvent(new Event('input', { bubbles: true }));
-                                                    descField.dispatchEvent(new Event('change', { bubbles: true }));
-                                                    
-                                                    // Update ImageKit metadata with the description
-                                                    // If we have fileId from upload, use it directly
-                                                    try {
-                                                        console.log('Updating ImageKit metadata with description...');
-                                                        if (fileId) {
-                                                            await updateImageKitMetadata(imageUrl, description, fileId);
-                                                        } else {
-                                                            await updateImageKitMetadata(imageUrl, description);
-                                                        }
-                                                        console.log('ImageKit metadata updated successfully');
-                                                    } catch (metadataError) {
-                                                        console.warn('Failed to update ImageKit metadata:', metadataError);
-                                                        // Don't fail if metadata update fails
-                                                    }
-                                            
-                                            // Scroll to and focus the description field so it's visible
-                                            setTimeout(function() {
-                                                descField.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                                                descField.focus();
-                                            }, 100);
-                                            
-                                            alert('✅ Description generated and saved!\n\nLength: ' + description.length + ' characters');
-                                        } else {
-                                            console.error('Description field not found:', descFieldId);
-                                            alert('⚠️ Description generated but could not save to field: ' + descFieldId);
-                                        }
-                                    } else {
-                                        console.warn('No description was generated (description is null/empty)');
-                                        alert('⚠️ Could not generate description. Check console for details.\n\nMake sure GEMINI_API_KEY or OPENAI_API_KEY is configured in Google Apps Script.');
-                                    }
-                                } catch (descError) {
-                                    console.error('Failed to generate image description:', descError);
-                                    console.error('Error details:', descError.message, descError.stack);
-                                    alert('❌ Error generating description:\n\n' + descError.message + '\n\nCheck browser console for more details.');
-                                    // Don't fail the upload if description generation fails
-                                } finally {
-                                    // Always reset button text
-                                    button.textContent = 'Upload';
-                                }
-                                
-                                // Only show basic upload success if description wasn't generated
-                                // (Otherwise the description alert will show more details)
-                                if (!description) {
-                                    alert('Image uploaded successfully!\nURL: ' + imageUrl);
-                                }
+                                        // Upload successful - user can manually enter description if needed
+                                        alert('✅ Image uploaded successfully!\n\nURL: ' + imageUrl + '\n\nYou can add a description manually in the description field below.');
                             } else {
                                 throw new Error('No URL returned from upload');
                             }
