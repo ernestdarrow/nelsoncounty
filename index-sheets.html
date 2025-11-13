@@ -950,7 +950,7 @@
         
         .scroll-arrow:hover {
             background-color: rgba(255, 255, 255, 0.9);
-            transform: translateY(-50%) !important;
+            transform: translateY(-50%) scale(1.1) !important;
         }
         
         @media (max-width: 768px) {
@@ -1515,7 +1515,15 @@
                         <div id="map"></div>
                     </div>
                     
-                    <h2 class="section-title">All Listings</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div id="listingsCount" style="font-size: 14px; color: var(--text-secondary); font-weight: 500;"></div>
+                        <select id="adminSortDropdown" onchange="sortAdminListings()" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                            <option value="name-asc" selected style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Name (A-Z)</option>
+                            <option value="name-desc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Name (Z-A)</option>
+                            <option value="area-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Area (A-Z)</option>
+                            <option value="type-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Type (A-Z)</option>
+                        </select>
+                    </div>
                     <div id="listingsGrid" class="listings-grid"></div>
                 </main>
             </div>
@@ -3318,16 +3326,38 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             }
         }
         
+        // Store current sort value
+        let currentAdminSort = 'name-asc';
+        
         function renderListings(listings) {
             if (!listings) listings = data.listings;
             const grid = document.getElementById('listingsGrid');
             grid.innerHTML = '';
             
-            // Sort listings by name (A-Z) before rendering
+            // Sort listings based on current sort value
             const sortedListings = listings.slice().sort(function(a, b) {
-                const aName = (a.name || '').toLowerCase();
-                const bName = (b.name || '').toLowerCase();
-                return aName.localeCompare(bName);
+                switch(currentAdminSort) {
+                    case 'name-asc':
+                        const aName = (a.name || '').toLowerCase();
+                        const bName = (b.name || '').toLowerCase();
+                        return aName.localeCompare(bName);
+                    case 'name-desc':
+                        const aNameDesc = (a.name || '').toLowerCase();
+                        const bNameDesc = (b.name || '').toLowerCase();
+                        return bNameDesc.localeCompare(aNameDesc);
+                    case 'area-asc':
+                        const aArea = (a.area || '').toLowerCase();
+                        const bArea = (b.area || '').toLowerCase();
+                        return aArea.localeCompare(bArea);
+                    case 'type-asc':
+                        const aType = (a.type || '').toLowerCase();
+                        const bType = (b.type || '').toLowerCase();
+                        return aType.localeCompare(bType);
+                    default:
+                        const aNameDefault = (a.name || '').toLowerCase();
+                        const bNameDefault = (b.name || '').toLowerCase();
+                        return aNameDefault.localeCompare(bNameDefault);
+                }
             });
             
             sortedListings.forEach(function(listing) {
@@ -3449,7 +3479,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     rightArrow.className = 'scroll-arrow scroll-arrow-right';
                     rightArrow.style.opacity = '1'; // Always visible
                     rightArrow.style.pointerEvents = 'auto'; // Ensure clickable
-                    rightArrow.style.position = 'absolute'; // Position relative to front
+                    rightArrow.style.position = 'absolute'; // Position relative to imgContainer
+                    rightArrow.style.top = '50%'; // Center vertically
+                    rightArrow.style.transform = 'translateY(-50%)'; // Center vertically
                     rightArrow.style.zIndex = '15'; // Above images
                     rightArrow.addEventListener('click', function(e) {
                         e.preventDefault();
@@ -3463,8 +3495,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
                     });
                     
-                    // Append to front so it doesn't scroll with images
-                    front.appendChild(rightArrow);
+                    // Append to imgContainer so it's positioned relative to the image area
+                    imgContainer.appendChild(rightArrow);
                 }
                 
                 // Featured badge
@@ -3647,6 +3679,13 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             
             updateStats(listings);
             
+            // Update listings count display
+            const countDisplay = document.getElementById('listingsCount');
+            if (countDisplay) {
+                const count = listings.length;
+                countDisplay.textContent = count === 1 ? '1 listing' : count + ' listings';
+            }
+            
             // Update map markers with the listings
             if (typeof updateMapMarkers === 'function') {
                 updateMapMarkers(listings);
@@ -3723,6 +3762,17 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             }
             
             renderListings(filtered);
+        }
+        
+        function sortAdminListings() {
+            const sortDropdown = document.getElementById('adminSortDropdown');
+            if (sortDropdown) {
+                currentAdminSort = sortDropdown.value;
+                
+                // Get currently filtered listings by re-running the filter
+                // This will re-render with the new sort
+                filterListings();
+            }
         }
         
         window.filterAdminByType = function filterAdminByType(typeOrCategory) {
