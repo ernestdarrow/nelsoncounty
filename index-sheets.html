@@ -5591,7 +5591,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         }
 
         // Update ImageKit file metadata (description)
-        async function updateImageKitMetadata(imageUrl, description) {
+        // fileId is optional - if provided, will be used directly instead of searching by path
+        async function updateImageKitMetadata(imageUrl, description, fileId = null) {
             try {
                 if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
                     console.warn('Google Apps Script URL not configured, skipping ImageKit metadata update');
@@ -5654,6 +5655,12 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     customMetadata: JSON.stringify({ description: description }),
                     t: Date.now().toString()
                 });
+                
+                // If we have fileId, pass it directly to avoid search
+                if (fileId) {
+                    params.append('fileId', fileId);
+                    console.log('  - Using fileId directly:', fileId);
+                }
                 
                 const requestUrl = GOOGLE_APPS_SCRIPT_URL + '?' + params.toString();
                 console.log('Request URL (first 200 chars):', requestUrl.substring(0, 200) + '...');
@@ -5928,47 +5935,59 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         const originalText = button.textContent;
                         button.textContent = 'Uploading...';
 
-                        try {
-                            console.log('Starting upload to ImageKit...');
-                            const result = await uploadImageToImageKit(file);
-                            console.log('Upload successful, result:', result);
-                            
-                            const imageUrl = result.url || result.filePath || '';
-                            if (imageUrl) {
-                                input.value = imageUrl;
-                                
-                                // Reset button text before generating description
-                                button.textContent = 'Upload';
-                                
-                                // Generate AI description for the uploaded image
-                                let description = null;
                                 try {
-                                    button.textContent = 'Generating description...';
-                                    console.log('Generating description for image:', imageUrl);
-                                    description = await generateImageDescription(imageUrl);
-                                    console.log('Description generated:', description ? 'Yes (' + description.length + ' chars)' : 'No');
+                                    console.log('Starting upload to ImageKit...');
+                                    const result = await uploadImageToImageKit(file);
+                                    console.log('Upload successful, result:', result);
                                     
-                                    if (description && description.trim()) {
-                                        // Find the corresponding description field
-                                        const descFieldId = targetId + 'Desc';
-                                        const descField = document.getElementById(descFieldId);
-                                        if (descField) {
-                                            descField.value = description;
-                                            console.log('Description saved to field:', descFieldId, 'Value length:', description.length);
+                                    const imageUrl = result.url || result.filePath || '';
+                                    const fileId = result.fileId || null; // Store fileId from upload response
+                                    if (imageUrl) {
+                                        input.value = imageUrl;
+                                        
+                                        // Store fileId as a data attribute for later use
+                                        if (fileId) {
+                                            input.dataset.imagekitFileId = fileId;
+                                            console.log('Stored fileId for later use:', fileId);
+                                        }
+                                        
+                                        // Reset button text before generating description
+                                        button.textContent = 'Upload';
+                                        
+                                        // Generate AI description for the uploaded image
+                                        let description = null;
+                                        try {
+                                            button.textContent = 'Generating description...';
+                                            console.log('Generating description for image:', imageUrl);
+                                            description = await generateImageDescription(imageUrl);
+                                            console.log('Description generated:', description ? 'Yes (' + description.length + ' chars)' : 'No');
                                             
-                                            // Trigger input event to ensure form recognizes the change
-                                            descField.dispatchEvent(new Event('input', { bubbles: true }));
-                                            descField.dispatchEvent(new Event('change', { bubbles: true }));
-                                            
-                                            // Update ImageKit metadata with the description
-                                            try {
-                                                console.log('Updating ImageKit metadata with description...');
-                                                await updateImageKitMetadata(imageUrl, description);
-                                                console.log('ImageKit metadata updated successfully');
-                                            } catch (metadataError) {
-                                                console.warn('Failed to update ImageKit metadata:', metadataError);
-                                                // Don't fail if metadata update fails
-                                            }
+                                            if (description && description.trim()) {
+                                                // Find the corresponding description field
+                                                const descFieldId = targetId + 'Desc';
+                                                const descField = document.getElementById(descFieldId);
+                                                if (descField) {
+                                                    descField.value = description;
+                                                    console.log('Description saved to field:', descFieldId, 'Value length:', description.length);
+                                                    
+                                                    // Trigger input event to ensure form recognizes the change
+                                                    descField.dispatchEvent(new Event('input', { bubbles: true }));
+                                                    descField.dispatchEvent(new Event('change', { bubbles: true }));
+                                                    
+                                                    // Update ImageKit metadata with the description
+                                                    // If we have fileId from upload, use it directly
+                                                    try {
+                                                        console.log('Updating ImageKit metadata with description...');
+                                                        if (fileId) {
+                                                            await updateImageKitMetadata(imageUrl, description, fileId);
+                                                        } else {
+                                                            await updateImageKitMetadata(imageUrl, description);
+                                                        }
+                                                        console.log('ImageKit metadata updated successfully');
+                                                    } catch (metadataError) {
+                                                        console.warn('Failed to update ImageKit metadata:', metadataError);
+                                                        // Don't fail if metadata update fails
+                                                    }
                                             
                                             // Scroll to and focus the description field so it's visible
                                             setTimeout(function() {
@@ -6072,8 +6091,14 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                             console.log('Manually updating ImageKit metadata for:', imageUrl);
                             console.log('Description length:', description.length);
                             
+                            // Try to get fileId from the image input's data attribute (if stored during upload)
+                            const storedFileId = imageField.dataset.imagekitFileId || null;
+                            if (storedFileId) {
+                                console.log('Using stored fileId:', storedFileId);
+                            }
+                            
                             try {
-                                await updateImageKitMetadata(imageUrl, description);
+                                await updateImageKitMetadata(imageUrl, description, storedFileId);
                                 console.log('✅ ImageKit metadata updated from manual input');
                             } catch (error) {
                                 console.warn('Failed to update ImageKit metadata from manual input:', error);
