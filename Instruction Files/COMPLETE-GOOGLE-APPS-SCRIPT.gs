@@ -99,15 +99,73 @@ function doOptions(e) {
 
 function doGet(e) {
   try {
+    // Handle ImageKit upload params
     if (e && e.parameter && e.parameter.action === 'getImageKitUploadParams') {
       return ContentService
         .createTextOutput(JSON.stringify({
           success: true,
           data: getImageKitUploadParams()
         }))
-        .setMimeType(ContentService.MimeType.JSON);
+        .setMimeType(ContentService.MimeType.JSON)
+        .setHeaders({
+          'Access-Control-Allow-Origin': '*'
+        });
+    }
+    
+    // Handle AI image description generation via GET
+    if (e && e.parameter && e.parameter.action === 'generateImageDescription') {
+      const imageUrl = e.parameter.imageUrl;
+      if (!imageUrl) {
+        return ContentService
+          .createTextOutput(JSON.stringify({
+            success: false,
+            error: 'Missing "imageUrl" parameter'
+          }))
+          .setMimeType(ContentService.MimeType.JSON)
+          .setHeaders({
+            'Access-Control-Allow-Origin': '*'
+          });
+      }
+      const response = generateImageDescription(imageUrl);
+      // Ensure CORS headers are set
+      return ContentService
+        .createTextOutput(response.getContent())
+        .setMimeType(response.getMimeType())
+        .setHeaders({
+          'Access-Control-Allow-Origin': '*'
+        });
+    }
+    
+    // Handle ImageKit metadata update via GET
+    if (e && e.parameter && e.parameter.action === 'updateImageKitMetadata') {
+      const filePath = e.parameter.filePath || e.parameter.fileId;
+      if (!filePath) {
+        return ContentService
+          .createTextOutput(JSON.stringify({
+            success: false,
+            error: 'Missing "filePath" or "fileId" parameter'
+          }))
+          .setMimeType(ContentService.MimeType.JSON)
+          .setHeaders({
+            'Access-Control-Allow-Origin': '*'
+          });
+      }
+      let customMetadata;
+      try {
+        customMetadata = JSON.parse(e.parameter.customMetadata || '{}');
+      } catch (parseError) {
+        customMetadata = { description: e.parameter.customMetadata || '' };
+      }
+      const response = updateImageKitFileMetadata(filePath, customMetadata, e.parameter.imageUrl);
+      return ContentService
+        .createTextOutput(response.getContent())
+        .setMimeType(response.getMimeType())
+        .setHeaders({
+          'Access-Control-Allow-Origin': '*'
+        });
     }
 
+    // Default: return listings data
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     const result = getData(sheet);
     return ContentService

@@ -5464,13 +5464,18 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 }
                 
                 console.log('Calling Google Apps Script to generate description for:', imageUrl);
-                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'generateImageDescription',
-                        imageUrl: imageUrl
-                    })
+                
+                // Use GET request with query parameters to avoid CORS issues with POST
+                // Google Apps Script handles GET requests better for CORS
+                const params = new URLSearchParams({
+                    action: 'generateImageDescription',
+                    imageUrl: imageUrl,
+                    t: Date.now().toString() // Cache busting
+                });
+                
+                const response = await fetch(GOOGLE_APPS_SCRIPT_URL + '?' + params.toString(), {
+                    method: 'GET',
+                    mode: 'cors'
                 });
                 
                 console.log('Response status:', response.status, response.statusText);
@@ -5596,17 +5601,18 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 
                 console.log('Updating ImageKit metadata for file path:', filePath, 'with description length:', description.length);
                 
-                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'updateImageKitMetadata',
-                        filePath: filePath,
-                        imageUrl: imageUrl,
-                        customMetadata: {
-                            description: description
-                        }
-                    })
+                // Use GET request with query parameters to avoid CORS issues
+                const params = new URLSearchParams({
+                    action: 'updateImageKitMetadata',
+                    filePath: filePath,
+                    imageUrl: imageUrl,
+                    customMetadata: JSON.stringify({ description: description }),
+                    t: Date.now().toString()
+                });
+                
+                const response = await fetch(GOOGLE_APPS_SCRIPT_URL + '?' + params.toString(), {
+                    method: 'GET',
+                    mode: 'cors'
                 });
                 
                 if (!response.ok) {
