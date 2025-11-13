@@ -830,11 +830,14 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
   Logger.log('API Key length: ' + apiKey.length);
   
   // Model priority: Start with most stable, fall back to newer models if needed
+  // Standard Gemini models available in v1beta API (January 2025)
   const models = [
-    'gemini-1.5-flash',           // Most stable and reliable
-    'gemini-2.5-flash',           // Newer, faster
-    'gemini-2.5-flash-preview-05-20',  // Latest preview
-    'gemini-1.5-pro'              // More capable fallback
+    'gemini-1.5-flash',              // Standard flash model - most stable
+    'gemini-1.5-flash-002',          // Flash with version suffix
+    'gemini-2.0-flash-exp',          // Experimental flash model
+    'gemini-1.5-pro',                // Pro model
+    'gemini-1.5-pro-002',            // Pro with version suffix
+    'gemini-pro'                     // Legacy model name fallback
   ];
   
   // Get image data (with retry)
@@ -898,16 +901,26 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
     Logger.log('Trying model ' + (modelIndex + 1) + '/' + models.length + ': ' + model);
     
     // Retry with exponential backoff: 3 retries = 4 total attempts (initial + 3 retries)
-    // Delays: 2s, 4s, 8s for a total of 4 attempts per model
+    // Longer delays for rate limits (429): 10s, 20s, 40s
+    // Shorter delays for other retryable errors: 2s, 4s, 8s
     const maxRetries = 3;  // 3 retries = 4 total attempts (initial attempt + 3 retries)
-    const retryDelays = [2000, 4000, 8000]; // milliseconds
+    const retryDelays429 = [10000, 20000, 40000]; // Longer delays for rate limits (429)
+    const retryDelaysOther = [2000, 4000, 8000]; // Shorter delays for other retryable errors
     
+    let consecutive429s = 0; // Track consecutive 429 errors to use longer delays
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         if (attempt > 0) {
-          const delay = retryDelays[attempt - 1];
-          Logger.log('  Retry attempt ' + attempt + '/' + maxRetries + ' after ' + (delay / 1000) + 's delay...');
-          Utilities.sleep(delay);
+          // Get delay for this retry based on previous error type
+          // Use longer delays if we got 429 (rate limit) errors
+          const delayIndex = attempt - 1;
+          let delayArray = (consecutive429s > 0) ? retryDelays429 : retryDelaysOther;
+          const delay = (delayIndex < delayArray.length) ? delayArray[delayIndex] : delayArray[delayArray.length - 1];
+          Logger.log('  Retry attempt ' + attempt + '/' + maxRetries + ' after ' + (delay / 1000) + 's delay' + 
+                     (consecutive429s > 0 ? ' (longer delay for rate limits)' : '') + '...');
+          if (delay && delay > 0) {
+            Utilities.sleep(delay);
+          }
         }
         
         Logger.log('  Sending request to Gemini API (attempt ' + (attempt + 1) + ')...');
@@ -920,23 +933,37 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
         // Success - parse and return
         if (status >= 200 && status < 300) {
           Logger.log('✅ Success with model: ' + model);
+          consecutive429s = 0; // Reset counter on success
           return parseGeminiResponse(responseText, model);
         }
         
         // Check if error is retryable
         const isRetryable = isRetryableError(status);
         const isNotFound = (status === 404);
+        const isRateLimit = (status === 429);
         
         if (isNotFound) {
           // Model not found - try next model
           Logger.log('  Model not found (404) - trying next model...');
           lastError = new Error('Model ' + model + ' not found (404)');
+          consecutive429s = 0; // Reset counter
           break; // Break retry loop, try next model
         }
         
+        // Track consecutive 429 errors
+        if (isRateLimit) {
+          consecutive429s++;
+        } else {
+          consecutive429s = 0; // Reset if not a rate limit error
+        }
+        
         if (isRetryable && attempt < maxRetries) {
-          // Retryable error - will retry in next iteration
-          Logger.log('  Retryable error (' + status + ') - will retry...');
+          // Retryable error - will retry in next iteration with appropriate delay
+          if (isRateLimit) {
+            Logger.log('  Rate limit (429) - will retry with longer delay...');
+          } else {
+            Logger.log('  Retryable error (' + status + ') - will retry...');
+          }
           lastError = new Error('Retryable error: ' + status + ' - ' + responseText.substring(0, 200));
           continue; // Continue to next retry
         }
@@ -945,12 +972,19 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
         if (!isRetryable) {
           Logger.log('  Non-retryable error (' + status + ') - trying next model...');
           lastError = new Error('Non-retryable error: ' + status + ' - ' + responseText.substring(0, 200));
+          consecutive429s = 0; // Reset counter
           break; // Break retry loop, try next model
         }
         
         // Exhausted retries for this model
         Logger.log('  Exhausted retries for model ' + model + ' - trying next model...');
         lastError = new Error('Failed after ' + maxRetries + ' retries: ' + status + ' - ' + responseText.substring(0, 200));
+        // If we got rate limited, wait a bit before trying next model
+        if (consecutive429s > 0) {
+          Logger.log('  Waiting 30s before trying next model (rate limit cooldown)...');
+          Utilities.sleep(30000); // Wait 30 seconds before trying next model
+        }
+        consecutive429s = 0; // Reset counter
         break; // Break retry loop, try next model
         
       } catch (fetchError) {
@@ -959,10 +993,18 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
         lastError = fetchError;
         
         if (attempt < maxRetries) {
+          // Wait before retrying (use appropriate delay based on previous 429s)
+          const delayIndex = attempt;
+          let delayArray = (consecutive429s > 0) ? retryDelays429 : retryDelaysOther;
+          const delay = (delayIndex < delayArray.length) ? delayArray[delayIndex] : delayArray[delayArray.length - 1];
+          if (delay && delay > 0) {
+            Utilities.sleep(delay);
+          }
           continue; // Retry
         } else {
           // Exhausted retries - try next model
           Logger.log('  Exhausted retries due to network errors - trying next model...');
+          consecutive429s = 0; // Reset counter
           break; // Break retry loop, try next model
         }
       }
@@ -1544,6 +1586,70 @@ function testImageDescriptionGeneration() {
       success: false,
       error: error.toString()
     };
+  }
+}
+
+// Test function: List available Gemini models
+function listAvailableGeminiModels() {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const apiKey = scriptProperties.getProperty('GEMINI_API_KEY');
+  
+  if (!apiKey || !apiKey.trim()) {
+    Logger.log('❌ GEMINI_API_KEY not found');
+    return { success: false, error: 'GEMINI_API_KEY not configured' };
+  }
+  
+  Logger.log('=== LISTING AVAILABLE GEMINI MODELS ===');
+  
+  try {
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models?key=' + apiKey;
+    const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+    const status = response.getResponseCode();
+    const responseText = response.getContentText();
+    
+    if (status >= 200 && status < 300) {
+      const data = JSON.parse(responseText);
+      Logger.log('✅ Successfully retrieved models list');
+      
+      if (data.models && Array.isArray(data.models)) {
+        Logger.log('Total models found: ' + data.models.length);
+        
+        // Filter models that support generateContent
+        const generateContentModels = data.models.filter(function(model) {
+          return model.supportedGenerationMethods && 
+                 model.supportedGenerationMethods.indexOf('generateContent') >= 0;
+        });
+        
+        Logger.log('Models supporting generateContent: ' + generateContentModels.length);
+        Logger.log('');
+        Logger.log('Available models for image description generation:');
+        
+        generateContentModels.forEach(function(model, index) {
+          Logger.log((index + 1) + '. ' + model.name + ' (displayName: ' + (model.displayName || 'N/A') + ')');
+        });
+        
+        // Return model names for use in the script
+        const modelNames = generateContentModels.map(function(model) {
+          return model.name.replace('models/', '');
+        });
+        
+        return {
+          success: true,
+          models: modelNames,
+          allModels: generateContentModels
+        };
+      } else {
+        Logger.log('❌ Unexpected response format');
+        return { success: false, error: 'Unexpected response format', response: responseText };
+      }
+    } else {
+      Logger.log('❌ Error: ' + status);
+      Logger.log('Response: ' + responseText.substring(0, 500));
+      return { success: false, error: 'API error: ' + status, response: responseText };
+    }
+  } catch (error) {
+    Logger.log('❌ Exception: ' + error.toString());
+    return { success: false, error: error.toString() };
   }
 }
 
