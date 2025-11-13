@@ -680,16 +680,18 @@
         .data-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
         .data-header h2 { font-size: 24px; color: var(--text-primary); }
         .data-actions { display: flex; gap: 10px; }
-        .table-wrapper { background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow-x: auto; }
+        .table-wrapper { background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow-x: auto; max-height: calc(100vh - 200px); overflow-y: auto; }
         .data-table { width: 100%; border-collapse: collapse; }
         .data-table thead { background: #1a1a1a; color: white; }
+        .data-table thead tr:first-child th { position: sticky; top: 0; z-index: 10; background: #1a1a1a; }
         .data-table th { padding: 14px 12px; text-align: left; font-size: 13px; font-weight: 600; white-space: nowrap; position: relative; cursor: pointer; user-select: none; }
         .data-table th:hover { background: #2a2a2a; }
+        .data-table thead tr:first-child th:hover { background: #2a2a2a; }
         .data-table th.sortable::after { content: ' ↕'; opacity: 0.5; margin-left: 5px; }
         .data-table th.sort-asc::after { content: ' ↑'; opacity: 1; }
         .data-table th.sort-desc::after { content: ' ↓'; opacity: 1; }
         .data-table thead tr.filter-row { background: #2a2a2a; }
-        .data-table thead tr.filter-row th { padding: 8px 12px; background: #2a2a2a; cursor: default; }
+        .data-table thead tr.filter-row th { position: sticky; top: 48px; z-index: 10; padding: 8px 12px; background: #2a2a2a; cursor: default; }
         .data-table thead tr.filter-row th:hover { background: #2a2a2a; }
         .data-table .filter-input { width: 100%; padding: 4px 6px; border: 1px solid #444; border-radius: 4px; font-size: 12px; background: #333; color: white; }
         .data-table .filter-input:focus { outline: none; border-color: #007AFF; background: #3a3a3a; }
@@ -1581,6 +1583,7 @@
                     <button class="btn btn-primary" onclick="document.getElementById('csvUpload').click()">Upload CSV</button>
                     <button class="btn btn-success" onclick="downloadCSV()">Download CSV</button>
                     <button class="btn btn-success" onclick="saveTableChanges()" style="background: #4E6B52;">Update Table</button>
+                    <button class="btn btn-secondary" onclick="clearTableFilters()" style="background: #6c757d; margin-left: 10px;">Clear Filters</button>
                 </div>
             </div>
             <div class="table-wrapper">
@@ -6849,6 +6852,26 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 });
                 categoryFilter.dataset.populated = 'true';
             }
+        }
+        
+        function clearTableFilters() {
+            // Clear all filter inputs
+            const filterInputs = document.querySelectorAll('.data-table .filter-input');
+            filterInputs.forEach(function(input) {
+                input.value = '';
+            });
+            
+            // Clear all filter selects (set to "All" or empty)
+            const filterSelects = document.querySelectorAll('.data-table .filter-select');
+            filterSelects.forEach(function(select) {
+                select.value = '';
+            });
+            
+            // Clear the tableFilters object
+            tableFilters = {};
+            
+            // Re-render the table with cleared filters
+            renderDataTable();
         }
         
         // Add event listeners for sorting and filtering after DOM is ready
