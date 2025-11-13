@@ -243,9 +243,27 @@
         .listing-content h3 { font-size: 18px; margin-bottom: 8px; color: var(--text-primary); }
         
         .listing-meta { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
-        .badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-        .badge-type { background: var(--badge-type-bg); color: var(--badge-type-color); }
-        .badge-area { background: var(--badge-area-bg); color: var(--badge-area-color); }
+        .badge { 
+            padding: 2px 10px; 
+            border-radius: 6px; 
+            font-size: 11px; 
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            height: 18px;
+            line-height: 1;
+            box-sizing: border-box;
+        }
+        .badge-type { 
+            background: var(--badge-type-bg); 
+            color: var(--badge-type-color);
+            padding-left: 26px;
+        }
+        .badge-area { 
+            background: var(--badge-area-bg); 
+            color: var(--badge-area-color);
+            padding-left: 22px;
+        }
         
         .listing-desc { 
             font-size: 14px; 
@@ -3272,8 +3290,23 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     ? listing.directionsLink 
                     : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(listing.address)) : '';
                 
+                // Format modified date for inline display
+                const formatModifiedDate = function(dateStr) {
+                    if (!dateStr) return '';
+                    try {
+                        const date = new Date(dateStr);
+                        if (isNaN(date.getTime())) return '';
+                        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        return months[date.getMonth()] + ' ' + date.getDate();
+                    } catch (e) {
+                        return '';
+                    }
+                };
+                const modifiedDateFormatted = formatModifiedDate(listing.modifiedDate);
+                const authorWithDate = listing.authorName + (modifiedDateFormatted ? ' <span style="color: var(--text-secondary); font-weight: normal;">(edited ' + modifiedDateFormatted + ')</span>' : '');
+                
                 const contactHtml = '<div class="listing-contact">' +
-                    // Author with icon
+                    // Author with icon and modified date inline
                     (listing.authorName ? 
                     '<div class="card-info-item" onclick="event.stopPropagation();">' +
                     '<div class="card-info-icon">' +
@@ -3281,7 +3314,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     '<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />' +
                     '</svg>' +
                     '</div>' +
-                    '<div class="card-info-text">' + listing.authorName + '</div>' +
+                    '<div class="card-info-text">' + authorWithDate + '</div>' +
                     '</div>' : '') +
                     // Published Date
                     (listing.publishedDate ? 
@@ -3292,16 +3325,6 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     '</svg>' +
                     '</div>' +
                     '<div class="card-info-text">Published: ' + listing.publishedDate + '</div>' +
-                    '</div>' : '') +
-                    // Modified Date
-                    (listing.modifiedDate ? 
-                    '<div class="card-info-item" onclick="event.stopPropagation();">' +
-                    '<div class="card-info-icon">' +
-                    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">' +
-                    '<path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />' +
-                    '</svg>' +
-                    '</div>' +
-                    '<div class="card-info-text">Updated: ' + listing.modifiedDate + '</div>' +
                     '</div>' : '') +
                     // Phone with icon
                     (listing.phone ? 
@@ -3354,7 +3377,14 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     '<p class="listing-desc">' + listing.description + '</p>' :
                     '<p class="listing-desc">No description</p>';
                 
+                // Get category name for display
+                const categoryKey = getCategoryForType(listing.type, listing);
+                const categoryName = categoryKey && TYPE_CATEGORIES && TYPE_CATEGORIES[categoryKey] ? TYPE_CATEGORIES[categoryKey].name : '';
+                const categoryHTML = categoryName ? 
+                    '<div style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">' + categoryName + '</div>' : '';
+                
                 cardContent.innerHTML = 
+                    categoryHTML +
                     '<h3 style="font-size: 18px; margin-bottom: 8px; color: var(--text-primary);">' + listing.name + '</h3>' +
                     '<div class="listing-meta" style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">' +
                     '<span class="badge badge-type ' + getIconClass(listing.type, listing) + '">' + listing.type + '</span>' +
@@ -5076,7 +5106,15 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 // Add card content below images
                 const cardContent = document.createElement('div');
                 cardContent.style.cssText = 'padding: 20px 0px 0px 0px;';
+                
+                // Get category name for display
+                const categoryKey = getCategoryForType(listing.type, listing);
+                const categoryName = categoryKey && TYPE_CATEGORIES && TYPE_CATEGORIES[categoryKey] ? TYPE_CATEGORIES[categoryKey].name : '';
+                const categoryHTML = categoryName ? 
+                    '<div style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">' + categoryName + '</div>' : '';
+                
                 cardContent.innerHTML = 
+                    categoryHTML +
                     '<h3 style="font-size: 20px; margin-bottom: 10px; color: var(--text-primary);">' + listing.name + '</h3>' +
                     '<div style="display: flex; gap: 8px; margin-bottom: 10px;">' +
                     '<span class="badge-type ' + getIconClass(listing.type, listing) + '" data-type="' + listing.type + '" onclick="filterByBadge(event, \'type\', \'' + listing.type + '\')">' + listing.type + '</span>' +
