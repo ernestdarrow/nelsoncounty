@@ -86,15 +86,11 @@ function listSheetHeaders() {
 
 function doOptions(e) {
   // Handle CORS preflight requests
+  // Google Apps Script automatically handles CORS when deployed with "Anyone" access
+  // Just return empty response - Google will add CORS headers automatically
   return ContentService
     .createTextOutput('')
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeaders({
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Max-Age': '3600'
-    });
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function doGet(e) {
@@ -106,10 +102,7 @@ function doGet(e) {
           success: true,
           data: getImageKitUploadParams()
         }))
-        .setMimeType(ContentService.MimeType.JSON)
-        .setHeaders({
-          'Access-Control-Allow-Origin': '*'
-        });
+        .setMimeType(ContentService.MimeType.JSON);
     }
     
     // Handle AI image description generation via GET
@@ -122,18 +115,9 @@ function doGet(e) {
             error: 'Missing "imageUrl" parameter'
           }))
           .setMimeType(ContentService.MimeType.JSON)
-          .setHeaders({
-            'Access-Control-Allow-Origin': '*'
-          });
       }
-      const response = generateImageDescription(imageUrl);
-      // Ensure CORS headers are set
-      return ContentService
-        .createTextOutput(response.getContent())
-        .setMimeType(response.getMimeType())
-        .setHeaders({
-          'Access-Control-Allow-Origin': '*'
-        });
+      // Google Apps Script automatically adds CORS headers when deployed with "Anyone" access
+      return generateImageDescription(imageUrl);
     }
     
     // Handle ImageKit metadata update via GET
@@ -146,9 +130,6 @@ function doGet(e) {
             error: 'Missing "filePath" or "fileId" parameter'
           }))
           .setMimeType(ContentService.MimeType.JSON)
-          .setHeaders({
-            'Access-Control-Allow-Origin': '*'
-          });
       }
       let customMetadata;
       try {
@@ -156,13 +137,8 @@ function doGet(e) {
       } catch (parseError) {
         customMetadata = { description: e.parameter.customMetadata || '' };
       }
-      const response = updateImageKitFileMetadata(filePath, customMetadata, e.parameter.imageUrl);
-      return ContentService
-        .createTextOutput(response.getContent())
-        .setMimeType(response.getMimeType())
-        .setHeaders({
-          'Access-Control-Allow-Origin': '*'
-        });
+      // Google Apps Script automatically adds CORS headers when deployed with "Anyone" access
+      return updateImageKitFileMetadata(filePath, customMetadata, e.parameter.imageUrl);
     }
 
     // Default: return listings data
@@ -170,10 +146,7 @@ function doGet(e) {
     const result = getData(sheet);
     return ContentService
       .createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeaders({
-        'Access-Control-Allow-Origin': '*'
-      });
+      .setMimeType(ContentService.MimeType.JSON);
 
   } catch (error) {
     return ContentService
@@ -181,10 +154,7 @@ function doGet(e) {
         success: false,
         error: error.toString()
       }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeaders({
-        'Access-Control-Allow-Origin': '*'
-      });
+      .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
@@ -240,9 +210,6 @@ function doPost(e) {
       return ContentService
         .createTextOutput(response.getContent())
         .setMimeType(response.getMimeType())
-        .setHeaders({
-          'Access-Control-Allow-Origin': '*'
-        });
     }
 
     // Handle AI image description generation
@@ -255,9 +222,6 @@ function doPost(e) {
       return ContentService
         .createTextOutput(response.getContent())
         .setMimeType(response.getMimeType())
-        .setHeaders({
-          'Access-Control-Allow-Origin': '*'
-        });
     }
 
     // Handle ImageKit metadata update
@@ -273,9 +237,6 @@ function doPost(e) {
       return ContentService
         .createTextOutput(response.getContent())
         .setMimeType(response.getMimeType())
-        .setHeaders({
-          'Access-Control-Allow-Origin': '*'
-        });
     }
 
     let result;
@@ -295,9 +256,6 @@ function doPost(e) {
     return ContentService
       .createTextOutput(JSON.stringify(result))
       .setMimeType(ContentService.MimeType.JSON)
-      .setHeaders({
-        'Access-Control-Allow-Origin': '*'
-      });
 
   } catch (error) {
     return ContentService
@@ -306,9 +264,6 @@ function doPost(e) {
         error: error.toString() 
       }))
       .setMimeType(ContentService.MimeType.JSON)
-      .setHeaders({
-        'Access-Control-Allow-Origin': '*'
-      });
   }
 }
 
@@ -562,9 +517,6 @@ function handleImageKitRequest(request) {
       data: getImageKitUploadParams()
     }))
     .setMimeType(ContentService.MimeType.JSON)
-    .setHeaders({
-      'Access-Control-Allow-Origin': '*'
-    });
 }
 
 // -----------------------------------------------------------------------------
