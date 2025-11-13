@@ -173,14 +173,8 @@
         }
         
         /* Light Mode - Filter buttons should also have blue icons */
-        .type-filter-btn::before {
-            filter: brightness(0) saturate(100%) invert(38%) sepia(15%) saturate(879%) hue-rotate(94deg) brightness(95%) contrast(89%);
-        }
-        
         /* Light Mode - Hover state for badges turns icons white */
-        .badge-type:hover::before,
-        .type-filter-btn:hover::before,
-        .type-filter-btn.active::before {
+        .badge-type:hover::before {
             filter: brightness(0) invert(1); /* White icons on colored background */
         }
         
@@ -311,8 +305,8 @@
             border-bottom-left-radius: 12px;
             border-bottom-right-radius: 12px;
         }
-        .btn-edit { background: #007AFF; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; flex: 1; }
-        .btn-edit:hover { background: #0051D5; }
+        .btn-edit { background: #28a745; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; flex: 1; }
+        .btn-edit:hover { background: #218838; }
         .btn-delete { background: #E3795C; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
         .btn-delete:hover { background: #D65052; }
         
@@ -575,10 +569,10 @@
             .preview-sidebar { width: 100%; position: static; }
         }
         
-        .type-quick-filters { display: flex; flex-direction: column; gap: 6px; margin-bottom: 0; }
+        .type-quick-filters { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
         .type-filter-btn { 
             width: 100%;
-            padding: 10px 14px; 
+            padding: 10px 14px 10px 8px; 
             border: 1px solid var(--border-color); 
             border-radius: 8px; 
             background: var(--card-bg); 
@@ -593,17 +587,7 @@
             text-align: left;
         }
         .type-filter-btn svg {
-            display: none; /* Hide inline SVGs, using ::before now */
-        }
-        .type-filter-btn::before {
-            content: '';
-            width: 16px;
-            height: 16px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            display: inline-block;
-            flex-shrink: 0;
+            display: none; /* Hide inline SVGs */
         }
         .type-filter-btn:hover { 
             background: var(--bg-hover); 
@@ -956,9 +940,10 @@
             opacity: 1 !important;
         }
         
-        /* Keep arrow always visible */
+        /* Keep arrow always visible and clickable */
         .card-front-image-scroll .scroll-arrow {
             opacity: 1 !important;
+            pointer-events: auto !important;
         }
         
         .scroll-arrow:hover {
@@ -3255,11 +3240,12 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         return Math.round(scrollLeft / containerWidth);
                     };
                     
-                    // Single left arrow that cycles forward through images
-                    const leftArrow = document.createElement('div');
-                    leftArrow.className = 'scroll-arrow scroll-arrow-left';
-                    leftArrow.style.opacity = '1'; // Always visible
-                    leftArrow.addEventListener('click', function(e) {
+                    // Single right arrow that cycles forward through images
+                    const rightArrow = document.createElement('div');
+                    rightArrow.className = 'scroll-arrow scroll-arrow-right';
+                    rightArrow.style.opacity = '1'; // Always visible
+                    rightArrow.style.pointerEvents = 'auto'; // Ensure clickable
+                    rightArrow.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
                         const containerWidth = imgContainer.offsetWidth || imgContainer.clientWidth;
@@ -3271,7 +3257,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
                     });
                     
-                    imgContainer.appendChild(leftArrow);
+                    imgContainer.appendChild(rightArrow);
                 }
                 
                 // Featured badge
@@ -3428,16 +3414,6 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 const back = document.createElement('div');
                 back.className = 'flip-card-back';
                 
-                // Build amenities HTML for back - show ALL amenities with same styling as front
-                let backAmenitiesHTML = '';
-                if (listing.amenities && listing.amenities.length > 0) {
-                    backAmenitiesHTML = '<div class="listing-amenities">' +
-                        listing.amenities.map(function(a) {
-                            return '<span class="amenity">' + a + '</span>';
-                        }).join('') +
-                        '</div>';
-                }
-                
                 // Build description sections with labels for back of card
                 const backDescriptionHTML = listing.description && listing.description.trim() ? 
                     '<div style="margin-bottom: 15px;">' +
@@ -3455,8 +3431,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     '<button class="flip-close-btn" onclick="event.stopPropagation(); this.closest(\'.flip-card\').classList.remove(\'flipped\');">&times;</button>' +
                     '<h3 style="font-size: 22px; margin-bottom: 12px; color: var(--text-primary);">' + listing.name + '</h3>' +
                     backDescriptionHTML +
-                    backDetailedDescriptionHTML +
-                    backAmenitiesHTML;
+                    backDetailedDescriptionHTML;
                 
                 inner.appendChild(front);
                 inner.appendChild(back);
@@ -5273,12 +5248,13 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         return Math.round(scrollLeft / containerWidth);
                     };
                     
-                    // Single left arrow that cycles forward through images
-                    const leftArrow = document.createElement('div');
-                    leftArrow.className = 'scroll-arrow scroll-arrow-left';
-                    leftArrow.style.opacity = '1'; // Always visible
+                    // Single right arrow that cycles forward through images
+                    const rightArrow = document.createElement('div');
+                    rightArrow.className = 'scroll-arrow scroll-arrow-right';
+                    rightArrow.style.opacity = '1'; // Always visible
+                    rightArrow.style.pointerEvents = 'auto'; // Ensure clickable
                     
-                    leftArrow.addEventListener('click', function(e) {
+                    rightArrow.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
                         const containerWidth = imgContainer.offsetWidth || imgContainer.clientWidth;
@@ -5290,7 +5266,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
                     });
                     
-                    imgContainer.appendChild(leftArrow);
+                    imgContainer.appendChild(rightArrow);
                 }
                 
                 // Add card content below images
@@ -5317,16 +5293,6 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 const back = document.createElement('div');
                 back.className = 'flip-card-back';
                 
-                // Build amenities HTML for back - show ALL amenities with same styling as front
-                let backAmenitiesHTML = '';
-                if (listing.amenities && listing.amenities.length > 0) {
-                    backAmenitiesHTML = '<div class="listing-amenities">' +
-                        listing.amenities.map(function(a) {
-                            return '<span class="amenity">' + a + '</span>';
-                        }).join('') +
-                        '</div>';
-                }
-                
                 // Build description sections with labels for back of card
                 const backDescriptionHTML = listing.description && listing.description.trim() ? 
                     '<div style="margin-bottom: 15px;">' +
@@ -5344,8 +5310,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     '<button class="flip-close-btn" onclick="event.stopPropagation(); this.closest(\'.flip-card\').classList.remove(\'flipped\');">&times;</button>' +
                     '<h3 style="font-size: 22px; margin-bottom: 12px; color: var(--text-primary);">' + listing.name + '</h3>' +
                     backDescriptionHTML +
-                    backDetailedDescriptionHTML +
-                    backAmenitiesHTML;
+                    backDetailedDescriptionHTML;
                 
                 inner.appendChild(front);
                 inner.appendChild(back);
