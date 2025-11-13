@@ -172,13 +172,13 @@ function doPost(e) {
 
     // Handle ImageKit metadata update
     if (action === 'updateImageKitMetadata') {
-      if (!data.fileId) {
-        throw new Error('Missing "fileId" field for updateImageKitMetadata action');
+      if (!data.filePath && !data.fileId) {
+        throw new Error('Missing "filePath" or "fileId" field for updateImageKitMetadata action');
       }
       if (!data.customMetadata) {
         throw new Error('Missing "customMetadata" field for updateImageKitMetadata action');
       }
-      return updateImageKitFileMetadata(data.fileId, data.customMetadata);
+      return updateImageKitFileMetadata(data.filePath || data.fileId, data.customMetadata, data.imageUrl);
     }
 
     let result;
