@@ -85,7 +85,16 @@ function listSheetHeaders() {
 // -----------------------------------------------------------------------------
 
 function doOptions(e) {
-  return ContentService.createTextOutput('').setMimeType(ContentService.MimeType.JSON);
+  // Handle CORS preflight requests
+  return ContentService
+    .createTextOutput('')
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeaders({
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Max-Age': '3600'
+    });
 }
 
 function doGet(e) {
@@ -101,14 +110,23 @@ function doGet(e) {
 
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     const result = getData(sheet);
-    return ContentService.createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON);
+    return ContentService
+      .createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeaders({
+        'Access-Control-Allow-Origin': '*'
+      });
 
   } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({
-      success: false,
-      error: error.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: false,
+        error: error.toString()
+      }))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeaders({
+        'Access-Control-Allow-Origin': '*'
+      });
   }
 }
 
@@ -159,7 +177,14 @@ function doPost(e) {
     }
 
     if (action === 'getImageKitUploadParams') {
-      return handleImageKitRequest(data);
+      const response = handleImageKitRequest(data);
+      // Ensure CORS headers are set
+      return ContentService
+        .createTextOutput(response.getContent())
+        .setMimeType(response.getMimeType())
+        .setHeaders({
+          'Access-Control-Allow-Origin': '*'
+        });
     }
 
     // Handle AI image description generation
@@ -167,7 +192,14 @@ function doPost(e) {
       if (!data.imageUrl) {
         throw new Error('Missing "imageUrl" field for generateImageDescription action');
       }
-      return generateImageDescription(data.imageUrl);
+      const response = generateImageDescription(data.imageUrl);
+      // Ensure CORS headers are set
+      return ContentService
+        .createTextOutput(response.getContent())
+        .setMimeType(response.getMimeType())
+        .setHeaders({
+          'Access-Control-Allow-Origin': '*'
+        });
     }
 
     // Handle ImageKit metadata update
@@ -178,7 +210,14 @@ function doPost(e) {
       if (!data.customMetadata) {
         throw new Error('Missing "customMetadata" field for updateImageKitMetadata action');
       }
-      return updateImageKitFileMetadata(data.filePath || data.fileId, data.customMetadata, data.imageUrl);
+      const response = updateImageKitFileMetadata(data.filePath || data.fileId, data.customMetadata, data.imageUrl);
+      // Ensure CORS headers are set
+      return ContentService
+        .createTextOutput(response.getContent())
+        .setMimeType(response.getMimeType())
+        .setHeaders({
+          'Access-Control-Allow-Origin': '*'
+        });
     }
 
     let result;
@@ -195,13 +234,23 @@ function doPost(e) {
       result = { success: false, error: 'Unknown action: ' + action + '. Expected: saveListing, replaceAllListings, or deleteListing' };
     }
 
-    return ContentService.createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON);
+    return ContentService
+      .createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeaders({
+        'Access-Control-Allow-Origin': '*'
+      });
 
   } catch (error) {
     return ContentService
-      .createTextOutput(JSON.stringify({ success: false, error: error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
+      .createTextOutput(JSON.stringify({ 
+        success: false, 
+        error: error.toString() 
+      }))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeaders({
+        'Access-Control-Allow-Origin': '*'
+      });
   }
 }
 
@@ -454,7 +503,10 @@ function handleImageKitRequest(request) {
       success: true,
       data: getImageKitUploadParams()
     }))
-    .setMimeType(ContentService.MimeType.JSON);
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeaders({
+      'Access-Control-Allow-Origin': '*'
+    });
 }
 
 // -----------------------------------------------------------------------------
@@ -465,23 +517,37 @@ function generateImageDescription(imageUrl) {
   try {
     const scriptProperties = PropertiesService.getScriptProperties();
     
+    // Debug: Log all script properties (without values for security)
+    const allProps = scriptProperties.getProperties();
+    const propKeys = Object.keys(allProps);
+    Logger.log('Available script properties: ' + propKeys.join(', '));
+    
     // Try Google Gemini first (default, free tier available)
     const geminiApiKey = scriptProperties.getProperty('GEMINI_API_KEY');
-    if (geminiApiKey) {
+    Logger.log('GEMINI_API_KEY found: ' + (geminiApiKey ? 'Yes (length: ' + geminiApiKey.length + ')' : 'No'));
+    
+    if (geminiApiKey && geminiApiKey.trim()) {
+      Logger.log('Using Gemini API for description generation');
       return generateImageDescriptionWithGemini(imageUrl, geminiApiKey);
     }
     
     // Fallback to OpenAI (if API key is set)
     const openaiApiKey = scriptProperties.getProperty('OPENAI_API_KEY');
-    if (openaiApiKey) {
+    Logger.log('OPENAI_API_KEY found: ' + (openaiApiKey ? 'Yes' : 'No'));
+    
+    if (openaiApiKey && openaiApiKey.trim()) {
+      Logger.log('Using OpenAI API for description generation');
       return generateImageDescriptionWithOpenAI(imageUrl, openaiApiKey);
     }
     
     // If neither API key is configured, return error with helpful message
-    throw new Error('No AI API key configured. Please add GEMINI_API_KEY (recommended, free) or OPENAI_API_KEY in Script Properties. Get a free Gemini key at: https://aistudio.google.com/app/apikey');
+    const errorMsg = 'No AI API key configured. Please add GEMINI_API_KEY (recommended, free) or OPENAI_API_KEY in Script Properties. Available properties: ' + propKeys.join(', ') + '. Get a free Gemini key at: https://aistudio.google.com/app/apikey';
+    Logger.log('ERROR: ' + errorMsg);
+    throw new Error(errorMsg);
     
   } catch (error) {
     Logger.log('Error generating image description: ' + error.toString());
+    Logger.log('Error stack: ' + (error.stack || 'N/A'));
     return ContentService
       .createTextOutput(JSON.stringify({
         success: false,
@@ -731,6 +797,47 @@ function updateImageKitFileMetadata(filePathOrId, customMetadata, imageUrl) {
       }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// -----------------------------------------------------------------------------
+// Test Function: Check API Key Configuration
+// -----------------------------------------------------------------------------
+
+function testApiKeyConfiguration() {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const allProps = scriptProperties.getProperties();
+  const propKeys = Object.keys(allProps);
+  
+  Logger.log('=== API KEY CONFIGURATION TEST ===');
+  Logger.log('All Script Properties: ' + propKeys.join(', '));
+  
+  const geminiKey = scriptProperties.getProperty('GEMINI_API_KEY');
+  const openaiKey = scriptProperties.getProperty('OPENAI_API_KEY');
+  
+  Logger.log('');
+  Logger.log('GEMINI_API_KEY: ' + (geminiKey ? '✅ FOUND (length: ' + geminiKey.length + ', starts with: ' + geminiKey.substring(0, 5) + '...)' : '❌ NOT FOUND'));
+  Logger.log('OPENAI_API_KEY: ' + (openaiKey ? '✅ FOUND' : '❌ NOT FOUND'));
+  
+  if (!geminiKey && !openaiKey) {
+    Logger.log('');
+    Logger.log('⚠️ ERROR: No API keys found!');
+    Logger.log('Please add GEMINI_API_KEY or OPENAI_API_KEY in Script Properties:');
+    Logger.log('1. Click the gear icon (⚙️) → Project Settings');
+    Logger.log('2. Scroll to "Script Properties"');
+    Logger.log('3. Click "Add script property"');
+    Logger.log('4. Property: GEMINI_API_KEY');
+    Logger.log('5. Value: Your Gemini API key (starts with AIza...)');
+    Logger.log('6. Save');
+  } else {
+    Logger.log('');
+    Logger.log('✅ API key configuration looks good!');
+  }
+  
+  return {
+    geminiKey: geminiKey ? 'Found' : 'Not found',
+    openaiKey: openaiKey ? 'Found' : 'Not found',
+    allProperties: propKeys
+  };
 }
 
 // -----------------------------------------------------------------------------

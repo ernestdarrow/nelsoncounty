@@ -5482,24 +5482,39 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 }
                 
                 const responseText = await response.text();
-                console.log('Response text (first 500 chars):', responseText.substring(0, 500));
+                console.log('Response text (first 1000 chars):', responseText.substring(0, 1000));
+                console.log('Full response length:', responseText.length);
                 
                 let result;
                 try {
                     result = JSON.parse(responseText);
                 } catch (parseError) {
-                    console.error('Failed to parse JSON response:', parseError, 'Response:', responseText);
-                    throw new Error('Invalid JSON response from server: ' + responseText.substring(0, 100));
+                    console.error('Failed to parse JSON response:', parseError);
+                    console.error('Raw response:', responseText);
+                    throw new Error('Invalid JSON response from server: ' + responseText.substring(0, 200));
                 }
                 
-                console.log('Parsed result:', result);
+                console.log('Parsed result:', JSON.stringify(result, null, 2));
                 
                 if (result.success && result.description) {
-                    console.log('Description successfully generated, length:', result.description.length);
+                    console.log('✅ Description successfully generated, length:', result.description.length);
+                    console.log('Description preview:', result.description.substring(0, 100) + '...');
                     return result.description;
                 } else {
-                    console.error('Description generation failed. Result:', result);
-                    throw new Error(result.error || 'Failed to generate description. Response: ' + JSON.stringify(result));
+                    console.error('❌ Description generation failed. Full result:', JSON.stringify(result, null, 2));
+                    const errorMsg = result.error || 'Failed to generate description. Response: ' + JSON.stringify(result);
+                    console.error('Error message:', errorMsg);
+                    
+                    // Check if it's an API key configuration error
+                    if (errorMsg.includes('No AI API key') || errorMsg.includes('GEMINI_API_KEY') || errorMsg.includes('OPENAI_API_KEY')) {
+                        console.error('⚠️ API KEY CONFIGURATION ISSUE DETECTED');
+                        console.error('Please check Google Apps Script Script Properties for:');
+                        console.error('1. Property name: GEMINI_API_KEY (case-sensitive, must be exact)');
+                        console.error('2. Property value: Your Gemini API key (starts with AIza...)');
+                        console.error('3. Available properties:', result.error && result.error.includes('Available properties:') ? result.error.split('Available properties:')[1] : 'Not shown');
+                    }
+                    
+                    throw new Error(errorMsg);
                 }
             } catch (error) {
                 console.error('Error generating image description:', error);
