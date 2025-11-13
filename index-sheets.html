@@ -1076,7 +1076,7 @@
             gap: 8px;
         }
         .map-toggle-text {
-            display: none;
+            display: inline;
             font-size: 13px;
             font-weight: 500;
             white-space: nowrap;
@@ -1088,8 +1088,11 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             height: auto;
         }
-        .map-collapsed .map-toggle-text {
-            display: inline;
+        .map-toggle-btn {
+            width: auto;
+            border-radius: 12px;
+            padding: 10px 24px 10px 16px;
+            height: auto;
         }
         .map-toggle-btn:hover {
             box-shadow: 0 4px 12px rgba(0,0,0,0.12);
@@ -1499,14 +1502,14 @@
                 </aside>
                 
                 <main class="preview-main">
-                    <div class="map-container map-collapsed" id="mapContainer">
+                    <div class="map-container" id="mapContainer">
                         <div class="map-header">
                             <h2 style="display: none;">Map View</h2>
                             <button class="map-toggle-btn" onclick="toggleMap()">
                                 <svg id="mapToggleIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m7-7H5"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
-                                <span class="map-toggle-text">Open Map</span>
+                                <span class="map-toggle-text">Close Map</span>
                             </button>
                         </div>
                         <div id="map"></div>
@@ -6680,7 +6683,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         let map = null;
         let markers = [];
         let markerCluster = null;
-        let mapVisible = false; // Start collapsed
+        let mapVisible = true; // Start visible
         let infoWindow = null;
         
         function escapeHtml(text) {
@@ -6708,6 +6711,14 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         }
         
         function initMap() {
+            // Check if map element exists
+            const mapElement = document.getElementById('map');
+            if (!mapElement) {
+                console.log('Map element not found yet, retrying...');
+                setTimeout(initMap, 100);
+                return;
+            }
+            
             // Check if Google Maps API is loaded
             if (typeof google === 'undefined' || typeof google.maps === 'undefined' || typeof google.maps.Map === 'undefined') {
                 console.log('Google Maps API not loaded yet, retrying...');
@@ -6719,7 +6730,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             if (!map) {
                 try {
                     // Initialize Google Map centered on Nelson County, VA
-                    map = new google.maps.Map(document.getElementById('map'), {
+                    map = new google.maps.Map(mapElement, {
                         center: { lat: 37.8, lng: -79.0 },
                         zoom: 10,
                         mapTypeControl: false,
