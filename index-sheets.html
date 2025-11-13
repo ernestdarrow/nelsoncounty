@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Cache Control: Force browsers to always fetch the latest version -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Admin Panel - Google Sheets</title>
     <!-- Google Identity Services -->
     <script>
@@ -3536,18 +3540,6 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     // Single right arrow that cycles forward through images
                     const rightArrow = document.createElement('div');
                     rightArrow.className = 'scroll-arrow scroll-arrow-right';
-                    rightArrow.style.cssText = 'position: absolute; right: 13px; z-index: 15; opacity: 1; pointer-events: auto;';
-                    
-                    // Position arrow at center of image container (same approach as frontpage_framer.html)
-                    setTimeout(function() {
-                        const containerHeight = imgContainer.offsetHeight || 240;
-                        const containerTop = imgContainer.offsetTop || 0;
-                        if (containerHeight > 0) {
-                            // Position at center of image container: offsetTop + half the height
-                            rightArrow.style.top = (containerTop + containerHeight / 2) + 'px';
-                            rightArrow.style.transform = 'translateY(-50%)';
-                        }
-                    }, 10);
                     
                     rightArrow.addEventListener('click', function(e) {
                         e.preventDefault();
@@ -3560,6 +3552,18 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         currentIndex = (currentIndex + 1) % totalImages;
                         imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
                     });
+                    
+                    // Position arrow at center of image container (same approach as frontpage_framer.html)
+                    setTimeout(function() {
+                        const containerHeight = imgContainer.offsetHeight || 240;
+                        if (containerHeight > 0) {
+                            // Use container height divided by 2 for vertical center
+                            // This matches frontpage_framer.html which uses containerWidth / 2 for square containers
+                            // Use setProperty with 'important' to override CSS 'top: 50% !important'
+                            rightArrow.style.setProperty('top', (containerHeight / 2) + 'px', 'important');
+                            rightArrow.style.setProperty('transform', 'translateY(-50%)', 'important');
+                        }
+                    }, 10);
                     
                     // Append to front (not imgContainer) so it doesn't scroll with images
                     front.appendChild(rightArrow);
@@ -5877,18 +5881,6 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     // Single right arrow that cycles forward through images
                     const rightArrow = document.createElement('div');
                     rightArrow.className = 'scroll-arrow scroll-arrow-right';
-                    rightArrow.style.cssText = 'position: absolute; right: 13px; z-index: 15; opacity: 1; pointer-events: auto;';
-                    
-                    // Position arrow at center of image container (same approach as frontpage_framer.html)
-                    setTimeout(function() {
-                        const containerHeight = imgContainer.offsetHeight || 240;
-                        const containerTop = imgContainer.offsetTop || 0;
-                        if (containerHeight > 0) {
-                            // Position at center of image container: offsetTop + half the height
-                            rightArrow.style.top = (containerTop + containerHeight / 2) + 'px';
-                            rightArrow.style.transform = 'translateY(-50%)';
-                        }
-                    }, 10);
                     
                     rightArrow.addEventListener('click', function(e) {
                         e.preventDefault();
