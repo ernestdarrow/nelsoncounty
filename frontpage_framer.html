@@ -3957,6 +3957,11 @@ function mapCSVRowToListing(row, index) {
         image1: getField('Photo', ['photo', 'Image', 'image', 'Image1', 'image1', 'Image 1']) || '',
         // Support multiple second-image header variants from the sheet
         image2: getField('Image2', ['image2', 'Image 2', 'Photo 2', 'photo2', 'Photo2', 'Second Photo', 'Secondary Photo']) || '',
+        image3: getField('Image3', ['image3', 'Image 3', 'Photo 3', 'photo3', 'Photo3', 'Third Photo']) || '',
+        // Image descriptions for SEO (alt text)
+        image1Desc: getField('Image1Desc', ['image1Desc', 'image1 desc', 'Image 1 Desc', 'image description 1', 'Image Description 1']) || '',
+        image2Desc: getField('Image2Desc', ['image2Desc', 'image2 desc', 'Image 2 Desc', 'image description 2', 'Image Description 2']) || '',
+        image3Desc: getField('Image3Desc', ['image3Desc', 'image3 desc', 'Image 3 Desc', 'image description 3', 'Image Description 3']) || '',
         website: getField('External Website', ['Website', 'website', 'URL', 'url']) || '',
         phone: getField('Phone', ['phone']) || '',
         address: getField('Address', ['address']) || '',
@@ -6050,10 +6055,21 @@ function renderPreview(filteredListings) {
         const imgWrapper = document.createElement('div');
         imgWrapper.style.cssText = 'position: absolute; top: 0; left: 0; width: auto; height: 100%; display: flex;';
         
+        // Helper function to generate alt text for images
+        const getImageAltText = function(imageDesc, listingName, imageNumber) {
+            // Use image description if available (from ImageKit metadata)
+            if (imageDesc && imageDesc.trim()) {
+                return imageDesc.trim();
+            }
+            // Fall back to descriptive alt text using listing name
+            return (listingName || 'Listing') + ' - Image ' + imageNumber;
+        };
+        
         // Add image1 if it exists
         if (listing.image1) {
             const img1 = document.createElement('img');
             img1.src = normalizeImageUrl(listing.image1);
+            img1.alt = getImageAltText(listing.image1Desc, listing.name, 1);
             img1.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 24px; flex-shrink: 0; scroll-snap-align: start;';
             img1.onerror = function() {
                 this.src = FALLBACK_IMG;
@@ -6065,6 +6081,7 @@ function renderPreview(filteredListings) {
         if (listing.image2) {
             const img2 = document.createElement('img');
             img2.src = normalizeImageUrl(listing.image2);
+            img2.alt = getImageAltText(listing.image2Desc, listing.name, 2);
             img2.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 24px; flex-shrink: 0; scroll-snap-align: start;';
             img2.onerror = function() {
                 this.src = FALLBACK_IMG;
@@ -6074,6 +6091,7 @@ function renderPreview(filteredListings) {
         if (listing.image3) {
             const img3 = document.createElement('img');
             img3.src = normalizeImageUrl(listing.image3);
+            img3.alt = getImageAltText(listing.image3Desc, listing.name, 3);
             img3.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 24px; flex-shrink: 0; scroll-snap-align: start;';
             img3.onerror = function() {
                 this.src = FALLBACK_IMG;
@@ -6085,6 +6103,7 @@ function renderPreview(filteredListings) {
         if (!listing.image1 && !listing.image2 && !listing.image3) {
             const img = document.createElement('img');
             img.src = FALLBACK_IMG;
+            img.alt = (listing.name || 'Listing') + ' - No image available';
             img.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 24px; flex-shrink: 0; scroll-snap-align: start;';
             imgWrapper.appendChild(img);
         }

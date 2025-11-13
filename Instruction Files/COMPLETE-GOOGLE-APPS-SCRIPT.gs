@@ -404,6 +404,18 @@ function saveListing(sheet, listing) {
         rowData.push(listing.image2 || '');
       } else if (['image3', 'image 3', 'image url 3'].includes(headerLower)) {
         rowData.push(listing.image3 || '');
+      } else if (['image1desc', 'image1 desc', 'image 1 desc', 'image description 1'].includes(headerLower)) {
+        rowData.push(listing.image1Desc || '');
+      } else if (['image2desc', 'image2 desc', 'image 2 desc', 'image description 2'].includes(headerLower)) {
+        rowData.push(listing.image2Desc || '');
+      } else if (['image3desc', 'image3 desc', 'image 3 desc', 'image description 3'].includes(headerLower)) {
+        rowData.push(listing.image3Desc || '');
+      } else if (['image1fileid', 'image1 fileid', 'image 1 fileid', 'image1fileId', 'image1 fileId'].includes(headerLower)) {
+        rowData.push(listing.image1FileId || '');
+      } else if (['image2fileid', 'image2 fileid', 'image 2 fileid', 'image2fileId', 'image2 fileId'].includes(headerLower)) {
+        rowData.push(listing.image2FileId || '');
+      } else if (['image3fileid', 'image3 fileid', 'image 3 fileid', 'image3fileId', 'image3 fileId'].includes(headerLower)) {
+        rowData.push(listing.image3FileId || '');
       } else if (['external website', 'website', 'url'].includes(headerLower)) {
         rowData.push(listing.website || '');
       } else if (headerLower === 'phone') {
@@ -1044,8 +1056,6 @@ function updateImageKitFileMetadata(filePathOrId, customMetadata, imageUrl) {
       
       // ImageKit API: List files and search by path
       // Try multiple approaches to find the file
-      
-      // Approach 1: Search using the path query parameter
       const searchUrl = 'https://api.imagekit.io/v1/files';
       const searchOptions = {
         method: 'get',
@@ -1055,95 +1065,168 @@ function updateImageKitFileMetadata(filePathOrId, customMetadata, imageUrl) {
         muteHttpExceptions: true
       };
       
-      // Search for files with this exact path
-      const searchParams = '?path=' + encodeURIComponent(filePathOrId);
-      const fullSearchUrl = searchUrl + searchParams;
-      Logger.log('Search URL: ' + fullSearchUrl);
+      // Extract folder path and filename
+      const pathParts = filePathOrId.split('/').filter(p => p);
+      const folderPath = pathParts.length > 1 ? '/' + pathParts.slice(0, -1).join('/') : '/';
+      const filename = pathParts.length > 0 ? pathParts[pathParts.length - 1] : '';
+      Logger.log('Extracted folder path: ' + folderPath);
+      Logger.log('Extracted filename: ' + filename);
       
-      const searchResponse = UrlFetchApp.fetch(fullSearchUrl, searchOptions);
-      const searchStatus = searchResponse.getResponseCode();
-      const searchText = searchResponse.getContentText();
-      
-      Logger.log('Search response status: ' + searchStatus);
-      Logger.log('Search response: ' + searchText.substring(0, 500));
-      
-      if (searchStatus >= 200 && searchStatus < 300) {
-        try {
-          const searchResult = JSON.parse(searchText);
-          Logger.log('Search result type: ' + typeof searchResult);
-          Logger.log('Search result is array: ' + Array.isArray(searchResult));
-          
-          // ImageKit returns an object with a 'files' array, not a direct array
-          let files = [];
-          if (Array.isArray(searchResult)) {
-            files = searchResult;
-          } else if (searchResult && Array.isArray(searchResult.files)) {
-            files = searchResult.files;
-          } else if (searchResult && searchResult.fileId) {
-            // Single file object
-            fileId = searchResult.fileId;
-            Logger.log('Found fileId from search (single object): ' + fileId);
-          }
-          
-          // Look through the files array for a matching path
-          if (files.length > 0) {
-            Logger.log('Found ' + files.length + ' file(s) in search result');
-            // Normalize the search path (remove leading/trailing slashes for comparison)
-            const normalizedSearchPath = filePathOrId.replace(/^\/+|\/+$/g, '');
-            for (let i = 0; i < files.length; i++) {
-              const file = files[i];
-              const normalizedFilePath = (file.filePath || '').replace(/^\/+|\/+$/g, '');
-              Logger.log('File ' + i + ' path: ' + file.filePath + ' (normalized: ' + normalizedFilePath + '), fileId: ' + file.fileId);
-              // Try multiple matching strategies:
-              // 1. Exact match (with or without leading slash)
-              // 2. Normalized match (without leading/trailing slashes)
-              // 3. Match by filename (last part of path)
-              if (file.filePath === filePathOrId || 
-                  file.filePath === filePathOrId.substring(1) || 
-                  file.filePath === '/' + filePathOrId ||
-                  normalizedFilePath === normalizedSearchPath) {
-                fileId = file.fileId;
-                Logger.log('✅ Found matching fileId: ' + fileId);
-                break;
-              }
-            }
-            
-            // If no exact match, try matching by filename (last part of path)
-            if (!fileId) {
-              const searchFilename = normalizedSearchPath.split('/').pop();
-              Logger.log('Trying to match by filename: ' + searchFilename);
-              for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const fileFilename = (file.filePath || '').split('/').pop();
-                if (fileFilename === searchFilename) {
-                  fileId = file.fileId;
-                  Logger.log('✅ Found matching fileId by filename: ' + fileId);
-                  break;
-                }
-              }
-            }
-            
-            // If still no match, use the first file (might be the one we want)
-            if (!fileId && files[0] && files[0].fileId) {
-              fileId = files[0].fileId;
-              Logger.log('Using first file from search result: ' + fileId);
-            }
-          }
-          
-          if (!fileId) {
-            Logger.log('⚠️ No fileId found in search result');
-          }
-        } catch (parseError) {
-          Logger.log('Error parsing search result: ' + parseError.toString());
+      // Try multiple search strategies
+      const searchStrategies = [
+        // Strategy 1: Search by exact path
+        {
+          name: 'exact path',
+          params: '?path=' + encodeURIComponent(filePathOrId)
+        },
+        // Strategy 2: Search by folder path (list all files in folder)
+        {
+          name: 'folder path',
+          params: '?path=' + encodeURIComponent(folderPath) + '&limit=100'
+        },
+        // Strategy 3: Search by filename (name parameter)
+        {
+          name: 'filename',
+          params: '?name=' + encodeURIComponent(filename) + '&limit=100'
+        },
+        // Strategy 4: List all files (no filter, then search in results)
+        {
+          name: 'all files',
+          params: '?limit=100'
         }
-      } else {
-        Logger.log('⚠️ Search failed with status ' + searchStatus);
-        Logger.log('Error response: ' + searchText);
+      ];
+      
+      let lastError = null;
+      for (let strategyIndex = 0; strategyIndex < searchStrategies.length && !fileId; strategyIndex++) {
+        const strategy = searchStrategies[strategyIndex];
+        const fullSearchUrl = searchUrl + strategy.params;
+        Logger.log('Trying search strategy ' + (strategyIndex + 1) + '/' + searchStrategies.length + ': ' + strategy.name);
+        Logger.log('Search URL: ' + fullSearchUrl);
+        
+        try {
+          const searchResponse = UrlFetchApp.fetch(fullSearchUrl, searchOptions);
+          const searchStatus = searchResponse.getResponseCode();
+          const searchText = searchResponse.getContentText();
+          
+          Logger.log('Search response status: ' + searchStatus);
+          Logger.log('Search response length: ' + searchText.length);
+          Logger.log('Search response (first 1000 chars): ' + searchText.substring(0, 1000));
+          
+          if (searchStatus >= 200 && searchStatus < 300) {
+            try {
+              const searchResult = JSON.parse(searchText);
+              Logger.log('Search result type: ' + typeof searchResult);
+              Logger.log('Search result keys: ' + (typeof searchResult === 'object' ? Object.keys(searchResult).join(', ') : 'N/A'));
+              
+              // ImageKit API can return different formats:
+              // 1. Direct array: [file1, file2, ...]
+              // 2. Object with 'files' array: {files: [file1, file2, ...]}
+              // 3. Object with 'fileId': {fileId: '...', filePath: '...', ...}
+              // 4. Empty result: [] or {files: []}
+              
+              let files = [];
+              if (Array.isArray(searchResult)) {
+                files = searchResult;
+                Logger.log('Found ' + files.length + ' file(s) in array result');
+              } else if (searchResult && Array.isArray(searchResult.files)) {
+                files = searchResult.files;
+                Logger.log('Found ' + files.length + ' file(s) in files array');
+              } else if (searchResult && searchResult.fileId) {
+                // Single file object
+                fileId = searchResult.fileId;
+                Logger.log('✅ Found fileId from single file object: ' + fileId);
+                break;
+              } else if (searchResult && typeof searchResult === 'object') {
+                Logger.log('Unexpected result format. Keys: ' + Object.keys(searchResult).join(', '));
+                Logger.log('Full result: ' + JSON.stringify(searchResult).substring(0, 500));
+              }
+              
+              // Normalize the search path for comparison
+              const normalizedSearchPath = filePathOrId.replace(/^\/+|\/+$/g, '').toLowerCase();
+              const normalizedSearchFilename = filename.toLowerCase();
+              
+              // Look through the files array for a matching path
+              if (files.length > 0) {
+                Logger.log('Searching through ' + files.length + ' file(s) for matches...');
+                for (let i = 0; i < files.length; i++) {
+                  const file = files[i];
+                  const filePath = file.filePath || '';
+                  const fileFilename = filePath.split('/').pop() || '';
+                  const normalizedFilePath = filePath.replace(/^\/+|\/+$/g, '').toLowerCase();
+                  const normalizedFileFilename = fileFilename.toLowerCase();
+                  
+                  Logger.log('File ' + i + ': path="' + filePath + '", filename="' + fileFilename + '", fileId="' + file.fileId + '"');
+                  
+                  // Try multiple matching strategies
+                  if (filePath === filePathOrId || 
+                      filePath === filePathOrId.substring(1) || 
+                      filePath === '/' + filePathOrId ||
+                      normalizedFilePath === normalizedSearchPath ||
+                      fileFilename === filename ||
+                      normalizedFileFilename === normalizedSearchFilename ||
+                      filePath.endsWith(filePathOrId) ||
+                      filePath.endsWith(filename)) {
+                    fileId = file.fileId;
+                    Logger.log('✅ Found matching fileId: ' + fileId + ' (matched by: ' + 
+                              (filePath === filePathOrId ? 'exact path' :
+                               normalizedFilePath === normalizedSearchPath ? 'normalized path' :
+                               fileFilename === filename ? 'filename' : 'partial match') + ')');
+                    break;
+                  }
+                }
+                
+                // If still no match, try partial filename matching (in case of extensions or transformations)
+                if (!fileId) {
+                  Logger.log('Trying partial filename match...');
+                  const filenameBase = normalizedSearchFilename.split('.')[0]; // Remove extension if present
+                  for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const filePath = file.filePath || '';
+                    const fileFilename = (filePath.split('/').pop() || '').toLowerCase();
+                    const fileFilenameBase = fileFilename.split('.')[0];
+                    
+                    if (fileFilenameBase === filenameBase || 
+                        fileFilename.includes(filenameBase) ||
+                        filenameBase.includes(fileFilenameBase)) {
+                      fileId = file.fileId;
+                      Logger.log('✅ Found matching fileId by partial filename: ' + fileId);
+                      Logger.log('  Search: "' + filenameBase + '", Found: "' + fileFilenameBase + '"');
+                      break;
+                    }
+                  }
+                }
+              } else {
+                Logger.log('⚠️ No files found in search result');
+              }
+              
+              if (fileId) {
+                break; // Found fileId, exit strategy loop
+              }
+            } catch (parseError) {
+              Logger.log('Error parsing search result: ' + parseError.toString());
+              Logger.log('Response text: ' + searchText.substring(0, 500));
+              lastError = parseError;
+            }
+          } else {
+            Logger.log('⚠️ Search failed with status ' + searchStatus);
+            Logger.log('Error response: ' + searchText.substring(0, 500));
+            lastError = new Error('Search failed with status ' + searchStatus + ': ' + searchText.substring(0, 200));
+          }
+        } catch (fetchError) {
+          Logger.log('Error fetching search URL: ' + fetchError.toString());
+          lastError = fetchError;
+        }
       }
       
-      // If we still don't have a fileId, we can't proceed
+      // If we still don't have a fileId, provide detailed error message
       if (!fileId) {
-        throw new Error('Could not find file by path: ' + filePathOrId + '. ImageKit search returned status: ' + searchStatus);
+        const errorMsg = 'Could not find file by path: ' + filePathOrId + 
+                        '. Tried ' + searchStrategies.length + ' search strategies. ' +
+                        'ImageKit search returned status 200 but no matching file found. ' +
+                        'Filename: "' + filename + '", Folder: "' + folderPath + '". ' +
+                        (lastError ? 'Last error: ' + lastError.toString() : '');
+        Logger.log('❌ ' + errorMsg);
+        throw new Error(errorMsg);
       }
     }
     

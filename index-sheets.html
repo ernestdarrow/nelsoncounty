@@ -701,6 +701,8 @@
         .data-table td input, .data-table td textarea { width: 100%; padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; background: var(--bg-primary); color: var(--text-primary); }
         .data-table td input:focus, .data-table td textarea:focus { outline: none; border-color: #007AFF; }
         .data-table td textarea { min-height: 60px; resize: vertical; }
+        .data-table .cell-image-desc { min-width: 200px; max-width: 300px; }
+        .data-table .cell-image-desc textarea { min-height: 50px; font-size: 12px; }
         .data-table .cell-id { color: var(--text-secondary); font-weight: 600; }
         .data-table .cell-name { font-weight: 600; min-width: 150px; }
         .data-table .cell-slug { min-width: 180px; }
@@ -1594,8 +1596,11 @@
                             <th>Description</th>
                             <th>Detailed Description</th>
                             <th>Image 1</th>
+                            <th>Image 1 Desc</th>
                             <th>Image 2</th>
+                            <th>Image 2 Desc</th>
                             <th>Image 3</th>
+                            <th>Image 3 Desc</th>
                             <th>Website</th>
                             <th>Phone</th>
                             <th>Address</th>
@@ -1617,8 +1622,11 @@
                             <th><input type="text" class="filter-input" data-filter="description" placeholder="Filter..." /></th>
                             <th><input type="text" class="filter-input" data-filter="detailedDescription" placeholder="Filter..." /></th>
                             <th></th>
+                            <th><input type="text" class="filter-input" data-filter="image1Desc" placeholder="Filter..." /></th>
                             <th></th>
+                            <th><input type="text" class="filter-input" data-filter="image2Desc" placeholder="Filter..." /></th>
                             <th></th>
+                            <th><input type="text" class="filter-input" data-filter="image3Desc" placeholder="Filter..." /></th>
                             <th><input type="text" class="filter-input" data-filter="website" placeholder="Filter..." /></th>
                             <th><input type="text" class="filter-input" data-filter="phone" placeholder="Filter..." /></th>
                             <th><input type="text" class="filter-input" data-filter="address" placeholder="Filter..." /></th>
@@ -6753,8 +6761,11 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     '<td class="cell-description"><textarea data-field="description">' + safe(listing.description) + '</textarea></td>' +
                     '<td class="cell-description-detailed"><textarea data-field="detailedDescription">' + safe(listing.detailedDescription) + '</textarea></td>' +
                     '<td class="cell-image"><input type="text" value="' + safe(listing.image1) + '" data-field="image1" placeholder="Image URL or base64" /></td>' +
+                    '<td class="cell-image-desc"><textarea data-field="image1Desc" rows="2" style="width: 100%; padding: 4px; font-size: 12px; resize: vertical;">' + safe(listing.image1Desc) + '</textarea></td>' +
                     '<td class="cell-image"><input type="text" value="' + safe(listing.image2) + '" data-field="image2" placeholder="Image URL or base64" /></td>' +
+                    '<td class="cell-image-desc"><textarea data-field="image2Desc" rows="2" style="width: 100%; padding: 4px; font-size: 12px; resize: vertical;">' + safe(listing.image2Desc) + '</textarea></td>' +
                     '<td class="cell-image"><input type="text" value="' + safe(listing.image3) + '" data-field="image3" placeholder="Image URL or base64" /></td>' +
+                    '<td class="cell-image-desc"><textarea data-field="image3Desc" rows="2" style="width: 100%; padding: 4px; font-size: 12px; resize: vertical;">' + safe(listing.image3Desc) + '</textarea></td>' +
                     '<td class="cell-website"><input type="text" value="' + safe(listing.website) + '" data-field="website" placeholder="www.example.com or https://..." /></td>' +
                     '<td class="cell-phone"><input type="tel" value="' + safe(listing.phone) + '" data-field="phone" /></td>' +
                     '<td class="cell-address"><input type="text" value="' + safe(listing.address) + '" data-field="address" /></td>' +
