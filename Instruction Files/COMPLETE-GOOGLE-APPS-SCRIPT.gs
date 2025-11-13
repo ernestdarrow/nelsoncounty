@@ -584,7 +584,7 @@ function generateImageDescriptionWithOpenAI(imageUrl, apiKey) {
         'content': [
           {
             'type': 'text',
-            'text': 'Describe this image in detail for use as an alt text or meta description. Keep it concise (50-150 words), descriptive, and SEO-friendly. Focus on what is visible in the image.'
+            'text': 'Write a brief summary of this image in exactly 10-15 words. Focus only on the main subject and key visual elements. Be concise and descriptive.'
           },
           {
             'type': 'image_url',
@@ -595,7 +595,7 @@ function generateImageDescriptionWithOpenAI(imageUrl, apiKey) {
         ]
       }
     ],
-    'max_tokens': 200
+    'max_tokens': 50  // Reduced to 50 since we only want 10-15 words (~15-25 tokens)
   };
   
   const options = {
@@ -666,7 +666,7 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
       {
         'parts': [
           {
-            'text': 'Describe this image in detail for use as an alt text or meta description. Keep it concise (50-150 words), descriptive, and SEO-friendly. Focus on what is visible in the image.'
+            'text': 'Write a brief summary of this image in exactly 10-15 words. Focus only on the main subject and key visual elements. Be concise and descriptive.'
           },
           {
             'inline_data': {
@@ -678,8 +678,8 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
       }
     ],
     'generationConfig': {
-      'maxOutputTokens': 1024,  // Increased to 1024 to allow longer descriptions and avoid MAX_TOKENS issues
-      'temperature': 0.7  // Add some creativity but keep it focused
+      'maxOutputTokens': 100,  // Reduced to 100 since we only want 10-15 words (~15-25 tokens)
+      'temperature': 0.5  // Lower temperature for more focused, consistent short summaries
     }
   };
   
