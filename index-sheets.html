@@ -340,7 +340,18 @@
         }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         
-        .checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+        .checkbox-group { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+            gap: 10px; 
+            margin-top: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+        }
         .checkbox-item { display: flex; align-items: center; gap: 6px; }
         .checkbox-item input[type="checkbox"] { width: auto; }
         
@@ -654,7 +665,18 @@
         .table-wrapper { background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow-x: auto; }
         .data-table { width: 100%; border-collapse: collapse; }
         .data-table thead { background: #1a1a1a; color: white; }
-        .data-table th { padding: 14px 12px; text-align: left; font-size: 13px; font-weight: 600; white-space: nowrap; }
+        .data-table th { padding: 14px 12px; text-align: left; font-size: 13px; font-weight: 600; white-space: nowrap; position: relative; cursor: pointer; user-select: none; }
+        .data-table th:hover { background: #2a2a2a; }
+        .data-table th.sortable::after { content: ' ↕'; opacity: 0.5; margin-left: 5px; }
+        .data-table th.sort-asc::after { content: ' ↑'; opacity: 1; }
+        .data-table th.sort-desc::after { content: ' ↓'; opacity: 1; }
+        .data-table thead tr.filter-row { background: #2a2a2a; }
+        .data-table thead tr.filter-row th { padding: 8px 12px; background: #2a2a2a; cursor: default; }
+        .data-table thead tr.filter-row th:hover { background: #2a2a2a; }
+        .data-table .filter-input { width: 100%; padding: 4px 6px; border: 1px solid #444; border-radius: 4px; font-size: 12px; background: #333; color: white; }
+        .data-table .filter-input:focus { outline: none; border-color: #007AFF; background: #3a3a3a; }
+        .data-table .filter-select { width: 100%; padding: 4px 6px; border: 1px solid #444; border-radius: 4px; font-size: 12px; background: #333; color: white; cursor: pointer; }
+        .data-table .filter-select:focus { outline: none; border-color: #007AFF; }
         .data-table tbody tr { border-bottom: 1px solid var(--border-color); transition: background 0.2s; }
         .data-table tbody tr:hover { background: var(--bg-hover); }
         .data-table td { padding: 12px; font-size: 13px; color: var(--text-primary); }
@@ -1545,12 +1567,12 @@
                 <table id="dataTable" class="data-table">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Slug</th>
-                            <th>Type</th>
-                            <th>Category</th>
-                            <th>Area</th>
+                            <th class="sortable" data-sort="id">ID</th>
+                            <th class="sortable" data-sort="name">Name</th>
+                            <th class="sortable" data-sort="slug">Slug</th>
+                            <th class="sortable" data-sort="type">Type</th>
+                            <th class="sortable" data-sort="category">Category</th>
+                            <th class="sortable" data-sort="area">Area</th>
                             <th>Description</th>
                             <th>Detailed Description</th>
                             <th>Image 1</th>
@@ -1559,13 +1581,36 @@
                             <th>Website</th>
                             <th>Phone</th>
                             <th>Address</th>
-                            <th>Author Name</th>
-                            <th>Published Date</th>
-                            <th>Modified Date</th>
+                            <th class="sortable" data-sort="authorName">Author Name</th>
+                            <th class="sortable" data-sort="publishedDate">Published Date</th>
+                            <th class="sortable" data-sort="modifiedDate">Modified Date</th>
                             <th>Directions Link</th>
                             <th>Amenities</th>
-                            <th>Featured</th>
+                            <th class="sortable" data-sort="featured">Featured</th>
                             <th>Actions</th>
+                        </tr>
+                        <tr class="filter-row">
+                            <th><input type="text" class="filter-input" data-filter="id" placeholder="Filter..." /></th>
+                            <th><input type="text" class="filter-input" data-filter="name" placeholder="Filter..." /></th>
+                            <th><input type="text" class="filter-input" data-filter="slug" placeholder="Filter..." /></th>
+                            <th><select class="filter-select" data-filter="type"><option value="">All</option></select></th>
+                            <th><select class="filter-select" data-filter="category"><option value="">All</option></select></th>
+                            <th><select class="filter-select" data-filter="area"><option value="">All</option></select></th>
+                            <th><input type="text" class="filter-input" data-filter="description" placeholder="Filter..." /></th>
+                            <th><input type="text" class="filter-input" data-filter="detailedDescription" placeholder="Filter..." /></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th><input type="text" class="filter-input" data-filter="website" placeholder="Filter..." /></th>
+                            <th><input type="text" class="filter-input" data-filter="phone" placeholder="Filter..." /></th>
+                            <th><input type="text" class="filter-input" data-filter="address" placeholder="Filter..." /></th>
+                            <th><input type="text" class="filter-input" data-filter="authorName" placeholder="Filter..." /></th>
+                            <th><input type="text" class="filter-input" data-filter="publishedDate" placeholder="Filter..." /></th>
+                            <th><input type="text" class="filter-input" data-filter="modifiedDate" placeholder="Filter..." /></th>
+                            <th><input type="text" class="filter-input" data-filter="directionsLink" placeholder="Filter..." /></th>
+                            <th><input type="text" class="filter-input" data-filter="amenities" placeholder="Filter..." /></th>
+                            <th><select class="filter-select" data-filter="featured"><option value="">All</option><option value="true">Yes</option><option value="false">No</option></select></th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody id="dataTableBody">
@@ -1745,8 +1790,8 @@
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Website *</label>
-                        <input type="url" id="listingWebsite" required placeholder="https://..." />
+                        <label>Website</label>
+                        <input type="text" id="listingWebsite" placeholder="www.example.com or https://..." />
                     </div>
                     
                     <div class="form-group">
@@ -4163,9 +4208,13 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 return;
             }
             
-            const amenities = data.filterOptions.amenities;
+            // Sort amenities alphabetically
+            const amenities = data.filterOptions.amenities.slice().sort(function(a, b) {
+                return a.toLowerCase().localeCompare(b.toLowerCase());
+            });
+            
             container.innerHTML = amenities.map(function(amenity) {
-                const id = 'amenity-' + amenity.replace(/\s+/g, '-');
+                const id = 'amenity-' + amenity.replace(/\s+/g, '-').toLowerCase();
                 return '<div class="checkbox-item">' +
                     '<input type="checkbox" id="' + id + '" value="' + amenity + '" />' +
                     '<label for="' + id + '" style="font-weight: normal; margin: 0;">' + amenity + '</label>' +
@@ -5266,6 +5315,79 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             return uploadPromise;
         }
 
+        // Convert URL image to File object for ImageKit upload
+        async function urlToFile(imageUrl, fileName) {
+            try {
+                const response = await fetch(imageUrl);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch image: ' + response.status);
+                }
+                const blob = await response.blob();
+                const file = new File([blob], fileName || 'image.jpg', { type: blob.type || 'image/jpeg' });
+                return file;
+            } catch (error) {
+                console.error('Error converting URL to file:', error);
+                throw new Error('Failed to download image from URL: ' + error.message);
+            }
+        }
+        
+        // Auto-upload URL images to ImageKit
+        async function autoUploadImageUrl(inputId, imageUrl) {
+            if (!imageUrl || !imageUrl.trim()) return false;
+            
+            const url = imageUrl.trim();
+            // Check if it's a URL (http/https) and not already ImageKit or base64
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                // Check if it's already an ImageKit URL
+                if (url.includes('ik.imagekit.io') || url.includes('imagekit.io')) {
+                    return false; // Already ImageKit, no need to upload
+                }
+                
+                // Check if it's base64
+                if (url.startsWith('data:image/')) {
+                    return false; // Base64, no need to upload
+                }
+                
+                const input = document.getElementById(inputId);
+                if (!input) return false;
+                
+                // Show uploading state
+                const originalValue = input.value;
+                input.disabled = true;
+                input.value = 'Uploading from URL...';
+                
+                try {
+                    // Extract filename from URL or use default
+                    const urlParts = url.split('/');
+                    const urlFileName = urlParts[urlParts.length - 1].split('?')[0] || 'image.jpg';
+                    const fileName = urlFileName || 'image.jpg';
+                    
+                    console.log('Downloading image from URL:', url);
+                    const file = await urlToFile(url, fileName);
+                    
+                    console.log('Uploading to ImageKit...');
+                    const result = await uploadImageToImageKit(file);
+                    
+                    const imageKitUrl = result.url || result.filePath || '';
+                    if (imageKitUrl) {
+                        input.value = imageKitUrl;
+                        console.log('Image uploaded successfully. New URL:', imageKitUrl);
+                        return true;
+                    } else {
+                        throw new Error('No URL returned from upload');
+                    }
+                } catch (error) {
+                    console.error('Error uploading image from URL:', error);
+                    input.value = originalValue; // Restore original URL on error
+                    alert('Failed to upload image from URL: ' + (error.message || 'Unknown error') + '\n\nOriginal URL kept.');
+                    return false;
+                } finally {
+                    input.disabled = false;
+                }
+            }
+            return false;
+        }
+
         function initImageUploadButtons() {
             document.querySelectorAll('.btn-upload-image').forEach(function(button) {
                 // Skip if already initialized (check for data attribute)
@@ -5364,6 +5486,29 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         }
                     }
                 });
+            });
+            
+            // Add auto-upload functionality for URL images
+            ['listingImage1', 'listingImage2', 'listingImage3'].forEach(function(imageId) {
+                const input = document.getElementById(imageId);
+                if (input && !input.dataset.urlUploadInitialized) {
+                    input.dataset.urlUploadInitialized = 'true';
+                    
+                    // Auto-upload on blur (when user leaves the field)
+                    input.addEventListener('blur', async function(e) {
+                        const url = this.value.trim();
+                        if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+                            // Check if it's already ImageKit or base64
+                            if (!url.includes('ik.imagekit.io') && !url.includes('imagekit.io') && !url.startsWith('data:image/')) {
+                                // Ask user if they want to upload
+                                const shouldUpload = confirm('This appears to be an external image URL. Would you like to upload it to ImageKit and replace it with the ImageKit URL?');
+                                if (shouldUpload) {
+                                    await autoUploadImageUrl(imageId, url);
+                                }
+                            }
+                        }
+                    });
+                }
             });
         }
         
@@ -5656,15 +5801,71 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             renderPreview();
         }
         
+        // Table sort and filter state
+        let tableSortField = 'name';
+        let tableSortDirection = 'asc';
+        let tableFilters = {};
+        
         function renderDataTable() {
             const tbody = document.getElementById('dataTableBody');
             tbody.innerHTML = '';
             
-            // Sort listings by name (A-Z) before rendering
-            const sortedListings = data.listings.slice().sort(function(a, b) {
-                const aName = (a.name || '').toLowerCase();
-                const bName = (b.name || '').toLowerCase();
-                return aName.localeCompare(bName);
+            // Get filter values
+            const filterInputs = document.querySelectorAll('.data-table .filter-input, .data-table .filter-select');
+            tableFilters = {};
+            filterInputs.forEach(function(input) {
+                const field = input.getAttribute('data-filter');
+                const value = input.value.trim();
+                if (value) {
+                    tableFilters[field] = value;
+                }
+            });
+            
+            // Apply filters
+            let filteredListings = data.listings.filter(function(listing) {
+                for (let field in tableFilters) {
+                    const filterValue = tableFilters[field].toLowerCase();
+                    let listingValue = '';
+                    
+                    if (field === 'featured') {
+                        listingValue = String(listing.featured || false).toLowerCase();
+                        if (filterValue !== listingValue) return false;
+                    } else if (field === 'amenities') {
+                        listingValue = (Array.isArray(listing.amenities) ? listing.amenities.join(', ') : '').toLowerCase();
+                        if (listingValue.indexOf(filterValue) === -1) return false;
+                    } else if (field === 'category' || field === 'type' || field === 'area') {
+                        listingValue = String(listing[field] || '').toLowerCase();
+                        if (filterValue !== listingValue) return false;
+                    } else {
+                        listingValue = String(listing[field] || '').toLowerCase();
+                        if (listingValue.indexOf(filterValue) === -1) return false;
+                    }
+                }
+                return true;
+            });
+            
+            // Apply sorting
+            const sortedListings = filteredListings.slice().sort(function(a, b) {
+                let aValue = a[tableSortField];
+                let bValue = b[tableSortField];
+                
+                // Handle different data types
+                if (tableSortField === 'featured') {
+                    aValue = aValue ? 1 : 0;
+                    bValue = bValue ? 1 : 0;
+                } else if (tableSortField === 'amenities') {
+                    aValue = Array.isArray(aValue) ? aValue.join(', ') : '';
+                    bValue = Array.isArray(bValue) ? bValue.join(', ') : '';
+                } else {
+                    aValue = (aValue || '').toString().toLowerCase();
+                    bValue = (bValue || '').toString().toLowerCase();
+                }
+                
+                let result = 0;
+                if (aValue < bValue) result = -1;
+                else if (aValue > bValue) result = 1;
+                
+                return tableSortDirection === 'asc' ? result : -result;
             });
             
             sortedListings.forEach(function(listing, originalIndex) {
@@ -5700,7 +5901,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     '<td class="cell-image"><input type="text" value="' + safe(listing.image1) + '" data-field="image1" placeholder="Image URL or base64" /></td>' +
                     '<td class="cell-image"><input type="text" value="' + safe(listing.image2) + '" data-field="image2" placeholder="Image URL or base64" /></td>' +
                     '<td class="cell-image"><input type="text" value="' + safe(listing.image3) + '" data-field="image3" placeholder="Image URL or base64" /></td>' +
-                    '<td class="cell-website"><input type="url" value="' + safe(listing.website) + '" data-field="website" /></td>' +
+                    '<td class="cell-website"><input type="text" value="' + safe(listing.website) + '" data-field="website" placeholder="www.example.com or https://..." /></td>' +
                     '<td class="cell-phone"><input type="tel" value="' + safe(listing.phone) + '" data-field="phone" /></td>' +
                     '<td class="cell-address"><input type="text" value="' + safe(listing.address) + '" data-field="address" /></td>' +
                     '<td class="cell-author"><input type="text" value="' + safe(listing.authorName) + '" data-field="authorName" placeholder="Author name" /></td>' +
@@ -5716,7 +5917,109 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     '</td>';
                 tbody.appendChild(row);
             });
+            
+            // Update sort indicators
+            document.querySelectorAll('.data-table th.sortable').forEach(function(th) {
+                th.classList.remove('sort-asc', 'sort-desc');
+                if (th.getAttribute('data-sort') === tableSortField) {
+                    th.classList.add('sort-' + tableSortDirection);
+                }
+            });
+            
+            // Populate filter dropdowns
+            updateTableFilterDropdowns();
         }
+        
+        function updateTableFilterDropdowns() {
+            if (!data || !data.listings) return;
+            
+            // Type filter dropdown
+            const typeFilter = document.querySelector('.data-table select[data-filter="type"]');
+            if (typeFilter && (!typeFilter.dataset.populated || typeFilter.options.length <= 1)) {
+                // Clear existing options except "All"
+                while (typeFilter.options.length > 1) {
+                    typeFilter.remove(1);
+                }
+                const uniqueTypes = [...new Set(data.listings.map(l => l.type).filter(t => t))].sort();
+                uniqueTypes.forEach(function(type) {
+                    const option = document.createElement('option');
+                    option.value = type;
+                    option.textContent = type;
+                    typeFilter.appendChild(option);
+                });
+                typeFilter.dataset.populated = 'true';
+            }
+            
+            // Area filter dropdown
+            const areaFilter = document.querySelector('.data-table select[data-filter="area"]');
+            if (areaFilter && (!areaFilter.dataset.populated || areaFilter.options.length <= 1)) {
+                // Clear existing options except "All"
+                while (areaFilter.options.length > 1) {
+                    areaFilter.remove(1);
+                }
+                const uniqueAreas = [...new Set(data.listings.map(l => l.area).filter(a => a))].sort();
+                uniqueAreas.forEach(function(area) {
+                    const option = document.createElement('option');
+                    option.value = area;
+                    option.textContent = area;
+                    areaFilter.appendChild(option);
+                });
+                areaFilter.dataset.populated = 'true';
+            }
+            
+            // Category filter dropdown
+            const categoryFilter = document.querySelector('.data-table select[data-filter="category"]');
+            if (categoryFilter && (!categoryFilter.dataset.populated || categoryFilter.options.length <= 1)) {
+                // Clear existing options except "All"
+                while (categoryFilter.options.length > 1) {
+                    categoryFilter.remove(1);
+                }
+                const uniqueCategories = [...new Set(data.listings.map(l => l.category).filter(c => c))].sort();
+                uniqueCategories.forEach(function(category) {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = TYPE_CATEGORIES && TYPE_CATEGORIES[category] ? 
+                        TYPE_CATEGORIES[category].emoji + ' ' + TYPE_CATEGORIES[category].name : category;
+                    categoryFilter.appendChild(option);
+                });
+                categoryFilter.dataset.populated = 'true';
+            }
+        }
+        
+        // Add event listeners for sorting and filtering after DOM is ready
+        setTimeout(function() {
+            // Sort functionality
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.data-table th.sortable')) {
+                    const th = e.target.closest('.data-table th.sortable');
+                    const sortField = th.getAttribute('data-sort');
+                    
+                    if (tableSortField === sortField) {
+                        // Toggle direction
+                        tableSortDirection = tableSortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        tableSortField = sortField;
+                        tableSortDirection = 'asc';
+                    }
+                    
+                    renderDataTable();
+                }
+            });
+            
+            // Filter functionality
+            document.addEventListener('input', function(e) {
+                if (e.target.matches('.data-table .filter-input, .data-table .filter-select')) {
+                    renderDataTable();
+                }
+            });
+            
+            // Filter functionality for change events (for select dropdowns)
+            document.addEventListener('change', function(e) {
+                if (e.target.matches('.data-table .filter-select')) {
+                    renderDataTable();
+                }
+            });
+        }, 100);
         
         function saveTableChanges() {
             const rows = Array.from(document.querySelectorAll('#dataTableBody tr'));
@@ -7065,6 +7368,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         function toggleMap() {
             var container = document.getElementById('mapContainer');
             var toggleIcon = document.getElementById('mapToggleIcon');
+            var toggleText = container ? container.querySelector('.map-toggle-text') : null;
             
             if (!container || !toggleIcon) return;
             
@@ -7072,11 +7376,15 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 container.classList.add('map-collapsed');
                 // Change to plus icon
                 toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m7-7H5"></path>';
+                // Change text to "Open Map"
+                if (toggleText) toggleText.textContent = 'Open Map';
                 mapVisible = false;
             } else {
                 container.classList.remove('map-collapsed');
                 // Change to X icon
                 toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>';
+                // Change text to "Close Map"
+                if (toggleText) toggleText.textContent = 'Close Map';
                 mapVisible = true;
                 // Trigger resize to fix display issues
                 setTimeout(function() {
