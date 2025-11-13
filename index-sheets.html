@@ -309,6 +309,8 @@
         }
         .btn-edit { background: #28a745; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; flex: 1; }
         .btn-edit:hover { background: #218838; }
+        .btn-duplicate { background: #007AFF; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; flex: 1; }
+        .btn-duplicate:hover { background: #0056b3; }
         .btn-delete { background: #E3795C; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
         .btn-delete:hover { background: #D65052; }
         
@@ -3534,7 +3536,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     // Single right arrow that cycles forward through images
                     const rightArrow = document.createElement('div');
                     rightArrow.className = 'scroll-arrow scroll-arrow-right';
-                    rightArrow.style.cssText = 'position: absolute; right: 13px; top: 10px; z-index: 15; opacity: 1; pointer-events: auto;';
+                    rightArrow.style.cssText = 'position: absolute; right: 13px; top: 0px; z-index: 15; opacity: 1; pointer-events: auto;';
                     
                     rightArrow.addEventListener('click', function(e) {
                         e.preventDefault();
@@ -3696,7 +3698,16 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     deleteListing(listing.id);
                 });
                 
+                const duplicateBtn = document.createElement('button');
+                duplicateBtn.className = 'btn-duplicate';
+                duplicateBtn.textContent = 'Duplicate';
+                duplicateBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    duplicateListing(listing.id);
+                });
+                
                 actions.appendChild(editBtn);
+                actions.appendChild(duplicateBtn);
                 actions.appendChild(deleteBtn);
                 cardContent.appendChild(actions);
                 front.appendChild(cardContent);
@@ -3753,7 +3764,16 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     deleteListing(listing.id);
                 });
                 
+                const backDuplicateBtn = document.createElement('button');
+                backDuplicateBtn.className = 'btn-duplicate';
+                backDuplicateBtn.textContent = 'Duplicate';
+                backDuplicateBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    duplicateListing(listing.id);
+                });
+                
                 backActions.appendChild(backEditBtn);
+                backActions.appendChild(backDuplicateBtn);
                 backActions.appendChild(backDeleteBtn);
                 back.appendChild(backActions);
                 
@@ -3847,6 +3867,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 }).join(', '));
             }
             
+            // Update clear button style based on filter state
+            updateClearButtonStyle();
+            
             renderListings(filtered);
         }
         
@@ -3890,6 +3913,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             
             // Call filterListings to apply the filter
             filterListings();
+            // Update clear button style
+            updateClearButtonStyle();
         }
         
         window.handleAdminTypeFilter = function handleAdminTypeFilter() {
@@ -3914,6 +3939,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             
             // Call filterListings to apply the filter
             filterListings();
+            // Update clear button style
+            updateClearButtonStyle();
         }
         
         window.filterByAdminBadge = function filterByAdminBadge(event, filterType, value) {
@@ -3943,6 +3970,30 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             }
         }
         
+        // Function to check if any filter is applied
+        function hasActiveFilters() {
+            const searchTerm = document.getElementById('adminSearchInput').value.trim();
+            const areaFilter = document.getElementById('adminAreaFilter').value;
+            const amenityFilter = document.getElementById('adminAmenityFilter').value;
+            return searchTerm || areaFilter || amenityFilter || currentAdminTypeFilter;
+        }
+        
+        // Function to update clear button style based on filter state
+        function updateClearButtonStyle() {
+            const clearButton = document.querySelector('button[onclick="clearAdminFilters()"]');
+            if (!clearButton) return;
+            
+            if (hasActiveFilters()) {
+                clearButton.style.background = '#dc3545';
+                clearButton.style.color = 'white';
+                clearButton.style.borderColor = '#dc3545';
+            } else {
+                clearButton.style.background = '';
+                clearButton.style.color = '';
+                clearButton.style.borderColor = '';
+            }
+        }
+        
         function clearAdminFilters() {
             document.getElementById('adminSearchInput').value = '';
             const typeFilter = document.getElementById('adminTypeFilter');
@@ -3950,6 +4001,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             document.getElementById('adminAreaFilter').value = '';
             document.getElementById('adminAmenityFilter').value = '';
             currentAdminTypeFilter = '';
+            
+            // Update button style after clearing
+            updateClearButtonStyle();
             
             // Reset quick filter buttons - only activate "All Types" button
             // Category buttons have both data-type="" and data-category, so we need to exclude those
@@ -3976,6 +4030,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             // Render type filter buttons dynamically based on usage
             if (data.listings) {
                 renderAdminTypeFilterButtons(data.listings, '#adminTab .type-quick-filters'); // Show all categories
+                
+                // Update clear button style after filters are populated
+                updateClearButtonStyle();
                 
                 // Make sure "All Types" button has correct handler after categories are rendered
                 // Use ID selector first, then fallback to querySelector
@@ -4443,6 +4500,42 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     renderListings();
                 }, 3000);
             }
+        }
+        
+        function duplicateListing(id) {
+            const listing = data.listings.find(function(l) { return l.id === id; });
+            
+            if (!listing) {
+                alert('Listing not found!');
+                return;
+            }
+            
+            // Create a deep copy of the listing
+            const duplicate = JSON.parse(JSON.stringify(listing));
+            
+            // Generate a new ID
+            duplicate.id = Date.now().toString();
+            
+            // Modify the name to indicate it's a duplicate
+            duplicate.name = (listing.name || 'Untitled Listing') + ' (Copy)';
+            
+            // Generate a new slug if it exists
+            if (duplicate.slug) {
+                duplicate.slug = duplicate.slug + '-copy';
+            }
+            
+            // Add to the listings array
+            data.listings.push(duplicate);
+            
+            // Re-render the list to show the new duplicate
+            renderListings();
+            
+            // Optionally open the duplicate for editing
+            setTimeout(function() {
+                editListing(duplicate.id);
+            }, 100);
+            
+            alert('✅ Duplicated "' + listing.name + '"');
         }
         
         function saveListing(event) {
@@ -5737,7 +5830,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     // Single right arrow that cycles forward through images
                     const rightArrow = document.createElement('div');
                     rightArrow.className = 'scroll-arrow scroll-arrow-right';
-                    rightArrow.style.cssText = 'position: absolute; right: 13px; top: 10px; z-index: 15; opacity: 1; pointer-events: auto;';
+                    rightArrow.style.cssText = 'position: absolute; right: 13px; top: 0px; z-index: 15; opacity: 1; pointer-events: auto;';
                     
                     rightArrow.addEventListener('click', function(e) {
                         e.preventDefault();
