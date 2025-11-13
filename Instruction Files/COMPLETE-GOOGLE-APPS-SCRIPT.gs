@@ -595,7 +595,7 @@ function generateImageDescriptionWithOpenAI(imageUrl, apiKey) {
         ]
       }
     ],
-    'max_tokens': 150  // Increased to 150 to ensure we get output (10-15 words needs ~15-25 tokens, but model may need buffer)
+    'max_tokens': 200  // 200 tokens = ~50 words, plenty for 10-15 word requirement with buffer
   };
   
   const options = {
@@ -634,33 +634,41 @@ function generateImageDescriptionWithOpenAI(imageUrl, apiKey) {
 
 function generateImageDescriptionWithGemini(imageUrl, apiKey) {
   // Google Gemini API (free tier available)
-  // Use Gemini 2.5 models (newer, better support)
-  // Try these models in order:
-  // 1. gemini-2.5-flash (fastest, free tier, supports vision)
-  // 2. gemini-2.5-flash-preview (latest preview)
-  // 3. gemini-2.5-pro-preview (more capable)
-  // 4. Fallback to gemini-1.5-flash (if 2.5 models unavailable)
+  // Enhanced version with robust retry logic, exponential backoff, and optimized settings
+  // Models to try in order (with fallback):
+  // 1. gemini-1.5-flash (most stable, reliable)
+  // 2. gemini-2.5-flash (newer, faster)
+  // 3. gemini-2.5-flash-preview (latest preview)
+  // 4. gemini-1.5-pro (more capable fallback)
   
   Logger.log('=== generateImageDescriptionWithGemini called ===');
   Logger.log('Image URL: ' + imageUrl);
   Logger.log('API Key length: ' + apiKey.length);
   
-  let url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey;
+  // Model priority: Start with most stable, fall back to newer models if needed
+  const models = [
+    'gemini-1.5-flash',           // Most stable and reliable
+    'gemini-2.5-flash',           // Newer, faster
+    'gemini-2.5-flash-preview-05-20',  // Latest preview
+    'gemini-1.5-pro'              // More capable fallback
+  ];
   
-  // Get image data
+  // Get image data (with retry)
   let mimeType;
   let imageData;
   try {
     mimeType = detectImageMimeType(imageUrl);
     Logger.log('Detected MIME type: ' + mimeType);
     
-    imageData = getImageAsBase64(imageUrl);
-    Logger.log('Image data retrieved successfully, length: ' + imageData.length);
+    // Get image with retry logic
+    imageData = getImageAsBase64WithRetry(imageUrl);
+    Logger.log('Image data retrieved successfully, length: ' + imageData.length + ' chars');
   } catch (imageError) {
-    Logger.log('❌ Failed to get image data: ' + imageError.toString());
+    Logger.log('❌ Failed to get image data after retries: ' + imageError.toString());
     throw new Error('Failed to fetch image: ' + imageError.toString());
   }
   
+  // Optimized payload - 150 tokens is plenty for 10-15 words
   const payload = {
     'contents': [
       {
@@ -678,17 +686,16 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
       }
     ],
     'generationConfig': {
-      'maxOutputTokens': 200,  // Increased to 200 to ensure we get output (10-15 words needs ~15-25 tokens, but model may need buffer)
-      'temperature': 0.5  // Lower temperature for more focused, consistent short summaries
+      'maxOutputTokens': 200,  // 200 tokens = ~50 words, plenty for 10-15 word requirement with buffer
+      'temperature': 0.3  // Lower temperature for more focused, consistent short summaries
     }
   };
   
   Logger.log('Payload structure:');
   Logger.log('  - Text prompt length: ' + payload.contents[0].parts[0].text.length);
   Logger.log('  - MIME type: ' + payload.contents[0].parts[1].inline_data.mime_type);
-  Logger.log('  - Image data length: ' + payload.contents[0].parts[1].inline_data.data.length);
+  Logger.log('  - Image data length: ' + payload.contents[0].parts[1].inline_data.data.length + ' chars');
   
-  // Try the request
   const options = {
     'method': 'post',
     'headers': {
@@ -698,256 +705,233 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
     'muteHttpExceptions': true
   };
   
-  Logger.log('Sending request to Gemini API...');
-  Logger.log('URL (without key): ' + url.split('?key=')[0]);
-  
-  let response = UrlFetchApp.fetch(url, options);
-  let status = response.getResponseCode();
-  let responseText = response.getContentText();
-  
-  Logger.log('Gemini API response status: ' + status);
-  Logger.log('Gemini API response (first 1000 chars): ' + responseText.substring(0, 1000));
-  
-  // If 404, try gemini-2.5-flash-preview (latest preview)
-  if (status === 404) {
-    Logger.log('gemini-2.5-flash not available, trying gemini-2.5-flash-preview...');
-    url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=' + apiKey;
-    response = UrlFetchApp.fetch(url, options);
-    status = response.getResponseCode();
-    responseText = response.getContentText();
-  }
-  
-  // If still 404, try gemini-2.5-pro-preview (more capable)
-  if (status === 404) {
-    Logger.log('gemini-2.5-flash-preview not available, trying gemini-2.5-pro-preview...');
-    url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-03-25:generateContent?key=' + apiKey;
-    response = UrlFetchApp.fetch(url, options);
-    status = response.getResponseCode();
-    responseText = response.getContentText();
-  }
-  
-  // If still 404, fallback to gemini-1.5-flash (older but stable)
-  if (status === 404) {
-    Logger.log('Gemini 2.5 models not available, trying gemini-1.5-flash...');
-    url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey;
-    response = UrlFetchApp.fetch(url, options);
-    status = response.getResponseCode();
-    responseText = response.getContentText();
-  }
-  
-  // Handle successful responses (status 200-299)
-  // This includes both initial success and successful retries
-  if (status >= 200 && status < 300) {
-    Logger.log('✅ Gemini API request successful!');
+  // Try each model with retry logic
+  let lastError = null;
+  for (let modelIndex = 0; modelIndex < models.length; modelIndex++) {
+    const model = models[modelIndex];
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + apiKey;
     
-    let responseData;
-    try {
-      responseData = JSON.parse(responseText);
-    } catch (parseError) {
-      Logger.log('❌ Failed to parse Gemini response: ' + parseError.toString());
-      Logger.log('Raw response: ' + responseText.substring(0, 500));
-      throw new Error('Invalid JSON response from Gemini: ' + parseError.toString());
-    }
+    Logger.log('Trying model ' + (modelIndex + 1) + '/' + models.length + ': ' + model);
     
-    Logger.log('Response structure:');
-    Logger.log('  - Has candidates: ' + (responseData.candidates ? 'Yes' : 'No'));
+    // Retry with exponential backoff: 3 retries with delays of 2s, 4s, 8s
+    const maxRetries = 3;
+    const retryDelays = [2000, 4000, 8000]; // milliseconds
     
-    const candidate = responseData.candidates && responseData.candidates.length > 0 ? responseData.candidates[0] : null;
-    
-    if (candidate) {
-      Logger.log('  - Candidates count: ' + responseData.candidates.length);
-      Logger.log('  - First candidate has content: ' + (candidate.content ? 'Yes' : 'No'));
-      Logger.log('  - Finish reason: ' + (candidate.finishReason || 'not specified'));
-      
-      if (candidate.content) {
-        Logger.log('  - Content role: ' + (candidate.content.role || 'not specified'));
-        Logger.log('  - First candidate has parts: ' + (candidate.content.parts ? 'Yes' : 'No'));
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        if (attempt > 0) {
+          const delay = retryDelays[attempt - 1];
+          Logger.log('  Retry attempt ' + attempt + '/' + maxRetries + ' after ' + (delay / 1000) + 's delay...');
+          Utilities.sleep(delay);
+        }
         
-        if (candidate.content.parts && candidate.content.parts.length > 0) {
-          Logger.log('  - Parts count: ' + candidate.content.parts.length);
-          Logger.log('  - First part type: ' + (candidate.content.parts[0].text ? 'text' : typeof candidate.content.parts[0]));
-          Logger.log('  - First part keys: ' + Object.keys(candidate.content.parts[0]).join(', '));
+        Logger.log('  Sending request to Gemini API (attempt ' + (attempt + 1) + ')...');
+        const response = UrlFetchApp.fetch(url, options);
+        const status = response.getResponseCode();
+        const responseText = response.getContentText();
+        
+        Logger.log('  Response status: ' + status);
+        
+        // Success - parse and return
+        if (status >= 200 && status < 300) {
+          Logger.log('✅ Success with model: ' + model);
+          return parseGeminiResponse(responseText, model);
+        }
+        
+        // Check if error is retryable
+        const isRetryable = isRetryableError(status);
+        const isNotFound = (status === 404);
+        
+        if (isNotFound) {
+          // Model not found - try next model
+          Logger.log('  Model not found (404) - trying next model...');
+          lastError = new Error('Model ' + model + ' not found (404)');
+          break; // Break retry loop, try next model
+        }
+        
+        if (isRetryable && attempt < maxRetries) {
+          // Retryable error - will retry in next iteration
+          Logger.log('  Retryable error (' + status + ') - will retry...');
+          lastError = new Error('Retryable error: ' + status + ' - ' + responseText.substring(0, 200));
+          continue; // Continue to next retry
+        }
+        
+        // Non-retryable error or exhausted retries - try next model
+        if (!isRetryable) {
+          Logger.log('  Non-retryable error (' + status + ') - trying next model...');
+          lastError = new Error('Non-retryable error: ' + status + ' - ' + responseText.substring(0, 200));
+          break; // Break retry loop, try next model
+        }
+        
+        // Exhausted retries for this model
+        Logger.log('  Exhausted retries for model ' + model + ' - trying next model...');
+        lastError = new Error('Failed after ' + maxRetries + ' retries: ' + status + ' - ' + responseText.substring(0, 200));
+        break; // Break retry loop, try next model
+        
+      } catch (fetchError) {
+        // Network error - retry if we have attempts left
+        Logger.log('  Network error on attempt ' + (attempt + 1) + ': ' + fetchError.toString());
+        lastError = fetchError;
+        
+        if (attempt < maxRetries) {
+          continue; // Retry
+        } else {
+          // Exhausted retries - try next model
+          Logger.log('  Exhausted retries due to network errors - trying next model...');
+          break; // Break retry loop, try next model
         }
       }
     }
-    
-    // Try to extract description from various possible response formats
-    let description = null;
-    
-    // Debug: Log the full candidate structure
-    if (candidate) {
-      Logger.log('Full candidate structure: ' + JSON.stringify(candidate).substring(0, 1000));
-    }
-    
-    // Check for finish reason - if MAX_TOKENS, we might still have partial content
-    const finishReason = candidate ? candidate.finishReason : null;
-    if (finishReason === 'MAX_TOKENS') {
-      Logger.log('⚠️ Warning: Response hit MAX_TOKENS limit.');
-      Logger.log('  - Usage shows ' + (responseData.usageMetadata ? responseData.usageMetadata.totalTokenCount : 'unknown') + ' total tokens used');
-      Logger.log('  - Prompt tokens: ' + (responseData.usageMetadata ? responseData.usageMetadata.promptTokenCount : 'unknown'));
-      Logger.log('  - Output tokens: ' + (responseData.usageMetadata ? (responseData.usageMetadata.totalTokenCount - responseData.usageMetadata.promptTokenCount) : 'unknown'));
-      Logger.log('  - Thoughts tokens: ' + (responseData.usageMetadata && responseData.usageMetadata.thoughtsTokenCount ? responseData.usageMetadata.thoughtsTokenCount : 'none'));
-      Logger.log('  - Cached tokens: ' + (responseData.usageMetadata && responseData.usageMetadata.cachedContentTokenCount ? responseData.usageMetadata.cachedContentTokenCount : 'none'));
-      Logger.log('  - Attempting to extract partial content...');
-    }
-    
-    // Standard format: parts array with text
-    if (candidate && candidate.content && candidate.content.parts && Array.isArray(candidate.content.parts)) {
-      Logger.log('Checking parts array (length: ' + candidate.content.parts.length + ')...');
-      for (let i = 0; i < candidate.content.parts.length; i++) {
-        const part = candidate.content.parts[i];
-        Logger.log('  Part ' + i + ' keys: ' + Object.keys(part).join(', '));
-        if (part.text) {
-          description = part.text.trim();
-          Logger.log('  Found text in part ' + i + ', length: ' + description.length);
-          Logger.log('  Text preview: ' + description.substring(0, 200));
-          break;
-        }
+  }
+  
+  // All models failed
+  Logger.log('❌ All models and retries exhausted');
+  throw new Error('All Gemini models failed. Last error: ' + (lastError ? lastError.toString() : 'Unknown error'));
+}
+
+// Helper function: Check if an HTTP status code is retryable
+function isRetryableError(status) {
+  // Retryable errors: 429 (rate limit), 500 (server error), 502 (bad gateway), 503 (overloaded), 504 (gateway timeout)
+  return status === 429 || status === 500 || status === 502 || status === 503 || status === 504;
+}
+
+// Helper function: Parse Gemini API response
+function parseGeminiResponse(responseText, model) {
+  let responseData;
+  try {
+    responseData = JSON.parse(responseText);
+  } catch (parseError) {
+    Logger.log('❌ Failed to parse Gemini response: ' + parseError.toString());
+    Logger.log('Raw response: ' + responseText.substring(0, 500));
+    throw new Error('Invalid JSON response from Gemini: ' + parseError.toString());
+  }
+  
+  Logger.log('Response structure:');
+  Logger.log('  - Has candidates: ' + (responseData.candidates ? 'Yes' : 'No'));
+  
+  const candidate = responseData.candidates && responseData.candidates.length > 0 ? responseData.candidates[0] : null;
+  
+  if (candidate) {
+    Logger.log('  - Candidates count: ' + responseData.candidates.length);
+    Logger.log('  - First candidate has content: ' + (candidate.content ? 'Yes' : 'No'));
+    Logger.log('  - Finish reason: ' + (candidate.finishReason || 'not specified'));
+  }
+  
+  // Try to extract description from various possible response formats
+  let description = null;
+  
+  // Standard format: parts array with text
+  if (candidate && candidate.content && candidate.content.parts && Array.isArray(candidate.content.parts)) {
+    Logger.log('Checking parts array (length: ' + candidate.content.parts.length + ')...');
+    for (let i = 0; i < candidate.content.parts.length; i++) {
+      const part = candidate.content.parts[i];
+      if (part.text) {
+        description = part.text.trim();
+        Logger.log('  Found text in part ' + i + ', length: ' + description.length);
+        break;
       }
     }
+  }
+  
+  // Alternative formats
+  if (!description && candidate && candidate.content && typeof candidate.content === 'string') {
+    description = candidate.content.trim();
+  }
+  if (!description && responseData.text) {
+    description = responseData.text.trim();
+  }
+  if (!description && candidate && candidate.content && candidate.content.text) {
+    description = candidate.content.text.trim();
+  }
+  if (!description && candidate && candidate.text) {
+    description = candidate.text.trim();
+  }
+  
+  if (description && description.length > 0) {
+    Logger.log('✅ Gemini description extracted successfully!');
+    Logger.log('Original description length: ' + description.length + ' characters');
     
-    // Alternative format: content is a string
-    if (!description && candidate && candidate.content && typeof candidate.content === 'string') {
-      Logger.log('Content is a string, extracting...');
-      description = candidate.content.trim();
+    // Truncate to ~15 words maximum if it's too long
+    const words = description.trim().split(/\s+/);
+    const maxWords = 15;
+    if (words.length > maxWords) {
+      Logger.log('⚠️ Description has ' + words.length + ' words, truncating to ' + maxWords + ' words');
+      description = words.slice(0, maxWords).join(' ');
+      Logger.log('Truncated description length: ' + description.length + ' characters');
     }
     
-    // Another possible format: text at root level
-    if (!description && responseData.text) {
-      Logger.log('Found text at root level...');
-      description = responseData.text.trim();
-    }
+    Logger.log('Final description: ' + description);
     
-    // Check if content has text property directly
-    if (!description && candidate && candidate.content && candidate.content.text) {
-      Logger.log('Found text in content.text...');
-      description = candidate.content.text.trim();
-    }
-    
-    // Check if there's a text property on the candidate itself
-    if (!description && candidate && candidate.text) {
-      Logger.log('Found text in candidate.text...');
-      description = candidate.text.trim();
-    }
-    
-    if (description && description.length > 0) {
-      Logger.log('✅ Gemini description extracted successfully!');
-      Logger.log('Original description length: ' + description.length + ' characters');
-      
-      // Truncate to ~15 words maximum if it's too long
-      // Split into words and take first 15 words, then rejoin
-      const words = description.trim().split(/\s+/);
-      const maxWords = 15;
-      if (words.length > maxWords) {
-        Logger.log('⚠️ Description has ' + words.length + ' words, truncating to ' + maxWords + ' words');
-        description = words.slice(0, maxWords).join(' ');
-        Logger.log('Truncated description: ' + description);
-        Logger.log('Truncated description length: ' + description.length + ' characters');
-      }
-      
-      Logger.log('Final description preview: ' + description.substring(0, 150) + (description.length > 150 ? '...' : ''));
-      
-      return ContentService
-        .createTextOutput(JSON.stringify({
-          success: true,
-          description: description
-        }))
-        .setMimeType(ContentService.MimeType.JSON);
-    } else {
-      // If we hit MAX_TOKENS, provide more helpful error message
-      if (candidate && candidate.finishReason === 'MAX_TOKENS') {
-        Logger.log('⚠️ MAX_TOKENS hit but no text content found in response.');
-        Logger.log('This may indicate the model needs more tokens to generate output, or the response structure is different.');
-        Logger.log('Try increasing maxOutputTokens or check if the model is returning content in a different format.');
-      }
-      
-      Logger.log('❌ Could not extract description from response');
-      Logger.log('Full response structure: ' + JSON.stringify(responseData, null, 2).substring(0, 2000));
-      
-      // Provide more detailed error based on finish reason
-      if (candidate && candidate.finishReason === 'MAX_TOKENS') {
-        throw new Error('Gemini API hit MAX_TOKENS limit and no description was generated. Try increasing maxOutputTokens or simplifying the prompt. Finish reason: MAX_TOKENS');
-      } else {
-        throw new Error('Could not extract description from Gemini response. Finish reason: ' + (candidate ? candidate.finishReason : 'unknown') + '. Response structure may have changed.');
-      }
-    }
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: true,
+        description: description
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
   } else {
-    Logger.log('❌ Gemini API error (' + status + '): ' + responseText);
+    // Could not extract description
+    Logger.log('❌ Could not extract description from response');
+    Logger.log('Full response structure: ' + JSON.stringify(responseData, null, 2).substring(0, 2000));
     
-    // Handle specific error codes
-    if (status === 404) {
-      throw new Error('Gemini API: No vision models available. Your API key may need the Generative Language API enabled in Google Cloud Console. Visit: https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com');
-    }
-    
-    if (status === 503) {
-      // Model overloaded - try retrying once after a short delay
-      Logger.log('⚠️ Gemini API overloaded (503), retrying after 2 seconds...');
-      Utilities.sleep(2000); // Wait 2 seconds
-      
-      // Retry the same request
-      Logger.log('Retrying Gemini API request...');
-      response = UrlFetchApp.fetch(url, options);
-      status = response.getResponseCode();
-      responseText = response.getContentText();
-      
-      Logger.log('Retry response status: ' + status);
-      Logger.log('Retry response (first 500 chars): ' + responseText.substring(0, 500));
-      
-      if (status === 503) {
-        // Still overloaded after retry
-        throw new Error('Gemini API is currently overloaded. Please try again in a few minutes. Error: ' + responseText.substring(0, 200));
+    const finishReason = candidate ? candidate.finishReason : 'unknown';
+    throw new Error('Could not extract description from Gemini response. Finish reason: ' + finishReason + '. Response structure may have changed.');
+  }
+}
+
+// Helper function: Get image as base64 with retry logic
+function getImageAsBase64WithRetry(imageUrl, maxRetries = 3) {
+  const retryDelays = [1000, 2000, 4000]; // milliseconds
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      if (attempt > 0) {
+        const delay = retryDelays[attempt - 1];
+        Logger.log('  Retrying image fetch after ' + (delay / 1000) + 's delay...');
+        Utilities.sleep(delay);
       }
       
-      // If retry succeeded (status 200), continue to the success path below
-      // The responseText and status are already updated, so it will be parsed correctly
+      Logger.log('Fetching image from URL (attempt ' + (attempt + 1) + '): ' + imageUrl);
+      
+      const imageResponse = UrlFetchApp.fetch(imageUrl, {
+        muteHttpExceptions: true
+      });
+      
+      const status = imageResponse.getResponseCode();
+      Logger.log('Image fetch status: ' + status);
+      
       if (status >= 200 && status < 300) {
-        Logger.log('✅ Retry successful! Will parse response below...');
-        // Continue to the success parsing logic below - don't throw error
+        const imageBlob = imageResponse.getBlob();
+        Logger.log('Image blob size: ' + imageBlob.getBytes().length + ' bytes');
+        Logger.log('Image blob MIME type: ' + imageBlob.getContentType());
+        
+        const base64 = Utilities.base64Encode(imageBlob.getBytes());
+        Logger.log('Base64 length: ' + base64.length + ' characters');
+        
+        return base64;
+      } else if (attempt < maxRetries && (status === 500 || status === 502 || status === 503 || status === 504)) {
+        // Retryable server error
+        Logger.log('Retryable server error (' + status + ') - will retry...');
+        continue;
       } else {
-        // Retry returned an error status other than 503
-        const errorText = responseText || 'Unknown error';
-        throw new Error('Gemini API error after retry (' + status + '): ' + errorText.substring(0, 500));
+        const errorText = imageResponse.getContentText();
+        Logger.log('Image fetch failed. Status: ' + status + ', Error: ' + errorText.substring(0, 200));
+        throw new Error('Failed to fetch image: HTTP ' + status + ' - ' + errorText.substring(0, 100));
       }
-    } else {
-      // Generic error handling for non-503 errors
-      const errorText = responseText || 'Unknown error';
-      throw new Error('Gemini API error (' + status + '): ' + errorText.substring(0, 500));
+    } catch (error) {
+      if (attempt < maxRetries) {
+        Logger.log('Network error on attempt ' + (attempt + 1) + ': ' + error.toString());
+        continue; // Retry
+      } else {
+        Logger.log('❌ Error in getImageAsBase64WithRetry after ' + maxRetries + ' retries: ' + error.toString());
+        throw new Error('Failed to fetch image for description after ' + maxRetries + ' retries: ' + error.toString());
+      }
     }
   }
 }
 
+// Legacy wrapper - now uses retry version
 function getImageAsBase64(imageUrl) {
-  try {
-    Logger.log('Fetching image from URL: ' + imageUrl);
-    
-    // Fetch image and convert to base64
-    const imageResponse = UrlFetchApp.fetch(imageUrl, {
-      muteHttpExceptions: true
-    });
-    
-    const status = imageResponse.getResponseCode();
-    Logger.log('Image fetch status: ' + status);
-    
-    if (status < 200 || status >= 300) {
-      const errorText = imageResponse.getContentText();
-      Logger.log('Image fetch failed. Status: ' + status + ', Error: ' + errorText.substring(0, 200));
-      throw new Error('Failed to fetch image: HTTP ' + status + ' - ' + errorText.substring(0, 100));
-    }
-    
-    const imageBlob = imageResponse.getBlob();
-    Logger.log('Image blob size: ' + imageBlob.getBytes().length + ' bytes');
-    Logger.log('Image blob MIME type: ' + imageBlob.getContentType());
-    
-    const base64 = Utilities.base64Encode(imageBlob.getBytes());
-    Logger.log('Base64 length: ' + base64.length + ' characters');
-    Logger.log('Base64 preview (first 100 chars): ' + base64.substring(0, 100) + '...');
-    
-    return base64;
-  } catch (error) {
-    Logger.log('❌ Error in getImageAsBase64: ' + error.toString());
-    Logger.log('Error stack: ' + (error.stack || 'no stack trace'));
-    throw new Error('Failed to fetch image for description: ' + error.toString());
-  }
+  return getImageAsBase64WithRetry(imageUrl, 3);
 }
 
 function detectImageMimeType(imageUrl) {
