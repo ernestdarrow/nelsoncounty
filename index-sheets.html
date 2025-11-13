@@ -3534,16 +3534,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     // Single right arrow that cycles forward through images
                     const rightArrow = document.createElement('div');
                     rightArrow.className = 'scroll-arrow scroll-arrow-right';
-                    rightArrow.style.cssText = 'position: absolute; right: 13px; top: 120px; transform: translateY(-50%); z-index: 15; opacity: 1; pointer-events: auto;';
-                    
-                    // Ensure arrow is positioned correctly relative to image container
-                    // Image container is 240px tall, so center is at 120px from top of front
-                    setTimeout(function() {
-                        const imgContainerOffsetTop = imgContainer.offsetTop || 0;
-                        const imgContainerHeight = imgContainer.offsetHeight || 240;
-                        const centerY = imgContainerOffsetTop + (imgContainerHeight / 2);
-                        rightArrow.style.top = centerY + 'px';
-                    }, 10);
+                    rightArrow.style.cssText = 'position: absolute; right: 13px; top: 10px; z-index: 15; opacity: 1; pointer-events: auto;';
                     
                     rightArrow.addEventListener('click', function(e) {
                         e.preventDefault();
@@ -5713,10 +5704,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     // Single right arrow that cycles forward through images
                     const rightArrow = document.createElement('div');
                     rightArrow.className = 'scroll-arrow scroll-arrow-right';
-                    rightArrow.style.opacity = '1'; // Always visible
-                    rightArrow.style.pointerEvents = 'auto'; // Ensure clickable
-                    rightArrow.style.position = 'absolute'; // Position relative to front
-                    rightArrow.style.zIndex = '15'; // Above images
+                    rightArrow.style.cssText = 'position: absolute; right: 13px; top: 10px; z-index: 15; opacity: 1; pointer-events: auto;';
                     
                     rightArrow.addEventListener('click', function(e) {
                         e.preventDefault();
