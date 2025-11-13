@@ -5473,12 +5473,31 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     t: Date.now().toString() // Cache busting
                 });
                 
-                const response = await fetch(GOOGLE_APPS_SCRIPT_URL + '?' + params.toString(), {
-                    method: 'GET',
-                    mode: 'cors'
-                });
+                const requestUrl = GOOGLE_APPS_SCRIPT_URL + '?' + params.toString();
+                console.log('Request URL:', requestUrl);
+                
+                let response;
+                try {
+                    response = await fetch(requestUrl, {
+                        method: 'GET',
+                        mode: 'cors',
+                        redirect: 'follow' // Follow redirects
+                    });
+                } catch (fetchError) {
+                    // Check if it's a rate limit error
+                    if (fetchError.message && fetchError.message.includes('429')) {
+                        throw new Error('Google Apps Script rate limit exceeded. Please wait a minute and try again.');
+                    }
+                    throw fetchError;
+                }
                 
                 console.log('Response status:', response.status, response.statusText);
+                console.log('Response URL:', response.url); // Log final URL after redirects
+                
+                // Check for rate limiting (429)
+                if (response.status === 429) {
+                    throw new Error('Google Apps Script rate limit exceeded (429). Please wait a minute and try again.');
+                }
                 
                 if (!response.ok) {
                     const errorText = await response.text();

@@ -627,9 +627,8 @@ function generateImageDescriptionWithOpenAI(imageUrl, apiKey) {
 
 function generateImageDescriptionWithGemini(imageUrl, apiKey) {
   // Google Gemini API (free tier available)
-  // Use v1 API instead of v1beta, and try gemini-pro-vision or gemini-1.5-pro
-  // First try gemini-1.5-pro (most capable)
-  let url = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=' + apiKey;
+  // Try v1beta with gemini-1.5-flash first (free, fast, supports images)
+  let url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey;
   
   const payload = {
     'contents': [
@@ -665,10 +664,18 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
   let response = UrlFetchApp.fetch(url, options);
   let status = response.getResponseCode();
   
-  // If 404, try gemini-pro-vision instead
+  // If 404, try gemini-1.5-pro with v1beta
   if (status === 404) {
-    Logger.log('gemini-1.5-pro not available, trying gemini-pro-vision...');
-    url = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro-vision:generateContent?key=' + apiKey;
+    Logger.log('gemini-1.5-flash not available, trying gemini-1.5-pro with v1beta...');
+    url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=' + apiKey;
+    response = UrlFetchApp.fetch(url, options);
+    status = response.getResponseCode();
+  }
+  
+  // If still 404, try gemini-pro with v1beta
+  if (status === 404) {
+    Logger.log('gemini-1.5-pro not available, trying gemini-pro with v1beta...');
+    url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + apiKey;
     response = UrlFetchApp.fetch(url, options);
     status = response.getResponseCode();
   }
