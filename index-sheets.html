@@ -253,8 +253,8 @@
             line-height: 1.5; 
             margin-bottom: 12px; 
             display: -webkit-box;
-            -webkit-line-clamp: 8;
-            line-clamp: 8;
+            -webkit-line-clamp: 5;
+            line-clamp: 5;
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -536,17 +536,16 @@
         .preview-filter-group select:hover { border-color: #cbd5e1; background: var(--card-bg); }
         .preview-filter-group select:focus { outline: none; border-color: #007AFF; background: var(--card-bg); }
         
-        /* Type dropdown with tag icon */
+        /* Type dropdown - remove icon override to use default dropdown arrow only */
         #adminTypeFilter,
         #adminTypeFilter:hover,
         #adminTypeFilter:focus {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z'/%3E%3C/svg%3E"),
-                              url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat, no-repeat;
-            background-position: 14px center, right 16px center;
-            background-size: 16px 16px, 12px 12px;
-            padding-left: 40px;
-            padding-right: 36px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 12px 12px;
+            padding-left: 12px;
+            padding-right: 32px;
         }
         
         .preview-filters .btn { width: 100%; padding: 9px 16px; white-space: nowrap; font-size: 13px; margin-top: 8px; }
@@ -3261,7 +3260,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 
                 // Card content - allow it to grow to show all content
                 const cardContent = document.createElement('div');
-                cardContent.style.cssText = 'padding: 0px; display: flex; flex-direction: column; flex: 1 1 auto;';
+                cardContent.style.cssText = 'padding: 20px 0px 0px 0px; display: flex; flex-direction: column; flex: 1 1 auto;';
                 
                 // Build contact info HTML with icons
                 const mapUrl = listing.address ? (listing.directionsLink && listing.directionsLink.trim() 
@@ -3345,7 +3344,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         '</div>';
                 }
                 
-                // Description with up to 8 lines
+                // Description with up to 5 lines
                 const descriptionHTML = listing.description ? 
                     '<p class="listing-desc">' + listing.description + '</p>' :
                     '<p class="listing-desc">No description</p>';
@@ -5071,7 +5070,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 
                 // Add card content below images
                 const cardContent = document.createElement('div');
-                cardContent.style.cssText = 'padding: 0px;';
+                cardContent.style.cssText = 'padding: 20px 0px 0px 0px;';
                 cardContent.innerHTML = 
                     '<h3 style="font-size: 20px; margin-bottom: 10px; color: var(--text-primary);">' + listing.name + '</h3>' +
                     '<div style="display: flex; gap: 8px; margin-bottom: 10px;">' +
