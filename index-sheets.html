@@ -267,7 +267,7 @@
             align-items: center;
         }
         .amenity { 
-            padding: 4px 10px; 
+            padding: 3px 10px; 
             background: var(--bg-hover); 
             border-radius: 6px; 
             font-size: 11px; 
@@ -280,7 +280,18 @@
         }
         
         .listing-contact { font-size: 13px; color: var(--text-secondary); margin-bottom: 15px; }
-        .listing-actions { display: flex; gap: 10px; padding-top: 15px; border-top: 1px solid var(--border-color); margin-top: auto; }
+        .listing-actions { 
+            display: flex; 
+            gap: 10px; 
+            padding: 15px 20px 20px 20px; 
+            border-top: 1px solid var(--border-color); 
+            margin-top: auto;
+            margin-left: -20px;
+            margin-right: -20px;
+            margin-bottom: 0;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
         .btn-edit { background: #007AFF; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; flex: 1; }
         .btn-edit:hover { background: #0051D5; }
         .btn-delete { background: #E3795C; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
@@ -488,7 +499,7 @@
         .card-info-text {
             flex: 1;
             font-size: 13px;
-            line-height: 1.4;
+            line-height: 1.2;
             padding-top: 2px;
             color: var(--text-secondary);
         }
@@ -524,6 +535,19 @@
         .preview-filter-group select { width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; background: var(--bg-hover); cursor: pointer; transition: all 0.2s; color: var(--text-primary); appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
         .preview-filter-group select:hover { border-color: #cbd5e1; background: var(--card-bg); }
         .preview-filter-group select:focus { outline: none; border-color: #007AFF; background: var(--card-bg); }
+        
+        /* Type dropdown with tag icon */
+        #adminTypeFilter,
+        #adminTypeFilter:hover,
+        #adminTypeFilter:focus {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z'/%3E%3C/svg%3E"),
+                              url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat, no-repeat;
+            background-position: 14px center, right 16px center;
+            background-size: 16px 16px, 12px 12px;
+            padding-left: 40px;
+            padding-right: 36px;
+        }
         
         .preview-filters .btn { width: 100%; padding: 9px 16px; white-space: nowrap; font-size: 13px; margin-top: 8px; }
         
@@ -667,6 +691,7 @@
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
             padding: 20px 0;
+            align-items: stretch;
         }
         
         .flip-card {
@@ -675,11 +700,13 @@
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
+            height: 100%;
         }
         
         .flip-card-inner {
             position: relative;
             width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
         }
@@ -704,6 +731,8 @@
             transform: scale(1);
             display: flex;
             flex-direction: column;
+            height: 100%;
+            min-height: 100%;
         }
         
         .flip-card-back {
@@ -711,6 +740,7 @@
             top: 0;
             left: 0;
             width: 100%;
+            min-height: 100%;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -1245,14 +1275,19 @@
                             
                             <div class="filter-section">
                                 <div class="preview-filter-group">
-                                    <label>Area</label>
+                                    <label>Type</label>
+                                    <select id="adminTypeFilter" onchange="handleAdminTypeFilter()">
+                                        <option value="">All Types</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="preview-filter-group">
                                     <select id="adminAreaFilter" onchange="filterListings()">
                                         <option value="">All Areas</option>
                                     </select>
                                 </div>
                                 
                                 <div class="preview-filter-group">
-                                    <label>Amenities</label>
                                     <select id="adminAmenityFilter" onchange="filterListings()">
                                         <option value="">All Amenities</option>
                                     </select>
@@ -3501,8 +3536,34 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             filterListings();
         }
         
+        window.handleAdminTypeFilter = function handleAdminTypeFilter() {
+            const typeFilter = document.getElementById('adminTypeFilter');
+            const value = typeFilter ? typeFilter.value : '';
+            
+            // Set the type filter to the selected type (direct type match, not category)
+            if (value) {
+                currentAdminTypeFilter = value;
+            } else {
+                currentAdminTypeFilter = '';
+            }
+            
+            // Update button active states
+            const buttons = document.querySelectorAll('#adminTab .type-filter-btn');
+            buttons.forEach(function(btn) {
+                btn.classList.remove('active');
+                if (!value && btn.dataset.type === '' && !btn.dataset.category) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Call filterListings to apply the filter
+            filterListings();
+        }
+        
         function clearAdminFilters() {
             document.getElementById('adminSearchInput').value = '';
+            const typeFilter = document.getElementById('adminTypeFilter');
+            if (typeFilter) typeFilter.value = '';
             document.getElementById('adminAreaFilter').value = '';
             document.getElementById('adminAmenityFilter').value = '';
             currentAdminTypeFilter = '';
@@ -3525,6 +3586,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         
         function populateAdminFilters() {
             if (!data || !data.filterOptions) return;
+            refreshFilterSelect('adminTypeFilter', data.filterOptions.types);
             refreshFilterSelect('adminAreaFilter', data.filterOptions.areas);
             refreshFilterSelect('adminAmenityFilter', data.filterOptions.amenities);
             
