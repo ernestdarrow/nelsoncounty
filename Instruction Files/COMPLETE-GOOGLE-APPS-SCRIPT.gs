@@ -453,67 +453,21 @@ function handleImageKitRequest(request) {
 function generateImageDescription(imageUrl) {
   try {
     const scriptProperties = PropertiesService.getScriptProperties();
+    
+    // Try Google Gemini first (default, free tier available)
+    const geminiApiKey = scriptProperties.getProperty('GEMINI_API_KEY');
+    if (geminiApiKey) {
+      return generateImageDescriptionWithGemini(imageUrl, geminiApiKey);
+    }
+    
+    // Fallback to OpenAI (if API key is set)
     const openaiApiKey = scriptProperties.getProperty('OPENAI_API_KEY');
-    
-    if (!openaiApiKey) {
-      throw new Error('OpenAI API key not configured. Please add OPENAI_API_KEY in Script Properties.');
+    if (openaiApiKey) {
+      return generateImageDescriptionWithOpenAI(imageUrl, openaiApiKey);
     }
     
-    const url = 'https://api.openai.com/v1/chat/completions';
-    const payload = {
-      'model': 'gpt-4o',
-      'messages': [
-        {
-          'role': 'user',
-          'content': [
-            {
-              'type': 'text',
-              'text': 'Describe this image in detail for use as an alt text or meta description. Keep it concise (50-150 words), descriptive, and SEO-friendly. Focus on what is visible in the image.'
-            },
-            {
-              'type': 'image_url',
-              'image_url': {
-                'url': imageUrl
-              }
-            }
-          ]
-        }
-      ],
-      'max_tokens': 200
-    };
-    
-    const options = {
-      'method': 'post',
-      'headers': {
-        'Authorization': 'Bearer ' + openaiApiKey,
-        'Content-Type': 'application/json'
-      },
-      'payload': JSON.stringify(payload),
-      'muteHttpExceptions': true
-    };
-    
-    const response = UrlFetchApp.fetch(url, options);
-    const status = response.getResponseCode();
-    
-    if (status >= 200 && status < 300) {
-      const responseData = JSON.parse(response.getContentText());
-      
-      if (responseData.choices && responseData.choices[0] && responseData.choices[0].message) {
-        const description = responseData.choices[0].message.content.trim();
-        
-        return ContentService
-          .createTextOutput(JSON.stringify({
-            success: true,
-            description: description
-          }))
-          .setMimeType(ContentService.MimeType.JSON);
-      } else {
-        throw new Error('Unexpected response format from OpenAI API');
-      }
-    } else {
-      const errorText = response.getContentText();
-      throw new Error('OpenAI API error (' + status + '): ' + errorText);
-    }
+    // If neither API key is configured, return error with helpful message
+    throw new Error('No AI API key configured. Please add GEMINI_API_KEY (recommended, free) or OPENAI_API_KEY in Script Properties. Get a free Gemini key at: https://aistudio.google.com/app/apikey');
     
   } catch (error) {
     Logger.log('Error generating image description: ' + error.toString());
@@ -523,6 +477,133 @@ function generateImageDescription(imageUrl) {
         error: error.toString()
       }))
       .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function generateImageDescriptionWithOpenAI(imageUrl, apiKey) {
+  const url = 'https://api.openai.com/v1/chat/completions';
+  const payload = {
+    'model': 'gpt-4o',
+    'messages': [
+      {
+        'role': 'user',
+        'content': [
+          {
+            'type': 'text',
+            'text': 'Describe this image in detail for use as an alt text or meta description. Keep it concise (50-150 words), descriptive, and SEO-friendly. Focus on what is visible in the image.'
+          },
+          {
+            'type': 'image_url',
+            'image_url': {
+              'url': imageUrl
+            }
+          }
+        ]
+      }
+    ],
+    'max_tokens': 200
+  };
+  
+  const options = {
+    'method': 'post',
+    'headers': {
+      'Authorization': 'Bearer ' + apiKey,
+      'Content-Type': 'application/json'
+    },
+    'payload': JSON.stringify(payload),
+    'muteHttpExceptions': true
+  };
+  
+  const response = UrlFetchApp.fetch(url, options);
+  const status = response.getResponseCode();
+  
+  if (status >= 200 && status < 300) {
+    const responseData = JSON.parse(response.getContentText());
+    
+    if (responseData.choices && responseData.choices[0] && responseData.choices[0].message) {
+      const description = responseData.choices[0].message.content.trim();
+      
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          success: true,
+          description: description
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } else {
+      throw new Error('Unexpected response format from OpenAI API');
+    }
+  } else {
+    const errorText = response.getContentText();
+    throw new Error('OpenAI API error (' + status + '): ' + errorText);
+  }
+}
+
+function generateImageDescriptionWithGemini(imageUrl, apiKey) {
+  // Google Gemini API (free tier available)
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey;
+  
+  const payload = {
+    'contents': [
+      {
+        'parts': [
+          {
+            'text': 'Describe this image in detail for use as an alt text or meta description. Keep it concise (50-150 words), descriptive, and SEO-friendly. Focus on what is visible in the image.'
+          },
+          {
+            'inline_data': {
+              'mime_type': 'image/jpeg',
+              'data': getImageAsBase64(imageUrl)
+            }
+          }
+        ]
+      }
+    ],
+    'generationConfig': {
+      'maxOutputTokens': 200
+    }
+  };
+  
+  const options = {
+    'method': 'post',
+    'headers': {
+      'Content-Type': 'application/json'
+    },
+    'payload': JSON.stringify(payload),
+    'muteHttpExceptions': true
+  };
+  
+  const response = UrlFetchApp.fetch(url, options);
+  const status = response.getResponseCode();
+  
+  if (status >= 200 && status < 300) {
+    const responseData = JSON.parse(response.getContentText());
+    
+    if (responseData.candidates && responseData.candidates[0] && responseData.candidates[0].content && responseData.candidates[0].content.parts) {
+      const description = responseData.candidates[0].content.parts[0].text.trim();
+      
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          success: true,
+          description: description
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } else {
+      throw new Error('Unexpected response format from Gemini API');
+    }
+  } else {
+    const errorText = response.getContentText();
+    throw new Error('Gemini API error (' + status + '): ' + errorText);
+  }
+}
+
+function getImageAsBase64(imageUrl) {
+  try {
+    // Fetch image and convert to base64
+    const imageResponse = UrlFetchApp.fetch(imageUrl);
+    const imageBlob = imageResponse.getBlob();
+    return Utilities.base64Encode(imageBlob.getBytes());
+  } catch (error) {
+    throw new Error('Failed to fetch image for description: ' + error.toString());
   }
 }
 
