@@ -257,7 +257,7 @@
         .badge-type { 
             background: var(--badge-type-bg); 
             color: var(--badge-type-color);
-            padding-left: 26px;
+            padding-left: 10px;
         }
         .badge-area { 
             background: var(--badge-area-bg); 
@@ -443,14 +443,7 @@
         .tab-content.active { display: block; }
         
         .badge-type::before {
-            content: '';
-            width: 14px;
-            height: 14px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            display: inline-block;
-            flex-shrink: 0;
+            display: none;
         }
         .badge-type:hover {
             background-color: #007AFF;
@@ -3974,6 +3967,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 checkbox.checked = listing.amenities.indexOf(checkbox.value) > -1;
             });
             
+            // Re-initialize image upload buttons when modal opens
+            initImageUploadButtons();
+            
             document.getElementById('listingModal').classList.add('active');
         }
         
@@ -4904,8 +4900,12 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
 
         function initImageUploadButtons() {
             document.querySelectorAll('.btn-upload-image').forEach(function(button) {
-                button.addEventListener('click', function() {
-                    const targetId = button.dataset.target;
+                // Remove any existing event listeners by cloning the button
+                const newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+                
+                newButton.addEventListener('click', function() {
+                    const targetId = newButton.dataset.target;
                     const input = document.getElementById(targetId);
                     if (!input) return;
 
@@ -4917,9 +4917,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         if (!filePicker.files || !filePicker.files[0]) return;
                         const file = filePicker.files[0];
 
-                        button.disabled = true;
-                        const originalText = button.textContent;
-                        button.textContent = 'Uploading...';
+                        newButton.disabled = true;
+                        const originalText = newButton.textContent;
+                        newButton.textContent = 'Uploading...';
 
                         try {
                             const result = await uploadImageToImageKit(file);
@@ -4929,8 +4929,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                             console.error('ImageKit upload error:', error);
                             alert('Image upload failed: ' + error.message);
                         } finally {
-                            button.disabled = false;
-                            button.textContent = originalText;
+                            newButton.disabled = false;
+                            newButton.textContent = originalText;
                         }
                     };
 
