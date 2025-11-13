@@ -5551,6 +5551,66 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             }
         }
 
+        // Update ImageKit file metadata (description)
+        async function updateImageKitMetadata(imageUrl, description) {
+            try {
+                if (!GOOGLE_APPS_SCRIPT_URL || GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
+                    console.warn('Google Apps Script URL not configured, skipping ImageKit metadata update');
+                    return;
+                }
+                
+                // Extract file path from ImageKit URL
+                // ImageKit URLs look like: https://ik.imagekit.io/OE/folder/file.jpg
+                // Or filePath from API: /folder/file.jpg
+                let filePath = null;
+                if (imageUrl.includes('ik.imagekit.io')) {
+                    const urlParts = imageUrl.split('/');
+                    // Remove protocol and domain parts, keep the path
+                    // URL structure: https://ik.imagekit.io/OE/folder/file.jpg
+                    // We need: /folder/file.jpg
+                    filePath = '/' + urlParts.slice(4).join('/').split('?')[0];
+                } else if (imageUrl.startsWith('/')) {
+                    // Already a file path
+                    filePath = imageUrl.split('?')[0];
+                }
+                
+                if (!filePath) {
+                    console.warn('Could not extract file path from URL:', imageUrl);
+                    return;
+                }
+                
+                console.log('Updating ImageKit metadata for file path:', filePath, 'with description length:', description.length);
+                
+                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'updateImageKitMetadata',
+                        filePath: filePath,
+                        imageUrl: imageUrl,
+                        customMetadata: {
+                            description: description
+                        }
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error('Failed to update ImageKit metadata: HTTP ' + response.status + ' - ' + errorText);
+                }
+                
+                const result = await response.json();
+                if (result.success) {
+                    console.log('ImageKit metadata updated successfully');
+                } else {
+                    throw new Error(result.error || 'Failed to update ImageKit metadata');
+                }
+            } catch (error) {
+                console.error('Error updating ImageKit metadata:', error);
+                throw error;
+            }
+        }
+        
         async function uploadImageToImageKit(file, onProgress) {
             let token, expire, signature, folder;
             
@@ -5815,6 +5875,16 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                                             // Trigger input event to ensure form recognizes the change
                                             descField.dispatchEvent(new Event('input', { bubbles: true }));
                                             descField.dispatchEvent(new Event('change', { bubbles: true }));
+                                            
+                                            // Update ImageKit metadata with the description
+                                            try {
+                                                console.log('Updating ImageKit metadata with description...');
+                                                await updateImageKitMetadata(imageUrl, description);
+                                                console.log('ImageKit metadata updated successfully');
+                                            } catch (metadataError) {
+                                                console.warn('Failed to update ImageKit metadata:', metadataError);
+                                                // Don't fail if metadata update fails
+                                            }
                                             
                                             // Scroll to and focus the description field so it's visible
                                             setTimeout(function() {

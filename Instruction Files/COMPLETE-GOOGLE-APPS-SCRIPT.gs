@@ -170,6 +170,17 @@ function doPost(e) {
       return generateImageDescription(data.imageUrl);
     }
 
+    // Handle ImageKit metadata update
+    if (action === 'updateImageKitMetadata') {
+      if (!data.fileId) {
+        throw new Error('Missing "fileId" field for updateImageKitMetadata action');
+      }
+      if (!data.customMetadata) {
+        throw new Error('Missing "customMetadata" field for updateImageKitMetadata action');
+      }
+      return updateImageKitFileMetadata(data.fileId, data.customMetadata);
+    }
+
     let result;
     if (action === 'saveListing') {
       if (!data.listing) throw new Error('Missing "listing" field for saveListing action');
@@ -604,6 +615,121 @@ function getImageAsBase64(imageUrl) {
     return Utilities.base64Encode(imageBlob.getBytes());
   } catch (error) {
     throw new Error('Failed to fetch image for description: ' + error.toString());
+  }
+}
+
+// -----------------------------------------------------------------------------
+// ImageKit Metadata Update
+// -----------------------------------------------------------------------------
+
+function updateImageKitFileMetadata(filePathOrId, customMetadata, imageUrl) {
+  try {
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const privateKey = scriptProperties.getProperty('IMAGEKIT_PRIVATE_KEY');
+    
+    if (!privateKey) {
+      throw new Error('IMAGEKIT_PRIVATE_KEY not configured in Script Properties.');
+    }
+    
+    // First, we need to find the file by path to get its fileId
+    // ImageKit requires fileId for updating metadata
+    let fileId = filePathOrId; // Assume it might already be a fileId
+    
+    // If it looks like a file path (starts with /), search for the file by path
+    if (filePathOrId.startsWith('/')) {
+      const searchUrl = 'https://api.imagekit.io/v1/files';
+      const searchOptions = {
+        method: 'get',
+        headers: {
+          'Authorization': 'Basic ' + Utilities.base64Encode(privateKey + ':')
+        },
+        muteHttpExceptions: true
+      };
+      
+      // Search for files with this path
+      const searchParams = '?path=' + encodeURIComponent(filePathOrId);
+      const searchResponse = UrlFetchApp.fetch(searchUrl + searchParams, searchOptions);
+      const searchStatus = searchResponse.getResponseCode();
+      
+      if (searchStatus >= 200 && searchStatus < 300) {
+        const searchResult = JSON.parse(searchResponse.getContentText());
+        if (searchResult && searchResult.length > 0 && searchResult[0].fileId) {
+          fileId = searchResult[0].fileId;
+        } else {
+          // Try getting file details directly by path
+          // ImageKit might accept path as fileId for some operations
+          fileId = filePathOrId;
+        }
+      }
+    }
+    
+    // Get current file details
+    const getUrl = 'https://api.imagekit.io/v1/files/' + encodeURIComponent(fileId) + '/details';
+    const getOptions = {
+      method: 'get',
+      headers: {
+        'Authorization': 'Basic ' + Utilities.base64Encode(privateKey + ':')
+      },
+      muteHttpExceptions: true
+    };
+    
+    const getResponse = UrlFetchApp.fetch(getUrl, getOptions);
+    const getStatus = getResponse.getResponseCode();
+    
+    if (getStatus < 200 || getStatus >= 300) {
+      const errorText = getResponse.getContentText();
+      throw new Error('Failed to get file details: ' + getStatus + ' - ' + errorText);
+    }
+    
+    const fileDetails = JSON.parse(getResponse.getContentText());
+    
+    // Get the actual fileId from the response
+    if (fileDetails.fileId) {
+      fileId = fileDetails.fileId;
+    }
+    
+    // Merge existing customMetadata with new values
+    const existingMetadata = fileDetails.customMetadata || {};
+    const updatedMetadata = Object.assign({}, existingMetadata, customMetadata);
+    
+    // Update custom metadata using PATCH
+    const patchUrl = 'https://api.imagekit.io/v1/files/' + encodeURIComponent(fileId) + '/details';
+    const patchOptions = {
+      method: 'patch',
+      headers: {
+        'Authorization': 'Basic ' + Utilities.base64Encode(privateKey + ':'),
+        'Content-Type': 'application/json'
+      },
+      payload: JSON.stringify({
+        customMetadata: updatedMetadata
+      }),
+      muteHttpExceptions: true
+    };
+    
+    const patchResponse = UrlFetchApp.fetch(patchUrl, patchOptions);
+    const patchStatus = patchResponse.getResponseCode();
+    
+    if (patchStatus >= 200 && patchStatus < 300) {
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          success: true,
+          message: 'ImageKit metadata updated successfully',
+          fileId: fileId
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } else {
+      const errorText = patchResponse.getContentText();
+      throw new Error('Failed to update ImageKit metadata: ' + patchStatus + ' - ' + errorText);
+    }
+    
+  } catch (error) {
+    Logger.log('Error updating ImageKit metadata: ' + error.toString());
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: false,
+        error: error.toString()
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
