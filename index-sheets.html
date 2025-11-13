@@ -1452,9 +1452,9 @@
                     </h3>
                     <p style="margin: 0; color: #666; font-size: 14px;">All changes sync to your Google Sheet. Make sure your Apps Script is configured to accept JSON POST requests.</p>
                 </div>
-                <div id="sheetsStatusBadge" style="padding: 6px 12px; background: #34a853; color: white; border-radius: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                    <span id="sheetsStatusIcon">✓</span>
-                    <span id="sheetsStatusText">Connected</span>
+                <div id="sheetsStatusBadge" style="padding: 6px 12px; background: #9aa0a6; color: white; border-radius: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                    <span id="sheetsStatusIcon">⟳</span>
+                    <span id="sheetsStatusText">Connecting...</span>
                 </div>
             </div>
             
@@ -2921,9 +2921,16 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 statusText.textContent = 'Connected';
                 lastSync.textContent = new Date().toLocaleTimeString();
             } else {
-                statusBadge.style.background = '#ea4335';
-                statusIcon.textContent = '✗';
-                statusText.textContent = 'Error';
+                // Check if it's a loading/connecting state or an error
+                if (message && (message.includes('Loading') || message.includes('Connecting') || message.includes('🔄'))) {
+                    statusBadge.style.background = '#9aa0a6';
+                    statusIcon.textContent = '⟳';
+                    statusText.textContent = 'Connecting...';
+                } else {
+                    statusBadge.style.background = '#ea4335';
+                    statusIcon.textContent = '✗';
+                    statusText.textContent = 'Error';
+                }
             }
             
             if (message) {
@@ -2937,7 +2944,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         // Load data from Google Sheets on page load
         // Tries Apps Script first (preferred), then CSV as fallback
         async function loadDataFromGoogleSheets() {
-            updateSyncStatus(true, '🔄 Loading...');
+            // Set initial status to "Connecting..." (not "Connected" yet)
+            updateSyncStatus(false, '🔄 Connecting...');
             
             // Check if running from file:// protocol (local file)
             const isFileProtocol = window.location.protocol === 'file:';
