@@ -267,16 +267,18 @@
             align-items: center;
         }
         .amenity { 
-            padding: 3px 10px; 
+            height: 16px;
+            padding: 2px 10px; 
             background: var(--bg-hover); 
             border-radius: 6px; 
-            font-size: 11px; 
+            font-size: 10px; 
             color: var(--text-secondary); 
             border: 1px solid var(--border-color); 
             display: inline-flex;
             align-items: center;
-            line-height: 1.4;
+            line-height: 1.2;
             white-space: nowrap;
+            box-sizing: border-box;
         }
         
         .listing-contact { font-size: 13px; color: var(--text-secondary); margin-bottom: 15px; }
@@ -502,6 +504,10 @@
             line-height: 1.2;
             padding-top: 2px;
             color: var(--text-secondary);
+            word-wrap: break-word;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            min-width: 0;
         }
         a.card-info-item .card-info-text {
             color: var(--text-secondary);
@@ -1277,7 +1283,6 @@
                             
                             <div class="filter-section">
                                 <div class="preview-filter-group">
-                                    <label>Type</label>
                                     <select id="adminTypeFilter" onchange="handleAdminTypeFilter()">
                                         <option value="">All Types</option>
                                     </select>
