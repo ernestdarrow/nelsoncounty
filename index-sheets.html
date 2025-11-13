@@ -304,7 +304,6 @@
             display: flex; 
             gap: 10px; 
             padding: 15px 20px 20px 20px; 
-            border-top: 1px solid var(--border-color); 
             margin-top: auto;
             margin-left: -20px;
             margin-right: -20px;
@@ -519,6 +518,10 @@
             word-break: break-word;
             overflow-wrap: break-word;
             min-width: 0;
+            text-wrap: balance;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
         a.card-info-item .card-info-text {
             color: var(--text-secondary);
@@ -924,8 +927,8 @@
             background-size: 16px 16px !important;
             background-position: center;
             background-repeat: no-repeat;
-            opacity: 0 !important;
-            transition: opacity 0.3s ease, background-color 0.3s ease;
+            opacity: 1 !important;
+            transition: background-color 0.3s ease;
             z-index: 10;
             cursor: pointer;
             pointer-events: auto !important;
@@ -945,11 +948,16 @@
         .scroll-arrow-left {
             left: 10px !important;
             right: auto !important;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23000' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 19l-7-7 7-7'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23000' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9 5l7 7-7 7'/%3E%3C/svg%3E");
         }
         
         .flip-card-front:hover .scroll-arrow,
         .flip-card-front:hover .card-front-image-scroll .scroll-arrow {
+            opacity: 1 !important;
+        }
+        
+        /* Keep arrow always visible */
+        .card-front-image-scroll .scroll-arrow {
             opacity: 1 !important;
         }
         
@@ -3234,7 +3242,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 imgContainer.appendChild(imgWrapper);
                 front.appendChild(imgContainer);
                 
-                // Add scroll arrows if there are multiple images
+                // Add scroll arrow if there are multiple images
                 if (imageCount > 1) {
                     const totalImages = imageCount;
                     
@@ -3247,23 +3255,10 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         return Math.round(scrollLeft / containerWidth);
                     };
                     
-                    // Right arrow
-                    const rightArrow = document.createElement('div');
-                    rightArrow.className = 'scroll-arrow scroll-arrow-right';
-                    rightArrow.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const containerWidth = imgContainer.offsetWidth || imgContainer.clientWidth;
-                        if (containerWidth === 0) return;
-                        
-                        let currentIndex = getCurrentIndex();
-                        currentIndex = (currentIndex + 1) % totalImages;
-                        imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
-                    });
-                    
-                    // Left arrow
+                    // Single left arrow that cycles forward through images
                     const leftArrow = document.createElement('div');
                     leftArrow.className = 'scroll-arrow scroll-arrow-left';
+                    leftArrow.style.opacity = '1'; // Always visible
                     leftArrow.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
@@ -3271,11 +3266,11 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         if (containerWidth === 0) return;
                         
                         let currentIndex = getCurrentIndex();
-                        currentIndex = (currentIndex - 1 + totalImages) % totalImages;
+                        // Cycle forward (next image)
+                        currentIndex = (currentIndex + 1) % totalImages;
                         imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
                     });
                     
-                    imgContainer.appendChild(rightArrow);
                     imgContainer.appendChild(leftArrow);
                 }
                 
@@ -4856,44 +4851,92 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             const urlWithQuery = GOOGLE_APPS_SCRIPT_URL + '?action=' + encodeURIComponent(IMAGEKIT_AUTH_ACTION) + '&t=' + Date.now();
             
             try {
+                console.log('Fetching ImageKit params via GET from:', urlWithQuery);
                 const response = await fetch(urlWithQuery, { method: 'GET' });
                 if (!response.ok) {
-                    throw new Error('HTTP ' + response.status);
+                    const errorText = await response.text();
+                    console.error('GET request failed with status', response.status, 'Response:', errorText);
+                    throw new Error('HTTP ' + response.status + ': ' + errorText.substring(0, 200));
                 }
-                const json = await response.json();
+                
+                let json;
+                try {
+                    const responseText = await response.text();
+                    console.log('GET response text:', responseText.substring(0, 500));
+                    json = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('Failed to parse GET response as JSON:', parseError);
+                    throw new Error('Invalid JSON response from server');
+                }
+                
                 if (!json || json.success === false) {
                     throw new Error((json && json.error) || 'Failed to fetch ImageKit upload params');
                 }
                 const data = json.data || json;
                 if (!data || !data.token || !data.signature || !data.expire) {
-                    throw new Error('Invalid ImageKit params response (missing fields)');
+                    console.error('Missing required fields in response:', data);
+                    throw new Error('Invalid ImageKit params response (missing fields). Got: ' + JSON.stringify(Object.keys(data || {})));
                 }
+                console.log('ImageKit params fetched successfully via GET');
                 return data;
             } catch (getError) {
                 console.warn('GET request for ImageKit params failed, falling back to POST:', getError);
                 
-                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'action=' + encodeURIComponent(IMAGEKIT_AUTH_ACTION)
-                });
-                if (!response.ok) {
-                    throw new Error('HTTP ' + response.status);
+                try {
+                    console.log('Fetching ImageKit params via POST from:', GOOGLE_APPS_SCRIPT_URL);
+                    const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: 'action=' + encodeURIComponent(IMAGEKIT_AUTH_ACTION)
+                    });
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('POST request failed with status', response.status, 'Response:', errorText);
+                        throw new Error('HTTP ' + response.status + ': ' + errorText.substring(0, 200));
+                    }
+                    
+                    let json;
+                    try {
+                        const responseText = await response.text();
+                        console.log('POST response text:', responseText.substring(0, 500));
+                        json = JSON.parse(responseText);
+                    } catch (parseError) {
+                        console.error('Failed to parse POST response as JSON:', parseError);
+                        throw new Error('Invalid JSON response from server');
+                    }
+                    
+                    if (!json || json.success === false) {
+                        throw new Error((json && json.error) || 'Failed to fetch ImageKit upload params');
+                    }
+                    const data = json.data || json;
+                    if (!data || !data.token || !data.signature || !data.expire) {
+                        console.error('Missing required fields in POST response:', data);
+                        throw new Error('Invalid ImageKit params response (missing fields). Got: ' + JSON.stringify(Object.keys(data || {})));
+                    }
+                    console.log('ImageKit params fetched successfully via POST');
+                    return data;
+                } catch (postError) {
+                    console.error('Both GET and POST failed. POST error:', postError);
+                    throw new Error('Failed to fetch ImageKit upload params: ' + (postError.message || postError));
                 }
-                const json = await response.json();
-                if (!json || json.success === false) {
-                    throw new Error((json && json.error) || 'Failed to fetch ImageKit upload params');
-                }
-                const data = json.data || json;
-                if (!data || !data.token || !data.signature || !data.expire) {
-                    throw new Error('Invalid ImageKit params response (missing fields)');
-                }
-                return data;
             }
         }
 
         async function uploadImageToImageKit(file, onProgress) {
-            const { token, expire, signature, folder } = await fetchImageKitUploadParams();
+            let token, expire, signature, folder;
+            
+            try {
+                console.log('Fetching ImageKit upload parameters...');
+                const params = await fetchImageKitUploadParams();
+                token = params.token;
+                expire = params.expire;
+                signature = params.signature;
+                folder = params.folder;
+                console.log('ImageKit upload parameters fetched successfully');
+            } catch (error) {
+                console.error('Failed to fetch ImageKit upload parameters:', error);
+                throw new Error('Failed to get upload credentials: ' + (error.message || error));
+            }
 
             const form = new FormData();
             form.append('file', file);
@@ -4907,19 +4950,68 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
 
             const uploadUrl = 'https://upload.imagekit.io/api/v1/files/upload';
             const xhr = new XMLHttpRequest();
+            
+            // Set timeout to 60 seconds for large files
+            xhr.timeout = 60000;
 
             const uploadPromise = new Promise(function(resolve, reject) {
                 xhr.onreadystatechange = function() {
                     if (xhr.readyState === XMLHttpRequest.DONE) {
                         if (xhr.status >= 200 && xhr.status < 300) {
-                            resolve(JSON.parse(xhr.responseText));
+                            try {
+                                const responseText = xhr.responseText;
+                                console.log('ImageKit upload response:', responseText);
+                                
+                                if (!responseText || responseText.trim() === '') {
+                                    reject(new Error('Empty response from ImageKit'));
+                                    return;
+                                }
+                                
+                                let responseData;
+                                try {
+                                    responseData = JSON.parse(responseText);
+                                } catch (parseError) {
+                                    console.error('Failed to parse ImageKit response:', parseError, 'Response:', responseText);
+                                    reject(new Error('Invalid response format from ImageKit: ' + responseText.substring(0, 100)));
+                                    return;
+                                }
+                                
+                                // Check if response indicates an error
+                                if (responseData.error) {
+                                    reject(new Error(responseData.error || 'ImageKit upload failed'));
+                                    return;
+                                }
+                                
+                                // Ensure we have a URL or filePath
+                                if (!responseData.url && !responseData.filePath) {
+                                    reject(new Error('No URL returned from ImageKit. Response: ' + JSON.stringify(responseData)));
+                                    return;
+                                }
+                                
+                                resolve(responseData);
+                            } catch (error) {
+                                console.error('Error processing ImageKit response:', error);
+                                reject(error);
+                            }
                         } else {
-                            reject(new Error(xhr.responseText || 'ImageKit upload failed'));
+                            let errorMessage = 'ImageKit upload failed with status ' + xhr.status;
+                            try {
+                                const errorResponse = JSON.parse(xhr.responseText);
+                                if (errorResponse.message || errorResponse.error) {
+                                    errorMessage = errorResponse.message || errorResponse.error;
+                                }
+                            } catch (e) {
+                                errorMessage = xhr.responseText || errorMessage;
+                            }
+                            reject(new Error(errorMessage));
                         }
                     }
                 };
                 xhr.onerror = function() {
-                    reject(new Error('Network error'));
+                    reject(new Error('Network error while uploading to ImageKit'));
+                };
+                xhr.ontimeout = function() {
+                    reject(new Error('Upload timeout - please check your internet connection'));
                 };
             });
 
@@ -4955,41 +5047,86 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     const targetId = button.dataset.target;
                     if (!targetId) {
                         console.error('Upload button missing data-target attribute');
+                        alert('Error: Upload button configuration issue. Please refresh the page.');
                         return;
                     }
                     
                     const input = document.getElementById(targetId);
                     if (!input) {
                         console.error('Input field not found: ' + targetId);
+                        alert('Error: Cannot find target input field: ' + targetId);
                         return;
                     }
 
                     const filePicker = document.createElement('input');
                     filePicker.type = 'file';
                     filePicker.accept = 'image/*';
+                    filePicker.style.display = 'none';
+                    
+                    // Append to body temporarily (some browsers need this)
+                    document.body.appendChild(filePicker);
 
-                    filePicker.onchange = async function() {
-                        if (!filePicker.files || !filePicker.files[0]) return;
+                    filePicker.onchange = async function(event) {
+                        console.log('File picker changed, files:', event.target.files);
+                        
+                        if (!filePicker.files || !filePicker.files.length || !filePicker.files[0]) {
+                            console.log('No file selected');
+                            document.body.removeChild(filePicker);
+                            return;
+                        }
+                        
                         const file = filePicker.files[0];
+                        console.log('Selected file:', file.name, file.size, 'bytes');
 
                         button.disabled = true;
                         const originalText = button.textContent;
                         button.textContent = 'Uploading...';
 
                         try {
+                            console.log('Starting upload to ImageKit...');
                             const result = await uploadImageToImageKit(file);
-                            input.value = result.url || result.filePath || '';
-                            alert('Image uploaded successfully!');
+                            console.log('Upload successful, result:', result);
+                            
+                            const imageUrl = result.url || result.filePath || '';
+                            if (imageUrl) {
+                                input.value = imageUrl;
+                                alert('Image uploaded successfully!\nURL: ' + imageUrl);
+                            } else {
+                                throw new Error('No URL returned from upload');
+                            }
                         } catch (error) {
                             console.error('ImageKit upload error:', error);
-                            alert('Image upload failed: ' + error.message);
+                            const errorMsg = error.message || 'Unknown error occurred';
+                            alert('Image upload failed: ' + errorMsg + '\n\nPlease check the browser console for details.');
                         } finally {
                             button.disabled = false;
                             button.textContent = originalText;
+                            // Clean up file picker
+                            if (filePicker.parentNode) {
+                                document.body.removeChild(filePicker);
+                            }
                         }
                     };
 
-                    filePicker.click();
+                    // Handle cancel
+                    filePicker.oncancel = function() {
+                        console.log('File picker cancelled');
+                        setTimeout(function() {
+                            if (filePicker.parentNode) {
+                                document.body.removeChild(filePicker);
+                            }
+                        }, 100);
+                    };
+
+                    try {
+                        filePicker.click();
+                    } catch (clickError) {
+                        console.error('Error clicking file picker:', clickError);
+                        alert('Error opening file picker. Please try again.');
+                        if (filePicker.parentNode) {
+                            document.body.removeChild(filePicker);
+                        }
+                    }
                 });
             });
         }
@@ -5136,24 +5273,10 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         return Math.round(scrollLeft / containerWidth);
                     };
                     
-                    // Right arrow (loops infinitely)
-                    const rightArrow = document.createElement('div');
-                    rightArrow.className = 'scroll-arrow scroll-arrow-right';
-                    
-                    rightArrow.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const containerWidth = imgContainer.offsetWidth || imgContainer.clientWidth;
-                        if (containerWidth === 0) return;
-                        
-                        let currentIndex = getCurrentIndex();
-                        currentIndex = (currentIndex + 1) % totalImages;
-                        imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
-                    });
-                    
-                    // Left arrow (loops infinitely)
+                    // Single left arrow that cycles forward through images
                     const leftArrow = document.createElement('div');
                     leftArrow.className = 'scroll-arrow scroll-arrow-left';
+                    leftArrow.style.opacity = '1'; // Always visible
                     
                     leftArrow.addEventListener('click', function(e) {
                         e.preventDefault();
@@ -5162,11 +5285,11 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         if (containerWidth === 0) return;
                         
                         let currentIndex = getCurrentIndex();
-                        currentIndex = (currentIndex - 1 + totalImages) % totalImages;
+                        // Cycle forward (next image)
+                        currentIndex = (currentIndex + 1) % totalImages;
                         imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
                     });
                     
-                    imgContainer.appendChild(rightArrow);
                     imgContainer.appendChild(leftArrow);
                 }
                 
