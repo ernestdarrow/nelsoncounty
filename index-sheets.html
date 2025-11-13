@@ -6214,6 +6214,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 }
                 
                 // Update ImageKit metadata when description field loses focus (blur)
+                // This works for both new and existing listings - even days later!
                 descField.addEventListener('blur', async function() {
                     const description = descField.value.trim();
                     const imageUrl = imageField.value.trim();
@@ -6222,25 +6223,37 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     if (description && imageUrl) {
                         // Only update if the image URL is from ImageKit
                         if (imageUrl.includes('ik.imagekit.io')) {
-                            console.log('Manually updating ImageKit metadata for:', imageUrl);
-                            console.log('Description length:', description.length);
+                            console.log('📝 Updating ImageKit metadata for existing image:');
+                            console.log('  - Image URL:', imageUrl.substring(0, 60) + '...');
+                            console.log('  - Description length:', description.length);
+                            console.log('  - Description preview:', description.substring(0, 50) + '...');
                             
                             // Try to get fileId from the image input's data attribute (if stored during upload)
+                            // For existing listings loaded from Google Sheets, this might be null,
+                            // but updateImageKitMetadata will search by filePath instead
                             const storedFileId = imageField.dataset.imagekitFileId || null;
                             if (storedFileId) {
-                                console.log('Using stored fileId:', storedFileId);
+                                console.log('  - Using stored fileId:', storedFileId);
+                            } else {
+                                console.log('  - No stored fileId - will search ImageKit by file path');
                             }
                             
                             try {
                                 await updateImageKitMetadata(imageUrl, description, storedFileId);
-                                console.log('✅ ImageKit metadata updated from manual input');
+                                console.log('✅ ImageKit metadata updated successfully!');
+                                console.log('   The description has been saved to ImageKit and will persist.');
                             } catch (error) {
-                                console.warn('Failed to update ImageKit metadata from manual input:', error);
-                                // Don't show alert - just log it
+                                console.error('❌ Failed to update ImageKit metadata:', error);
+                                console.error('   This might happen if the image was deleted from ImageKit or the URL is incorrect.');
+                                // Don't show alert - just log it (user can check console if needed)
                             }
                         } else {
-                            console.log('Image URL is not from ImageKit, skipping metadata update:', imageUrl);
+                            console.log('⚠️ Image URL is not from ImageKit, skipping metadata update:', imageUrl);
                         }
+                    } else if (imageUrl && !description) {
+                        // If image URL exists but description is empty, user might have deleted it
+                        // We could optionally clear the ImageKit description, but for now we'll skip
+                        console.log('ℹ️ Description field is empty - skipping ImageKit update');
                     }
                 });
             });
