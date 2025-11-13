@@ -627,7 +627,9 @@ function generateImageDescriptionWithOpenAI(imageUrl, apiKey) {
 
 function generateImageDescriptionWithGemini(imageUrl, apiKey) {
   // Google Gemini API (free tier available)
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey;
+  // Use v1 API instead of v1beta, and try gemini-pro-vision or gemini-1.5-pro
+  // First try gemini-1.5-pro (most capable)
+  let url = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=' + apiKey;
   
   const payload = {
     'contents': [
@@ -650,6 +652,7 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
     }
   };
   
+  // Try the request
   const options = {
     'method': 'post',
     'headers': {
@@ -659,8 +662,16 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
     'muteHttpExceptions': true
   };
   
-  const response = UrlFetchApp.fetch(url, options);
-  const status = response.getResponseCode();
+  let response = UrlFetchApp.fetch(url, options);
+  let status = response.getResponseCode();
+  
+  // If 404, try gemini-pro-vision instead
+  if (status === 404) {
+    Logger.log('gemini-1.5-pro not available, trying gemini-pro-vision...');
+    url = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro-vision:generateContent?key=' + apiKey;
+    response = UrlFetchApp.fetch(url, options);
+    status = response.getResponseCode();
+  }
   
   if (status >= 200 && status < 300) {
     const responseData = JSON.parse(response.getContentText());
@@ -668,6 +679,7 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
     if (responseData.candidates && responseData.candidates[0] && responseData.candidates[0].content && responseData.candidates[0].content.parts) {
       const description = responseData.candidates[0].content.parts[0].text.trim();
       
+      Logger.log('Gemini description generated successfully, length: ' + description.length);
       return ContentService
         .createTextOutput(JSON.stringify({
           success: true,
@@ -675,10 +687,12 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
         }))
         .setMimeType(ContentService.MimeType.JSON);
     } else {
-      throw new Error('Unexpected response format from Gemini API');
+      Logger.log('Unexpected response format: ' + JSON.stringify(responseData));
+      throw new Error('Unexpected response format from Gemini API: ' + JSON.stringify(responseData).substring(0, 200));
     }
   } else {
     const errorText = response.getContentText();
+    Logger.log('Gemini API error (' + status + '): ' + errorText);
     throw new Error('Gemini API error (' + status + '): ' + errorText);
   }
 }
