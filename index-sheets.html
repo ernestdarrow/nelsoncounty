@@ -6996,7 +6996,10 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 
                 const headers = [
                     'id', 'name', 'slug', 'type', 'category', 'area', 'description', 'detailedDescription',
-                    'image1', 'image2', 'image3', 'website', 'phone', 'address',
+                    'image1', 'image1Desc', 'image1FileId',
+                    'image2', 'image2Desc', 'image2FileId',
+                    'image3', 'image3Desc', 'image3FileId',
+                    'website', 'phone', 'address',
                     'authorName', 'publishedDate', 'modifiedDate', 'directionsLink',
                     'amenities', 'featured', 'googleMapsUrl'
                 ];
@@ -7012,8 +7015,14 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         escapeCsv(listing.description || ''),
                         escapeCsv(listing.detailedDescription || ''),
                         escapeCsv(listing.image1 || ''),
+                        escapeCsv(listing.image1Desc || ''),
+                        listing.image1FileId || '',
                         escapeCsv(listing.image2 || ''),
+                        escapeCsv(listing.image2Desc || ''),
+                        listing.image2FileId || '',
                         escapeCsv(listing.image3 || ''),
+                        escapeCsv(listing.image3Desc || ''),
+                        listing.image3FileId || '',
                         listing.website || '',
                         listing.phone || '',
                         escapeCsv(listing.address || ''),

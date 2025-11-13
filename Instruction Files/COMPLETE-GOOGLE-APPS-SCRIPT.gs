@@ -529,29 +529,136 @@ function deleteListing(sheet, listingId) {
       return { success: false, error: 'No listings found in sheet' };
     }
     
-    // Search for matching ID
-    let foundRow = -1;
-    for (let i = 1; i < values.length; i++) {
-      const rowId = String(values[i][0] || '').trim();
-      Logger.log('Row ' + (i + 1) + ' ID: "' + rowId + '" (type: ' + typeof values[i][0] + ')');
+    // Get headers to find ID and name columns
+    const headers = values[0];
+    const idColumnIndex = headers.findIndex(function(h) {
+      const headerLower = String(h || '').toLowerCase().trim();
+      return headerLower === 'id' || headerLower === 'slug';
+    });
+    const nameColumnIndex = headers.findIndex(function(h) {
+      const headerLower = String(h || '').toLowerCase().trim();
+      return ['title', 'name', 'listing name'].includes(headerLower);
+    });
+    
+    Logger.log('ID column index: ' + idColumnIndex);
+    Logger.log('Name column index: ' + nameColumnIndex);
+    
+    // Normalize ID for comparison (remove leading zeros, handle variations)
+    const normalizeIdForComparison = function(id) {
+      if (!id) return '';
+      let normalized = String(id).trim();
       
-      // Compare normalized IDs
-      if (rowId === idToDelete) {
-        foundRow = i + 1; // Google Sheets rows are 1-indexed
-        Logger.log('✅ Found matching listing at row ' + foundRow);
-        break;
+      // Remove leading zeros from numeric prefixes (e.g., "00112-ridges" -> "12-ridges")
+      // Handle patterns like "00112-ridges-vineyard" -> "12-ridges-vineyard"
+      // Also handle "00112" -> "12" (pure numeric)
+      normalized = normalized.replace(/^0+(\d+)/, function(match, digits) {
+        // Remove leading zeros but keep at least one digit
+        return digits;
+      });
+      
+      return normalized.toLowerCase();
+    };
+    
+    // Also create a function to extract the numeric part for comparison
+    const extractNumericPart = function(id) {
+      if (!id) return '';
+      const match = String(id).trim().match(/^0*(\d+)/);
+      return match ? match[1] : '';
+    };
+    
+    const numericPartToDelete = extractNumericPart(idToDelete);
+    Logger.log('Numeric part of ID to delete: "' + numericPartToDelete + '"');
+    
+    const normalizedIdToDelete = normalizeIdForComparison(idToDelete);
+    Logger.log('Normalized ID for comparison: "' + normalizedIdToDelete + '"');
+    
+    // Search for matching ID using multiple strategies
+    let foundRow = -1;
+    let matchStrategy = '';
+    
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      
+      // Strategy 1: Exact match in ID column
+      if (idColumnIndex >= 0) {
+        const rowId = String(row[idColumnIndex] || '').trim();
+        const normalizedRowId = normalizeIdForComparison(rowId);
+        const rowNumericPart = extractNumericPart(rowId);
+        
+        Logger.log('Row ' + (i + 1) + ' ID: "' + rowId + '" (normalized: "' + normalizedRowId + '", numeric: "' + rowNumericPart + '")');
+        
+        // Try exact match first
+        if (rowId === idToDelete || normalizedRowId === normalizedIdToDelete) {
+          foundRow = i + 1;
+          matchStrategy = 'exact ID match';
+          Logger.log('✅ Found matching listing at row ' + foundRow + ' (strategy: ' + matchStrategy + ')');
+          break;
+        }
+        
+        // Try numeric part match (handles leading zero differences)
+        // e.g., "00112-ridges" matches "12-ridges" or "112-ridges"
+        if (numericPartToDelete && rowNumericPart && numericPartToDelete === rowNumericPart) {
+          // Check if the rest of the ID (after numeric part) matches
+          const idAfterNumeric = idToDelete.replace(/^0*\d+/, '').toLowerCase();
+          const rowIdAfterNumeric = rowId.replace(/^0*\d+/, '').toLowerCase();
+          if (idAfterNumeric === rowIdAfterNumeric || 
+              idAfterNumeric.includes(rowIdAfterNumeric) || 
+              rowIdAfterNumeric.includes(idAfterNumeric)) {
+            foundRow = i + 1;
+            matchStrategy = 'numeric part match';
+            Logger.log('✅ Found matching listing at row ' + foundRow + ' (strategy: ' + matchStrategy + ')');
+            break;
+          }
+        }
+        
+        // Try partial match (in case of prefix/suffix differences)
+        if (rowId.includes(idToDelete) || idToDelete.includes(rowId) ||
+            normalizedRowId.includes(normalizedIdToDelete) || normalizedIdToDelete.includes(normalizedRowId)) {
+          foundRow = i + 1;
+          matchStrategy = 'partial ID match';
+          Logger.log('✅ Found matching listing at row ' + foundRow + ' (strategy: ' + matchStrategy + ')');
+          break;
+        }
+      }
+      
+      // Strategy 2: Fallback to first column if ID column not found
+      if (foundRow < 0 && idColumnIndex < 0) {
+        const rowId = String(row[0] || '').trim();
+        const normalizedRowId = normalizeIdForComparison(rowId);
+        
+        if (rowId === idToDelete || normalizedRowId === normalizedIdToDelete ||
+            rowId.includes(idToDelete) || idToDelete.includes(rowId)) {
+          foundRow = i + 1;
+          matchStrategy = 'first column match';
+          Logger.log('✅ Found matching listing at row ' + foundRow + ' (strategy: ' + matchStrategy + ')');
+          break;
+        }
       }
     }
     
     if (foundRow > 0) {
-      Logger.log('Deleting row ' + foundRow);
+      Logger.log('Deleting row ' + foundRow + ' (matched using: ' + matchStrategy + ')');
       sheet.deleteRow(foundRow);
       Logger.log('✅ Row deleted successfully');
       return { success: true, message: 'Listing deleted successfully' };
     } else {
-      Logger.log('❌ Listing with id "' + idToDelete + '" not found in sheet');
-      Logger.log('Available IDs (first 10): ' + values.slice(1, 11).map(row => String(row[0] || '').trim()).join(', '));
-      return { success: false, error: 'Listing with id "' + listingId + '" not found in sheet' };
+      // Provide detailed error message with available IDs
+      const availableIds = [];
+      const idCol = idColumnIndex >= 0 ? idColumnIndex : 0;
+      for (let i = 1; i < Math.min(values.length, 21); i++) {
+        const rowId = String(values[i][idCol] || '').trim();
+        if (rowId) {
+          availableIds.push('"' + rowId + '"');
+        }
+      }
+      
+      const errorMsg = 'Listing with id "' + listingId + '" not found in sheet. ' +
+                      'Searched for: "' + idToDelete + '" (normalized: "' + normalizedIdToDelete + '"). ' +
+                      'Available IDs (first 20): ' + availableIds.join(', ') +
+                      (availableIds.length >= 20 ? '... (and more)' : '');
+      
+      Logger.log('❌ ' + errorMsg);
+      return { success: false, error: errorMsg };
     }
 
   } catch (error) {
