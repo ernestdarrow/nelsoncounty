@@ -3536,7 +3536,18 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     // Single right arrow that cycles forward through images
                     const rightArrow = document.createElement('div');
                     rightArrow.className = 'scroll-arrow scroll-arrow-right';
-                    rightArrow.style.cssText = 'position: absolute; right: 13px; top: 0px; z-index: 15; opacity: 1; pointer-events: auto;';
+                    rightArrow.style.cssText = 'position: absolute; right: 13px; z-index: 15; opacity: 1; pointer-events: auto;';
+                    
+                    // Position arrow at center of image container (same approach as frontpage_framer.html)
+                    setTimeout(function() {
+                        const containerHeight = imgContainer.offsetHeight || 240;
+                        const containerTop = imgContainer.offsetTop || 0;
+                        if (containerHeight > 0) {
+                            // Position at center of image container: offsetTop + half the height
+                            rightArrow.style.top = (containerTop + containerHeight / 2) + 'px';
+                            rightArrow.style.transform = 'translateY(-50%)';
+                        }
+                    }, 10);
                     
                     rightArrow.addEventListener('click', function(e) {
                         e.preventDefault();
@@ -5866,7 +5877,18 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     // Single right arrow that cycles forward through images
                     const rightArrow = document.createElement('div');
                     rightArrow.className = 'scroll-arrow scroll-arrow-right';
-                    rightArrow.style.cssText = 'position: absolute; right: 13px; top: 0px; z-index: 15; opacity: 1; pointer-events: auto;';
+                    rightArrow.style.cssText = 'position: absolute; right: 13px; z-index: 15; opacity: 1; pointer-events: auto;';
+                    
+                    // Position arrow at center of image container (same approach as frontpage_framer.html)
+                    setTimeout(function() {
+                        const containerHeight = imgContainer.offsetHeight || 240;
+                        const containerTop = imgContainer.offsetTop || 0;
+                        if (containerHeight > 0) {
+                            // Position at center of image container: offsetTop + half the height
+                            rightArrow.style.top = (containerTop + containerHeight / 2) + 'px';
+                            rightArrow.style.transform = 'translateY(-50%)';
+                        }
+                    }, 10);
                     
                     rightArrow.addEventListener('click', function(e) {
                         e.preventDefault();
