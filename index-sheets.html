@@ -5995,6 +5995,53 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 });
             });
             
+            // Add event listeners for manual description input
+            // This will sync manual changes to ImageKit metadata
+            ['listingImage1Desc', 'listingImage2Desc', 'listingImage3Desc'].forEach(function(descFieldId) {
+                const descField = document.getElementById(descFieldId);
+                if (!descField) return;
+                
+                // Skip if already initialized
+                if (descField.dataset.metadataInitialized === 'true') {
+                    return;
+                }
+                descField.dataset.metadataInitialized = 'true';
+                
+                // Get the corresponding image input field ID
+                const imageFieldId = descFieldId.replace('Desc', '');
+                const imageField = document.getElementById(imageFieldId);
+                
+                if (!imageField) {
+                    console.warn('Could not find corresponding image field for:', descFieldId);
+                    return;
+                }
+                
+                // Update ImageKit metadata when description field loses focus (blur)
+                descField.addEventListener('blur', async function() {
+                    const description = descField.value.trim();
+                    const imageUrl = imageField.value.trim();
+                    
+                    // Only update if both description and image URL are present
+                    if (description && imageUrl) {
+                        // Only update if the image URL is from ImageKit
+                        if (imageUrl.includes('ik.imagekit.io')) {
+                            console.log('Manually updating ImageKit metadata for:', imageUrl);
+                            console.log('Description length:', description.length);
+                            
+                            try {
+                                await updateImageKitMetadata(imageUrl, description);
+                                console.log('✅ ImageKit metadata updated from manual input');
+                            } catch (error) {
+                                console.warn('Failed to update ImageKit metadata from manual input:', error);
+                                // Don't show alert - just log it
+                            }
+                        } else {
+                            console.log('Image URL is not from ImageKit, skipping metadata update:', imageUrl);
+                        }
+                    }
+                });
+            });
+            
             // Add auto-upload functionality for URL images
             ['listingImage1', 'listingImage2', 'listingImage3'].forEach(function(imageId) {
                 const input = document.getElementById(imageId);

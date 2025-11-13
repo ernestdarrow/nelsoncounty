@@ -627,8 +627,14 @@ function generateImageDescriptionWithOpenAI(imageUrl, apiKey) {
 
 function generateImageDescriptionWithGemini(imageUrl, apiKey) {
   // Google Gemini API (free tier available)
-  // Try v1beta with gemini-1.5-flash first (free, fast, supports images)
-  let url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey;
+  // Use Gemini 2.5 models (newer, better support)
+  // Try these models in order:
+  // 1. gemini-2.5-flash (fastest, free tier, supports vision)
+  // 2. gemini-2.5-flash-preview (latest preview)
+  // 3. gemini-2.5-pro-preview (more capable)
+  // 4. Fallback to gemini-1.5-flash (if 2.5 models unavailable)
+  
+  let url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey;
   
   const payload = {
     'contents': [
@@ -639,7 +645,7 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
           },
           {
             'inline_data': {
-              'mime_type': 'image/jpeg',
+              'mime_type': detectImageMimeType(imageUrl),
               'data': getImageAsBase64(imageUrl)
             }
           }
@@ -664,18 +670,26 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
   let response = UrlFetchApp.fetch(url, options);
   let status = response.getResponseCode();
   
-  // If 404, try gemini-1.5-pro with v1beta
+  // If 404, try gemini-2.5-flash-preview (latest preview)
   if (status === 404) {
-    Logger.log('gemini-1.5-flash not available, trying gemini-1.5-pro with v1beta...');
-    url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=' + apiKey;
+    Logger.log('gemini-2.5-flash not available, trying gemini-2.5-flash-preview...');
+    url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=' + apiKey;
     response = UrlFetchApp.fetch(url, options);
     status = response.getResponseCode();
   }
   
-  // If still 404, try gemini-pro with v1beta
+  // If still 404, try gemini-2.5-pro-preview (more capable)
   if (status === 404) {
-    Logger.log('gemini-1.5-pro not available, trying gemini-pro with v1beta...');
-    url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + apiKey;
+    Logger.log('gemini-2.5-flash-preview not available, trying gemini-2.5-pro-preview...');
+    url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-03-25:generateContent?key=' + apiKey;
+    response = UrlFetchApp.fetch(url, options);
+    status = response.getResponseCode();
+  }
+  
+  // If still 404, fallback to gemini-1.5-flash (older but stable)
+  if (status === 404) {
+    Logger.log('Gemini 2.5 models not available, trying gemini-1.5-flash...');
+    url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey;
     response = UrlFetchApp.fetch(url, options);
     status = response.getResponseCode();
   }
@@ -700,6 +714,12 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
   } else {
     const errorText = response.getContentText();
     Logger.log('Gemini API error (' + status + '): ' + errorText);
+    
+    // If all models failed, provide helpful error message
+    if (status === 404) {
+      throw new Error('Gemini API: No vision models available. Your API key may need the Generative Language API enabled in Google Cloud Console. Visit: https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com');
+    }
+    
     throw new Error('Gemini API error (' + status + '): ' + errorText);
   }
 }
@@ -713,6 +733,16 @@ function getImageAsBase64(imageUrl) {
   } catch (error) {
     throw new Error('Failed to fetch image for description: ' + error.toString());
   }
+}
+
+function detectImageMimeType(imageUrl) {
+  // Detect MIME type from URL or default to image/jpeg
+  const urlLower = imageUrl.toLowerCase();
+  if (urlLower.includes('.png')) return 'image/png';
+  if (urlLower.includes('.webp')) return 'image/webp';
+  if (urlLower.includes('.gif')) return 'image/gif';
+  if (urlLower.includes('.jpg') || urlLower.includes('.jpeg')) return 'image/jpeg';
+  return 'image/jpeg'; // Default
 }
 
 // -----------------------------------------------------------------------------
@@ -862,6 +892,34 @@ function testApiKeyConfiguration() {
   } else {
     Logger.log('');
     Logger.log('✅ API key configuration looks good!');
+    
+    // If Gemini key found, test if it can access models
+    if (geminiKey) {
+      Logger.log('');
+      Logger.log('Testing Gemini API access...');
+      try {
+        const testUrl = 'https://generativelanguage.googleapis.com/v1beta/models?key=' + geminiKey;
+        const testResponse = UrlFetchApp.fetch(testUrl, { muteHttpExceptions: true });
+        const testStatus = testResponse.getResponseCode();
+        
+        if (testStatus === 200) {
+          const models = JSON.parse(testResponse.getContentText());
+          Logger.log('✅ Gemini API accessible! Available models: ' + (models.models ? models.models.length : 0));
+          if (models.models && models.models.length > 0) {
+            const modelNames = models.models.map(function(m) { return m.name; }).slice(0, 5);
+            Logger.log('Sample models: ' + modelNames.join(', '));
+          }
+        } else {
+          Logger.log('⚠️ Gemini API test failed with status: ' + testStatus);
+          Logger.log('Response: ' + testResponse.getContentText().substring(0, 200));
+          Logger.log('');
+          Logger.log('⚠️ IMPORTANT: The Generative Language API may not be enabled!');
+          Logger.log('Enable it here: https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com');
+        }
+      } catch (testError) {
+        Logger.log('⚠️ Error testing Gemini API: ' + testError.toString());
+      }
+    }
   }
   
   return {
