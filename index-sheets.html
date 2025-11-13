@@ -1788,7 +1788,7 @@
                             <input type="text" id="listingImage1" required placeholder="https:// or data:image..." />
                             <button type="button" class="btn btn-secondary btn-upload-image" data-target="listingImage1">Upload</button>
                         </div>
-                        <input type="text" id="listingImage1Desc" placeholder="Image description (auto-generated on upload)" style="margin-top: 8px; width: 100%;" />
+                        <textarea id="listingImage1Desc" placeholder="Image description (auto-generated on upload)" rows="3" style="margin-top: 8px; width: 100%; padding: 8px; font-family: inherit; font-size: 14px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
                     </div>
                     
                     <div class="form-group">
@@ -1797,7 +1797,7 @@
                             <input type="text" id="listingImage2" placeholder="https:// or data:image..." />
                             <button type="button" class="btn btn-secondary btn-upload-image" data-target="listingImage2">Upload</button>
                         </div>
-                        <input type="text" id="listingImage2Desc" placeholder="Image description (auto-generated on upload)" style="margin-top: 8px; width: 100%;" />
+                        <textarea id="listingImage2Desc" placeholder="Image description (auto-generated on upload)" rows="3" style="margin-top: 8px; width: 100%; padding: 8px; font-family: inherit; font-size: 14px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Image URL 3</label>
@@ -1805,7 +1805,7 @@
                             <input type="text" id="listingImage3" placeholder="https:// or data:image..." />
                             <button type="button" class="btn btn-secondary btn-upload-image" data-target="listingImage3">Upload</button>
                         </div>
-                        <input type="text" id="listingImage3Desc" placeholder="Image description (auto-generated on upload)" style="margin-top: 8px; width: 100%;" />
+                        <textarea id="listingImage3Desc" placeholder="Image description (auto-generated on upload)" rows="3" style="margin-top: 8px; width: 100%; padding: 8px; font-family: inherit; font-size: 14px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
                     </div>
                 </div>
                 
@@ -5463,6 +5463,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     return null;
                 }
                 
+                console.log('Calling Google Apps Script to generate description for:', imageUrl);
                 const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -5472,18 +5473,37 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     })
                 });
                 
+                console.log('Response status:', response.status, response.statusText);
+                
                 if (!response.ok) {
-                    throw new Error('Failed to generate description: HTTP ' + response.status);
+                    const errorText = await response.text();
+                    console.error('Response error text:', errorText);
+                    throw new Error('Failed to generate description: HTTP ' + response.status + ' - ' + errorText);
                 }
                 
-                const result = await response.json();
+                const responseText = await response.text();
+                console.log('Response text (first 500 chars):', responseText.substring(0, 500));
+                
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('Failed to parse JSON response:', parseError, 'Response:', responseText);
+                    throw new Error('Invalid JSON response from server: ' + responseText.substring(0, 100));
+                }
+                
+                console.log('Parsed result:', result);
+                
                 if (result.success && result.description) {
+                    console.log('Description successfully generated, length:', result.description.length);
                     return result.description;
                 } else {
-                    throw new Error(result.error || 'Failed to generate description');
+                    console.error('Description generation failed. Result:', result);
+                    throw new Error(result.error || 'Failed to generate description. Response: ' + JSON.stringify(result));
                 }
             } catch (error) {
                 console.error('Error generating image description:', error);
+                console.error('Error stack:', error.stack);
                 // Fallback: try direct OpenAI API if API key is configured (not recommended for production)
                 if (OPENAI_API_KEY) {
                     try {
@@ -5773,24 +5793,50 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                             if (imageUrl) {
                                 input.value = imageUrl;
                                 
+                                // Reset button text before generating description
+                                button.textContent = 'Upload';
+                                
                                 // Generate AI description for the uploaded image
+                                let description = null;
                                 try {
                                     button.textContent = 'Generating description...';
-                                    const description = await generateImageDescription(imageUrl);
+                                    console.log('Generating description for image:', imageUrl);
+                                    description = await generateImageDescription(imageUrl);
+                                    console.log('Description generated:', description ? 'Yes (' + description.length + ' chars)' : 'No');
+                                    
                                     if (description) {
                                         // Find the corresponding description field
                                         const descFieldId = targetId + 'Desc';
                                         const descField = document.getElementById(descFieldId);
                                         if (descField) {
                                             descField.value = description;
+                                            console.log('Description saved to field:', descFieldId, 'Value length:', description.length);
+                                            
+                                            // Trigger input event to ensure form recognizes the change
+                                            descField.dispatchEvent(new Event('input', { bubbles: true }));
+                                            descField.dispatchEvent(new Event('change', { bubbles: true }));
+                                            
+                                            // Scroll to and focus the description field so it's visible
+                                            setTimeout(function() {
+                                                descField.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                                                descField.focus();
+                                            }, 100);
+                                        } else {
+                                            console.error('Description field not found:', descFieldId);
                                         }
+                                    } else {
+                                        console.warn('No description was generated (description is null/empty)');
                                     }
                                 } catch (descError) {
-                                    console.warn('Failed to generate image description:', descError);
+                                    console.error('Failed to generate image description:', descError);
+                                    console.error('Error details:', descError.message, descError.stack);
                                     // Don't fail the upload if description generation fails
+                                } finally {
+                                    // Always reset button text
+                                    button.textContent = 'Upload';
                                 }
                                 
-                                alert('Image uploaded successfully!\nURL: ' + imageUrl);
+                                alert('Image uploaded successfully!\nURL: ' + imageUrl + (description ? '\n\nDescription generated and visible below.' : ''));
                             } else {
                                 throw new Error('No URL returned from upload');
                             }
