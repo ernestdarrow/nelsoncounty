@@ -3724,6 +3724,39 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     backDescriptionHTML +
                     backDetailedDescriptionHTML;
                 
+                // Add Edit and Delete buttons to the back of the card
+                const backActions = document.createElement('div');
+                backActions.className = 'listing-actions';
+                
+                const backEditBtn = document.createElement('button');
+                backEditBtn.className = 'btn-edit';
+                backEditBtn.textContent = 'Edit';
+                backEditBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    editListing(listing.id);
+                });
+                
+                const backDeleteBtn = document.createElement('button');
+                backDeleteBtn.className = 'btn-delete';
+                
+                // Check if this listing is waiting for confirmation
+                if (deleteConfirmId === listing.id) {
+                    backDeleteBtn.textContent = 'Confirm Delete?';
+                    backDeleteBtn.style.background = '#dc2626';
+                } else {
+                    backDeleteBtn.textContent = 'Delete';
+                    backDeleteBtn.style.background = '#E3795C';
+                }
+                
+                backDeleteBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    deleteListing(listing.id);
+                });
+                
+                backActions.appendChild(backEditBtn);
+                backActions.appendChild(backDeleteBtn);
+                back.appendChild(backActions);
+                
                 inner.appendChild(front);
                 inner.appendChild(back);
                 card.appendChild(inner);
