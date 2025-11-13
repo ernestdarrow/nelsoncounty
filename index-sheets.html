@@ -342,7 +342,7 @@
         
         .checkbox-group { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+            grid-template-columns: repeat(3, 1fr); 
             gap: 10px; 
             margin-top: 8px;
             max-height: 400px;
@@ -351,6 +351,18 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             background: var(--bg-secondary);
+        }
+        
+        @media (max-width: 768px) {
+            .checkbox-group {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
         }
         .checkbox-item { display: flex; align-items: center; gap: 6px; }
         .checkbox-item input[type="checkbox"] { width: auto; }
@@ -3522,12 +3534,17 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     // Single right arrow that cycles forward through images
                     const rightArrow = document.createElement('div');
                     rightArrow.className = 'scroll-arrow scroll-arrow-right';
-                    rightArrow.style.opacity = '1'; // Always visible
-                    rightArrow.style.pointerEvents = 'auto'; // Ensure clickable
-                    rightArrow.style.position = 'absolute'; // Position relative to imgContainer
-                    rightArrow.style.top = '50%'; // Center vertically
-                    rightArrow.style.transform = 'translateY(-50%)'; // Center vertically
-                    rightArrow.style.zIndex = '15'; // Above images
+                    rightArrow.style.cssText = 'position: absolute; right: 13px; top: 120px; transform: translateY(-50%); z-index: 15; opacity: 1; pointer-events: auto;';
+                    
+                    // Ensure arrow is positioned correctly relative to image container
+                    // Image container is 240px tall, so center is at 120px from top of front
+                    setTimeout(function() {
+                        const imgContainerOffsetTop = imgContainer.offsetTop || 0;
+                        const imgContainerHeight = imgContainer.offsetHeight || 240;
+                        const centerY = imgContainerOffsetTop + (imgContainerHeight / 2);
+                        rightArrow.style.top = centerY + 'px';
+                    }, 10);
+                    
                     rightArrow.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
@@ -3540,8 +3557,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
                     });
                     
-                    // Append to imgContainer so it's positioned relative to the image area
-                    imgContainer.appendChild(rightArrow);
+                    // Append to front (not imgContainer) so it doesn't scroll with images
+                    front.appendChild(rightArrow);
                 }
                 
                 // Featured badge
@@ -4270,7 +4287,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             if (image3Input) image3Input.value = listing.image3 || '';
             document.getElementById('listingWebsite').value = listing.website;
             document.getElementById('listingPhone').value = listing.phone || '';
-            document.getElementById('listingAddress').value = listing.address;
+            document.getElementById('listingAddress').value = listing.address || '';
             const authorNameInput = document.getElementById('listingAuthorName');
             if (authorNameInput) authorNameInput.value = listing.authorName || '';
             const publishedInput = document.getElementById('listingPublishedDate');
@@ -4278,7 +4295,17 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             const modifiedInput = document.getElementById('listingModifiedDate');
             if (modifiedInput) modifiedInput.value = listing.modifiedDate || '';
             const directionsInput = document.getElementById('listingDirectionsLink');
-            if (directionsInput) directionsInput.value = listing.directionsLink || '';
+            // If directions link is empty but address exists, auto-generate it
+            if (directionsInput) {
+                if (listing.directionsLink && listing.directionsLink.trim()) {
+                    directionsInput.value = listing.directionsLink;
+                } else if (listing.address && listing.address.trim()) {
+                    const encodedAddress = encodeURIComponent(listing.address.trim());
+                    directionsInput.value = 'https://www.google.com/maps/search/?api=1&query=' + encodedAddress;
+                } else {
+                    directionsInput.value = '';
+                }
+            }
             document.getElementById('listingFeatured').checked = listing.featured || false;
             
             const checkboxes = document.querySelectorAll('#amenitiesCheckboxes input[type="checkbox"]');
@@ -4535,6 +4562,35 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         document.getElementById('listingModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
+        
+        // Auto-populate Google Maps directions link when address changes
+        const addressInput = document.getElementById('listingAddress');
+        const directionsLinkInput = document.getElementById('listingDirectionsLink');
+        
+        if (addressInput && directionsLinkInput) {
+            addressInput.addEventListener('input', function() {
+                const address = this.value.trim();
+                if (address) {
+                    // Generate Google Maps directions link
+                    const encodedAddress = encodeURIComponent(address);
+                    const googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodedAddress;
+                    // Only auto-populate if directions field is empty
+                    if (!directionsLinkInput.value.trim()) {
+                        directionsLinkInput.value = googleMapsUrl;
+                    }
+                }
+            });
+            
+            // Also populate on blur if address exists but directions link is empty
+            addressInput.addEventListener('blur', function() {
+                const address = this.value.trim();
+                if (address && !directionsLinkInput.value.trim()) {
+                    const encodedAddress = encodeURIComponent(address);
+                    const googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodedAddress;
+                    directionsLinkInput.value = googleMapsUrl;
+                }
+            });
+        }
         
         window.switchTab = function switchTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(function(btn) { btn.classList.remove('active'); });
