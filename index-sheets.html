@@ -3395,9 +3395,6 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 const back = document.createElement('div');
                 back.className = 'flip-card-back';
                 
-                // Use detailedDescription if available, otherwise fall back to description
-                const descriptionText = (listing.detailedDescription && listing.detailedDescription.trim()) ? listing.detailedDescription : listing.description;
-                
                 // Build amenities HTML for back - show ALL amenities with same styling as front
                 let backAmenitiesHTML = '';
                 if (listing.amenities && listing.amenities.length > 0) {
@@ -3408,10 +3405,24 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         '</div>';
                 }
                 
+                // Build description sections with labels for back of card
+                const backDescriptionHTML = listing.description && listing.description.trim() ? 
+                    '<div style="margin-bottom: 15px;">' +
+                    '<h4 style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Description</h4>' +
+                    '<p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap; margin: 0;">' + listing.description + '</p>' +
+                    '</div>' : '';
+                
+                const backDetailedDescriptionHTML = listing.detailedDescription && listing.detailedDescription.trim() ? 
+                    '<div style="margin-bottom: 15px;">' +
+                    '<h4 style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Detailed Description</h4>' +
+                    '<p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap; margin: 0;">' + listing.detailedDescription + '</p>' +
+                    '</div>' : '';
+                
                 back.innerHTML = 
                     '<button class="flip-close-btn" onclick="event.stopPropagation(); this.closest(\'.flip-card\').classList.remove(\'flipped\');">&times;</button>' +
                     '<h3 style="font-size: 22px; margin-bottom: 12px; color: var(--text-primary);">' + listing.name + '</h3>' +
-                    '<p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.6; white-space: pre-wrap;">' + (descriptionText || 'No description available') + '</p>' +
+                    backDescriptionHTML +
+                    backDetailedDescriptionHTML +
                     backAmenitiesHTML;
                 
                 inner.appendChild(front);
@@ -5081,11 +5092,24 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         '</div>';
                 }
                 
+                // Build description sections with labels for back of card
+                const backDescriptionHTML = listing.description && listing.description.trim() ? 
+                    '<div style="margin-bottom: 15px;">' +
+                    '<h4 style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Description</h4>' +
+                    '<p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap; margin: 0;">' + listing.description + '</p>' +
+                    '</div>' : '';
+                
+                const backDetailedDescriptionHTML = listing.detailedDescription && listing.detailedDescription.trim() ? 
+                    '<div style="margin-bottom: 15px;">' +
+                    '<h4 style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Detailed Description</h4>' +
+                    '<p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap; margin: 0;">' + listing.detailedDescription + '</p>' +
+                    '</div>' : '';
+                
                 back.innerHTML = 
                     '<button class="flip-close-btn" onclick="event.stopPropagation(); this.closest(\'.flip-card\').classList.remove(\'flipped\');">&times;</button>' +
                     '<h3 style="font-size: 22px; margin-bottom: 12px; color: var(--text-primary);">' + listing.name + '</h3>' +
-                    // Use detailedDescription if available, otherwise fall back to description
-                    '<p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.6; white-space: pre-wrap;">' + (listing.detailedDescription && listing.detailedDescription.trim() ? listing.detailedDescription : listing.description) + '</p>' +
+                    backDescriptionHTML +
+                    backDetailedDescriptionHTML +
                     backAmenitiesHTML;
                 
                 inner.appendChild(front);
