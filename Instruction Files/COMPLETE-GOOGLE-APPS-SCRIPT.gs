@@ -85,11 +85,11 @@ function listSheetHeaders() {
 // -----------------------------------------------------------------------------
 
 function doOptions(e) {
-  // Handle CORS preflight requests
+  // Handle CORS preflight requests (OPTIONS method)
   // Google Apps Script automatically handles CORS when deployed with "Anyone" access
-  // Just return empty response - Google will add CORS headers automatically
+  // Return empty response with JSON mime type - Google will add CORS headers automatically
   return ContentService
-    .createTextOutput('')
+    .createTextOutput(JSON.stringify({}))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -146,6 +146,24 @@ function doGet(e) {
       const filePathOrId = fileId || filePath;
       // Google Apps Script automatically adds CORS headers when deployed with "Anyone" access
       return updateImageKitFileMetadata(filePathOrId, customMetadata, e.parameter.imageUrl);
+    }
+    
+    // Handle delete listing via GET (fallback to avoid CORS preflight issues)
+    if (e && e.parameter && e.parameter.action === 'deleteListing') {
+      const listingId = e.parameter.listingId;
+      if (!listingId) {
+        return ContentService
+          .createTextOutput(JSON.stringify({
+            success: false,
+            error: 'Missing "listingId" parameter'
+          }))
+          .setMimeType(ContentService.MimeType.JSON)
+      }
+      const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+      const result = deleteListing(sheet, listingId);
+      return ContentService
+        .createTextOutput(JSON.stringify(result))
+        .setMimeType(ContentService.MimeType.JSON);
     }
 
     // Default: return listings data

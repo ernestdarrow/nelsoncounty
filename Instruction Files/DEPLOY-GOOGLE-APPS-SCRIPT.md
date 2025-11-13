@@ -57,7 +57,21 @@ If CORS is working, you'll get a JSON response. If not, you'll see a CORS error.
 3. Try creating a completely new deployment instead of editing the old one
 4. Wait a few minutes for changes to propagate
 
+**Getting 405 errors on OPTIONS requests?**
+- This means the CORS preflight (OPTIONS) request is failing
+- The script uses GET requests for delete operations to avoid this issue
+- If you still see CORS errors, make sure:
+  1. The script is deployed (not just saved)
+  2. "Who has access" is set to "Anyone" (not "Anyone with Google account")
+  3. You're using the Web App URL (not the script editor URL)
+  4. You've created a new deployment version after making changes
+
 **Script not found errors?**
 - Make sure you're using the Web App URL (not the script editor URL)
 - The URL should look like: `https://script.google.com/macros/s/.../exec`
+
+**Delete operations failing?**
+- The script now uses GET requests for delete operations to avoid CORS preflight issues
+- Make sure the `doGet` function in your script includes the delete handler
+- Check the Google Apps Script execution logs for error details
 

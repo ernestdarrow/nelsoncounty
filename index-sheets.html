@@ -4477,23 +4477,15 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 // Delete from Google Sheets if configured
                 if (GOOGLE_APPS_SCRIPT_URL && !GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
                     try {
-                        // Try direct POST, fallback to form submission
-                        const postData = JSON.stringify({
-                            action: 'deleteListing',
-                            listingId: id
-                        });
-                        
                         let result = { success: false };
                         
-                        // Try direct fetch (must use CORS mode to read response)
+                        // Use GET request to avoid CORS preflight (OPTIONS) issues
+                        // GET requests don't trigger CORS preflight, so they work even if OPTIONS fails
                         try {
-                            const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                                method: 'POST',
-                                mode: 'cors',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: postData
+                            const deleteUrl = GOOGLE_APPS_SCRIPT_URL + '?action=deleteListing&listingId=' + encodeURIComponent(id) + '&t=' + Date.now();
+                            const response = await fetch(deleteUrl, {
+                                method: 'GET',
+                                mode: 'cors'
                             });
                             
                             if (!response.ok) {
