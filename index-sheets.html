@@ -3236,8 +3236,16 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 
                 // Add scroll arrows if there are multiple images
                 if (imageCount > 1) {
-                    let currentIndex = 0;
                     const totalImages = imageCount;
+                    
+                    // Function to get current index based on scroll position
+                    const getCurrentIndex = function() {
+                        const containerWidth = imgContainer.offsetWidth || imgContainer.clientWidth;
+                        if (containerWidth === 0) return 0;
+                        const scrollLeft = imgContainer.scrollLeft || 0;
+                        // Round to nearest index
+                        return Math.round(scrollLeft / containerWidth);
+                    };
                     
                     // Right arrow
                     const rightArrow = document.createElement('div');
@@ -3245,8 +3253,11 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     rightArrow.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
-                        currentIndex = (currentIndex + 1) % totalImages;
                         const containerWidth = imgContainer.offsetWidth || imgContainer.clientWidth;
+                        if (containerWidth === 0) return;
+                        
+                        let currentIndex = getCurrentIndex();
+                        currentIndex = (currentIndex + 1) % totalImages;
                         imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
                     });
                     
@@ -3256,8 +3267,11 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     leftArrow.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
-                        currentIndex = (currentIndex - 1 + totalImages) % totalImages;
                         const containerWidth = imgContainer.offsetWidth || imgContainer.clientWidth;
+                        if (containerWidth === 0) return;
+                        
+                        let currentIndex = getCurrentIndex();
+                        currentIndex = (currentIndex - 1 + totalImages) % totalImages;
                         imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
                     });
                     
@@ -3352,19 +3366,6 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     '</a>' : '') +
                     '</div>';
                 
-                // Build amenities HTML (up to 4, with "+X more" if applicable)
-                let amenitiesHTML = '';
-                if (listing.amenities && listing.amenities.length > 0) {
-                    const visibleAmenities = listing.amenities.slice(0, 4);
-                    const remainingCount = listing.amenities.length - 4;
-                    amenitiesHTML = '<div class="listing-amenities">' +
-                        visibleAmenities.map(function(a) {
-                            return '<span class="amenity">' + a + '</span>';
-                        }).join('') +
-                        (remainingCount > 0 ? '<span class="amenity">+' + remainingCount + ' more</span>' : '') +
-                        '</div>';
-                }
-                
                 // Description with up to 5 lines
                 const descriptionHTML = listing.description ? 
                     '<p class="listing-desc">' + listing.description + '</p>' :
@@ -3380,11 +3381,18 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     categoryHTML +
                     '<h3 style="font-size: 18px; margin-bottom: 8px; color: var(--text-primary);">' + listing.name + '</h3>' +
                     '<div class="listing-meta" style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">' +
-                    '<span class="badge badge-type ' + getIconClass(listing.type, listing) + '">' + listing.type + '</span>' +
-                    '<span class="badge badge-area">' + listing.area + '</span>' +
+                    '<span class="badge badge-type ' + getIconClass(listing.type, listing) + '" data-type="' + listing.type + '" onclick="filterByAdminBadge(event, \'type\', \'' + listing.type.replace(/'/g, "\\'") + '\')" style="cursor: pointer;">' + listing.type + '</span>' +
+                    '<span class="badge badge-area" data-area="' + listing.area + '" onclick="filterByAdminBadge(event, \'area\', \'' + listing.area.replace(/'/g, "\\'") + '\')" style="cursor: pointer;">' + listing.area + '</span>' +
                     '</div>' +
                     descriptionHTML +
-                    amenitiesHTML +
+                    (listing.amenities && listing.amenities.length > 0 ? 
+                    '<div class="listing-amenities">' +
+                    listing.amenities.slice(0, 4).map(function(a) {
+                        const escapedAmenity = a.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                        return '<span class="amenity" onclick="filterByAdminBadge(event, \'amenity\', \'' + escapedAmenity + '\')" style="cursor: pointer;">' + a + '</span>';
+                    }).join('') +
+                    (listing.amenities.length > 4 ? '<span class="amenity">+' + (listing.amenities.length - 4) + ' more</span>' : '') +
+                    '</div>' : '') +
                     contactHtml;
                 
                 // Edit and Delete buttons
@@ -3589,6 +3597,33 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             
             // Call filterListings to apply the filter
             filterListings();
+        }
+        
+        window.filterByAdminBadge = function filterByAdminBadge(event, filterType, value) {
+            event.stopPropagation(); // Prevent card flip
+            
+            if (filterType === 'type') {
+                // Set type filter
+                const typeFilter = document.getElementById('adminTypeFilter');
+                if (typeFilter) {
+                    typeFilter.value = value;
+                    handleAdminTypeFilter();
+                }
+            } else if (filterType === 'area') {
+                // Set area filter
+                const areaFilter = document.getElementById('adminAreaFilter');
+                if (areaFilter) {
+                    areaFilter.value = value;
+                    filterListings();
+                }
+            } else if (filterType === 'amenity') {
+                // Set amenity filter
+                const amenityFilter = document.getElementById('adminAmenityFilter');
+                if (amenityFilter) {
+                    amenityFilter.value = value;
+                    filterListings();
+                }
+            }
         }
         
         function clearAdminFilters() {
@@ -3917,6 +3952,10 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             updateCategoryDropdown();
             renderAmenitiesCheckboxes();
             document.getElementById('listingModal').classList.add('active');
+            // Initialize image upload buttons after modal is shown
+            setTimeout(function() {
+                initImageUploadButtons();
+            }, 100);
         }
         
         function editListing(id) {
@@ -3967,10 +4006,11 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 checkbox.checked = listing.amenities.indexOf(checkbox.value) > -1;
             });
             
-            // Re-initialize image upload buttons when modal opens
-            initImageUploadButtons();
-            
             document.getElementById('listingModal').classList.add('active');
+            // Re-initialize image upload buttons after modal is shown
+            setTimeout(function() {
+                initImageUploadButtons();
+            }, 100);
         }
         
         async function deleteListing(id) {
@@ -4900,14 +4940,29 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
 
         function initImageUploadButtons() {
             document.querySelectorAll('.btn-upload-image').forEach(function(button) {
-                // Remove any existing event listeners by cloning the button
-                const newButton = button.cloneNode(true);
-                button.parentNode.replaceChild(newButton, button);
+                // Skip if already initialized (check for data attribute)
+                if (button.dataset.uploadInitialized === 'true') {
+                    return;
+                }
                 
-                newButton.addEventListener('click', function() {
-                    const targetId = newButton.dataset.target;
+                // Mark as initialized
+                button.dataset.uploadInitialized = 'true';
+                
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const targetId = button.dataset.target;
+                    if (!targetId) {
+                        console.error('Upload button missing data-target attribute');
+                        return;
+                    }
+                    
                     const input = document.getElementById(targetId);
-                    if (!input) return;
+                    if (!input) {
+                        console.error('Input field not found: ' + targetId);
+                        return;
+                    }
 
                     const filePicker = document.createElement('input');
                     filePicker.type = 'file';
@@ -4917,9 +4972,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         if (!filePicker.files || !filePicker.files[0]) return;
                         const file = filePicker.files[0];
 
-                        newButton.disabled = true;
-                        const originalText = newButton.textContent;
-                        newButton.textContent = 'Uploading...';
+                        button.disabled = true;
+                        const originalText = button.textContent;
+                        button.textContent = 'Uploading...';
 
                         try {
                             const result = await uploadImageToImageKit(file);
@@ -4929,8 +4984,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                             console.error('ImageKit upload error:', error);
                             alert('Image upload failed: ' + error.message);
                         } finally {
-                            newButton.disabled = false;
-                            newButton.textContent = originalText;
+                            button.disabled = false;
+                            button.textContent = originalText;
                         }
                     };
 
@@ -5070,8 +5125,16 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 
                 // Add scroll arrows if there are multiple images
                 if (imageCount > 1) {
-                    let currentIndex = 0;
                     const totalImages = imageCount;
+                    
+                    // Function to get current index based on scroll position
+                    const getCurrentIndex = function() {
+                        const containerWidth = imgContainer.offsetWidth || imgContainer.clientWidth;
+                        if (containerWidth === 0) return 0;
+                        const scrollLeft = imgContainer.scrollLeft || 0;
+                        // Round to nearest index
+                        return Math.round(scrollLeft / containerWidth);
+                    };
                     
                     // Right arrow (loops infinitely)
                     const rightArrow = document.createElement('div');
@@ -5080,9 +5143,11 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     rightArrow.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
-                        currentIndex = (currentIndex + 1) % totalImages;
-                        // Get the container width at click time
                         const containerWidth = imgContainer.offsetWidth || imgContainer.clientWidth;
+                        if (containerWidth === 0) return;
+                        
+                        let currentIndex = getCurrentIndex();
+                        currentIndex = (currentIndex + 1) % totalImages;
                         imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
                     });
                     
@@ -5093,9 +5158,11 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     leftArrow.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
-                        currentIndex = (currentIndex - 1 + totalImages) % totalImages;
-                        // Get the container width at click time
                         const containerWidth = imgContainer.offsetWidth || imgContainer.clientWidth;
+                        if (containerWidth === 0) return;
+                        
+                        let currentIndex = getCurrentIndex();
+                        currentIndex = (currentIndex - 1 + totalImages) % totalImages;
                         imgContainer.scrollTo({ left: currentIndex * containerWidth, behavior: 'smooth' });
                     });
                     
