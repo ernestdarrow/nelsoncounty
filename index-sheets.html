@@ -4485,7 +4485,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         
                         let result = { success: false };
                         
-                        // Try direct fetch first
+                        // Try direct fetch (must use CORS mode to read response)
                         try {
                             const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
                                 method: 'POST',
@@ -4496,52 +4496,105 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                                 body: postData
                             });
                             
-                            const responseText = await response.text();
-                            result = responseText ? JSON.parse(responseText) : { success: true };
-                        } catch (corsError) {
-                            // Use no-cors mode as fallback
-                            try {
-                                await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                                    method: 'POST',
-                                    mode: 'no-cors',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                    },
-                                    body: postData
-                                });
-                                result = { success: true };
-                                console.log('Using no-cors mode for delete, assuming success');
-                            } catch (e) {
-                                result = { success: false, error: 'Failed to connect' };
+                            if (!response.ok) {
+                                throw new Error('HTTP ' + response.status + ': ' + response.statusText);
                             }
+                            
+                            const responseText = await response.text();
+                            if (!responseText || responseText.trim() === '') {
+                                throw new Error('Empty response from server');
+                            }
+                            
+                            result = JSON.parse(responseText);
+                            console.log('Delete response:', result);
+                            
+                            // Verify we got a valid response
+                            if (!result || typeof result.success === 'undefined') {
+                                throw new Error('Invalid response format from server');
+                            }
+                        } catch (fetchError) {
+                            console.error('Error deleting from Google Sheets:', fetchError);
+                            throw new Error('Failed to delete from Google Sheets: ' + fetchError.message);
                         }
                         
-                        if (result.success) {
-                            // Update local data
-                            data.listings = data.listings.filter(function(l) { return l.id !== id; });
+                        // Verify deletion was successful before updating local data
+                        if (result && result.success) {
+                            console.log('✅ Delete confirmed successful:', result);
+                            
+                            // IMPORTANT: Remove from local data BEFORE refreshing display
+                            // This prevents any reload from restoring the deleted listing
+                            const beforeCount = data.listings.length;
+                            data.listings = data.listings.filter(function(l) { 
+                                const matches = String(l.id).trim() === String(id).trim();
+                                if (matches) {
+                                    console.log('Removing listing from local data:', l.name, 'ID:', l.id);
+                                }
+                                return !matches;
+                            });
+                            const afterCount = data.listings.length;
+                            console.log('Local data updated: ' + beforeCount + ' → ' + afterCount + ' listings');
+                            
+                            // Verify it was actually removed
+                            const stillExists = data.listings.some(function(l) {
+                                return String(l.id).trim() === String(id).trim();
+                            });
+                            
+                            if (stillExists) {
+                                console.error('❌ ERROR: Listing still exists in local data after delete!');
+                                console.error('Listing ID:', id);
+                                console.error('Matching listings:', data.listings.filter(function(l) {
+                                    return String(l.id).trim() === String(id).trim();
+                                }));
+                            }
+                            
                             updateSyncStatus(true, '✅ Deleted from Google Sheets');
                             
-                            // Reload from Google Sheets to sync
-                            setTimeout(() => loadDataFromGoogleSheets(), 1000);
+                            // DON'T reload from Google Sheets - we've already updated local data
+                            // The delete is already saved to Google Sheets, reloading would be redundant
+                            // and could cause issues if there's a delay in Google Sheets processing
+                            console.log('✅ Listing deleted successfully from Google Sheets. Local data updated.');
+                            console.log('NOT reloading from Google Sheets - local data is already correct.');
+                            
+                            // Refresh the display immediately with updated local data
+                            applyFilterOptionCleanup();
+                            renderListings();
+                            
+                            // Show success message
+                            alert('✅ "' + listing.name + '" has been deleted from Google Sheets.');
                         } else {
-                            throw new Error(result.error || 'Delete failed');
+                            // Delete failed - don't update local data, show error
+                            const errorMsg = result && result.error ? result.error : 'Delete failed - unknown error';
+                            console.error('❌ Delete failed:', errorMsg);
+                            console.error('Full result:', result);
+                            throw new Error(errorMsg);
                         }
                     } catch (error) {
-                        console.error('Error deleting from Google Sheets:', error);
-                        updateSyncStatus(false, '❌ Delete failed');
-                        alert('⚠️ Failed to delete from Google Sheets: ' + error.message + '\n\nDeleted locally only.');
+                        console.error('❌ Error deleting from Google Sheets:', error);
+                        console.error('Error details:', error.message, error.stack);
+                        updateSyncStatus(false, '❌ Delete failed: ' + error.message);
                         
-                        // Still delete locally
-                        data.listings = data.listings.filter(function(l) { return l.id !== id; });
+                        // IMPORTANT: Do NOT delete locally if Google Sheets delete failed
+                        // This prevents the listing from coming back when data is reloaded
+                        // The listing should remain in both local data and Google Sheets until delete succeeds
+                        alert('❌ Failed to delete from Google Sheets: ' + error.message + '\n\n' +
+                              'The listing was NOT deleted. Please try again or check the Google Apps Script logs.\n\n' +
+                              'If the problem persists, you can delete it directly in Google Sheets.');
+                        
+                        // Do NOT remove from local data - keep it in sync with Google Sheets
+                        // Refresh the display to show the listing is still there
+                        applyFilterOptionCleanup();
+                        renderListings();
                     }
                 } else {
                     // No Google Sheets configured - delete locally only
                     data.listings = data.listings.filter(function(l) { return l.id !== id; });
+                    updateSyncStatus(false, '⚠️ Deleted locally only (Google Sheets not configured)');
                     alert('Deleted "' + listing.name + '" (Local only - configure Google Sheets to sync)');
+                    
+                    // Refresh the display
+                    applyFilterOptionCleanup();
+                    renderListings();
                 }
-                
-                applyFilterOptionCleanup();
-                renderListings();
                 
             } else {
                 // First click - set confirmation needed

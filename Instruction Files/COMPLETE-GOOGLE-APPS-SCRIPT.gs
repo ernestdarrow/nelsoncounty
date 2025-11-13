@@ -466,20 +466,55 @@ function replaceAllListings(sheet, listings) {
 
 function deleteListing(sheet, listingId) {
   try {
-    const idToDelete = String(listingId);
+    Logger.log('=== deleteListing called ===');
+    Logger.log('Listing ID to delete: ' + listingId);
+    Logger.log('Listing ID type: ' + typeof listingId);
+    
+    // Normalize the ID to delete - trim whitespace and convert to string
+    const idToDelete = String(listingId || '').trim();
+    Logger.log('Normalized ID to delete: "' + idToDelete + '"');
+    
+    if (!idToDelete) {
+      Logger.log('❌ Empty listing ID provided');
+      return { success: false, error: 'Empty listing ID provided' };
+    }
+    
     const values = sheet.getDataRange().getValues();
-
+    Logger.log('Total rows in sheet (including header): ' + values.length);
+    
+    if (values.length <= 1) {
+      Logger.log('⚠️ No data rows found (only header row)');
+      return { success: false, error: 'No listings found in sheet' };
+    }
+    
+    // Search for matching ID
+    let foundRow = -1;
     for (let i = 1; i < values.length; i++) {
-      const rowId = String(values[i][0] || '');
+      const rowId = String(values[i][0] || '').trim();
+      Logger.log('Row ' + (i + 1) + ' ID: "' + rowId + '" (type: ' + typeof values[i][0] + ')');
+      
+      // Compare normalized IDs
       if (rowId === idToDelete) {
-        sheet.deleteRow(i + 1);
-        return { success: true, message: 'Listing deleted successfully' };
+        foundRow = i + 1; // Google Sheets rows are 1-indexed
+        Logger.log('✅ Found matching listing at row ' + foundRow);
+        break;
       }
     }
-
-    return { success: false, error: 'Listing with id "' + listingId + '" not found' };
+    
+    if (foundRow > 0) {
+      Logger.log('Deleting row ' + foundRow);
+      sheet.deleteRow(foundRow);
+      Logger.log('✅ Row deleted successfully');
+      return { success: true, message: 'Listing deleted successfully' };
+    } else {
+      Logger.log('❌ Listing with id "' + idToDelete + '" not found in sheet');
+      Logger.log('Available IDs (first 10): ' + values.slice(1, 11).map(row => String(row[0] || '').trim()).join(', '));
+      return { success: false, error: 'Listing with id "' + listingId + '" not found in sheet' };
+    }
 
   } catch (error) {
+    Logger.log('❌ Error in deleteListing: ' + error.toString());
+    Logger.log('Error stack: ' + (error.stack || 'no stack trace'));
     return { success: false, error: error.toString() };
   }
 }
