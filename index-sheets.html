@@ -507,18 +507,20 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .custom-html-preview-content {
+        .custom-html-preview-content,
+        .custom-html-render {
             background: var(--bg-secondary);
             border: 1px dashed var(--border-color);
             border-radius: 8px;
             padding: 12px;
-            font-family: 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text-secondary);
             max-height: 180px;
             overflow: auto;
-            white-space: pre-wrap;
-            word-break: break-word;
+        }
+        .custom-html-render * {
+            font-family: inherit;
+            color: inherit;
         }
         
         .back-to-top {
@@ -2272,6 +2274,22 @@ function escapeHtml(value) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+function sanitizeCustomHtml(html) {
+    if (!html) return '';
+    const template = document.createElement('template');
+    template.innerHTML = html;
+    template.content.querySelectorAll('script, iframe, object, embed, link, meta, style').forEach(el => el.remove());
+    template.content.querySelectorAll('*').forEach(el => {
+        Array.from(el.attributes).forEach(attr => {
+            const name = attr.name.toLowerCase();
+            if (name.startsWith('on') || name === 'srcdoc') {
+                el.removeAttribute(attr.name);
+            }
+        });
+    });
+    return template.innerHTML;
 }
 
 function normalizeFilterValue(value) {
@@ -4307,10 +4325,11 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     '<p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap; margin: 0;">' + listing.detailedDescription + '</p>' +
                     '</div>' : '';
                 
-                const backCustomHtmlPreview = listing.customHtml && listing.customHtml.trim() ?
+                const sanitizedCustomHtml = listing.customHtml && listing.customHtml.trim() ? sanitizeCustomHtml(listing.customHtml) : '';
+                const backCustomHtmlPreview = sanitizedCustomHtml ?
                     '<div class="custom-html-preview">' +
                     '<div class="custom-html-preview-title">Custom HTML Preview</div>' +
-                    '<div class="custom-html-preview-content">' + escapeHtml(listing.customHtml) + '</div>' +
+                    '<div class="custom-html-render">' + sanitizedCustomHtml + '</div>' +
                     '</div>' : '';
                 
                 back.innerHTML = 
