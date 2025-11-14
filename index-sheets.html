@@ -3480,8 +3480,11 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             
             // First pass: collect slugs for duplicate checking
             data.listings.forEach(function(listing, index) {
-                // Check slug - convert to string for consistent comparison
+                // Check slug - be lenient with what we accept
                 const slugValue = listing.slug;
+                
+                // Accept slug if it exists and is not null/undefined/empty
+                // Even if it's a number or matches ID, it's still a valid slug
                 if (slugValue !== undefined && slugValue !== null && slugValue !== '') {
                     const slugStr = String(slugValue).trim();
                     if (slugStr !== '') {
@@ -3521,16 +3524,24 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     });
                 }
                 
-                // Check slug - handle both string and numeric slugs
+                // Check slug - only report as missing if it's truly missing or empty
+                // Accept ANY non-empty value (string, number, etc.) - even if it matches ID
                 const slugValue = listing.slug;
+                
+                // Check if slug exists and has a non-empty value
+                // Be very lenient - accept anything that's not undefined, null, or empty string
                 let hasValidSlug = false;
                 
+                // Check if slug property exists and has a value
                 if (slugValue !== undefined && slugValue !== null) {
-                    // Convert to string and check if it's not empty after trimming
+                    // Convert to string - even numbers like 0 become "0" which is valid
                     const slugString = String(slugValue).trim();
-                    hasValidSlug = slugString !== '';
+                    // If after trimming it's not empty, it's valid
+                    hasValidSlug = slugString.length > 0;
                 }
+                // If slug is undefined, null, or becomes empty string after trimming, it's missing
                 
+                // Only report as missing if it's actually missing or empty
                 if (!hasValidSlug) {
                     errors.push({
                         type: 'missing-field',
