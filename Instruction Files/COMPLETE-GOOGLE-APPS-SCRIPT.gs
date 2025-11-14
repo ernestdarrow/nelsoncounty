@@ -368,7 +368,7 @@ function getData(sheet) {
       return listing;
     }).filter(l => l.name);
 
-    return { success: true, listings: listings };
+    return { success: true, listings: listings, headers: headers };
 
   } catch (error) {
     return { success: false, error: error.toString() };

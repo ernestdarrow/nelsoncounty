@@ -1680,31 +1680,31 @@
                 <table id="dataTable" class="data-table">
                     <thead>
                         <tr>
-                            <th class="sortable" data-sort="id">ID</th>
-                            <th class="sortable" data-sort="name">Name</th>
-                            <th class="sortable" data-sort="slug">Slug</th>
-                            <th class="sortable" data-sort="type">Type</th>
-                            <th class="sortable" data-sort="category">Category</th>
-                            <th class="sortable" data-sort="area">Area</th>
-                            <th>Description</th>
-                            <th>Detailed Description</th>
-                            <th>Custom HTML</th>
-                            <th>Image 1</th>
-                            <th>Image 1 Desc</th>
-                            <th>Image 2</th>
-                            <th>Image 2 Desc</th>
-                            <th>Image 3</th>
-                            <th>Image 3 Desc</th>
-                            <th>Website</th>
-                            <th>Phone</th>
-                            <th>Address</th>
-                            <th class="sortable" data-sort="authorName">Author Name</th>
-                            <th class="sortable" data-sort="publishedDate">Published Date</th>
-                            <th class="sortable" data-sort="modifiedDate">Modified Date</th>
-                            <th>Directions Link</th>
-                            <th>Amenities</th>
-                            <th class="sortable" data-sort="featured">Featured</th>
-                            <th>Actions</th>
+                            <th class="sortable" data-sort="id" data-column-key="id">ID</th>
+                            <th class="sortable" data-sort="name" data-column-key="name">Name</th>
+                            <th class="sortable" data-sort="slug" data-column-key="slug">Slug</th>
+                            <th class="sortable" data-sort="type" data-column-key="type">Type</th>
+                            <th class="sortable" data-sort="category" data-column-key="category">Category</th>
+                            <th class="sortable" data-sort="area" data-column-key="area">Area</th>
+                            <th data-column-key="description">Description</th>
+                            <th data-column-key="detailedDescription">Detailed Description</th>
+                            <th data-column-key="customHtml">Custom HTML</th>
+                            <th data-column-key="image1">Image 1</th>
+                            <th data-column-key="image1Desc">Image 1 Desc</th>
+                            <th data-column-key="image2">Image 2</th>
+                            <th data-column-key="image2Desc">Image 2 Desc</th>
+                            <th data-column-key="image3">Image 3</th>
+                            <th data-column-key="image3Desc">Image 3 Desc</th>
+                            <th data-column-key="website">Website</th>
+                            <th data-column-key="phone">Phone</th>
+                            <th data-column-key="address">Address</th>
+                            <th class="sortable" data-sort="authorName" data-column-key="authorName">Author Name</th>
+                            <th class="sortable" data-sort="publishedDate" data-column-key="publishedDate">Published Date</th>
+                            <th class="sortable" data-sort="modifiedDate" data-column-key="modifiedDate">Modified Date</th>
+                            <th data-column-key="directionsLink">Directions Link</th>
+                            <th data-column-key="amenities">Amenities</th>
+                            <th class="sortable" data-sort="featured" data-column-key="featured">Featured</th>
+                            <th data-column-key="actions">Actions</th>
                         </tr>
                         <tr class="filter-row">
                             <th><input type="text" class="filter-input" data-filter="id" placeholder="Filter..." /></th>
@@ -2853,6 +2853,107 @@ function applyFilterOptionCleanup(existingOptions) {
 
 initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, initialData.listings);
 
+const DEFAULT_TABLE_HEADERS = [
+    'id',
+    'name',
+    'slug',
+    'type',
+    'category',
+    'area',
+    'description',
+    'detailedDescription',
+    'customHtml',
+    'image1',
+    'image1Desc',
+    'image2',
+    'image2Desc',
+    'image3',
+    'image3Desc',
+    'website',
+    'phone',
+    'address',
+    'authorName',
+    'publishedDate',
+    'modifiedDate',
+    'directionsLink',
+    'amenities',
+    'featured'
+];
+
+initialData.sheetHeaders = DEFAULT_TABLE_HEADERS.slice();
+
+function normalizeHeaderKey(header) {
+    return (header || '')
+        .toString()
+        .trim()
+        .toLowerCase();
+}
+
+const TABLE_HEADER_KEY_MAP = [
+    { key: 'id', matches: ['id'] },
+    { key: 'name', matches: ['name', 'title', 'listing name'] },
+    { key: 'slug', matches: ['slug'] },
+    { key: 'type', matches: ['type'] },
+    { key: 'category', matches: ['category'] },
+    { key: 'area', matches: ['area'] },
+    { key: 'description', matches: ['description', 'desc'] },
+    { key: 'detailedDescription', matches: ['detailed description', 'detaileddescription', 'long description'] },
+    { key: 'customHtml', matches: ['custom html', 'customhtml', 'framer html'] },
+    { key: 'image1', matches: ['image1', 'image 1', 'photo', 'photo 1'] },
+    { key: 'image1Desc', matches: ['image1 desc', 'image 1 desc', 'photo 1 desc', 'image1 description'] },
+    { key: 'image2', matches: ['image2', 'image 2', 'photo 2'] },
+    { key: 'image2Desc', matches: ['image2 desc', 'image 2 desc', 'photo 2 desc', 'image2 description'] },
+    { key: 'image3', matches: ['image3', 'image 3', 'photo 3'] },
+    { key: 'image3Desc', matches: ['image3 desc', 'image 3 desc', 'photo 3 desc', 'image3 description'] },
+    { key: 'website', matches: ['website', 'external website', 'url'] },
+    { key: 'phone', matches: ['phone', 'phone number'] },
+    { key: 'address', matches: ['address', 'street address'] },
+    { key: 'authorName', matches: ['author', 'author name', 'contributor'] },
+    { key: 'publishedDate', matches: ['published date', 'publish date', 'created date'] },
+    { key: 'modifiedDate', matches: ['modified date', 'updated date', 'last updated'] },
+    { key: 'directionsLink', matches: ['directions link', 'directions url', 'google maps url', 'maps url'] },
+    { key: 'amenities', matches: ['amenities', 'amenity'] },
+    { key: 'featured', matches: ['featured'] }
+];
+
+const TABLE_HEADER_LOOKUP = TABLE_HEADER_KEY_MAP.reduce((acc, item) => {
+    item.matches.forEach(match => {
+        acc[normalizeHeaderKey(match)] = item.key;
+    });
+    return acc;
+}, {});
+
+function sanitizeSheetHeaders(headers) {
+    if (!Array.isArray(headers) || headers.length === 0) {
+        return DEFAULT_TABLE_HEADERS.slice();
+    }
+    return headers
+        .map(header => header === undefined || header === null ? '' : header.toString())
+        .filter(header => header.trim() !== '');
+}
+
+function applySheetHeaders(headers) {
+    const sanitized = sanitizeSheetHeaders(headers);
+    if (typeof data !== 'undefined' && data) {
+        data.sheetHeaders = sanitized;
+    }
+    updateTableHeaderLabelsFromSheet(sanitized);
+}
+
+function updateTableHeaderLabelsFromSheet(headersList) {
+    if (!Array.isArray(headersList) || headersList.length === 0) return;
+    
+    headersList.forEach(header => {
+        const normalized = normalizeHeaderKey(header);
+        const columnKey = TABLE_HEADER_LOOKUP[normalized];
+        if (!columnKey) return;
+        
+        document.querySelectorAll('th[data-column-key="' + columnKey + '"]').forEach(function(th) {
+            th.textContent = header;
+        });
+    });
+}
+
 // =================================
 // GOOGLE SHEETS CONFIGURATION
 // =================================
@@ -2891,6 +2992,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         } else {
             data.filterOptions = sanitizeFilterOptions(data.filterOptions, data.listings);
         }
+        
+        updateTableHeaderLabelsFromSheet(data.sheetHeaders || DEFAULT_TABLE_HEADERS);
         
         let deleteConfirmId = null;
         let deleteConfirmTimeout = null;
@@ -3241,10 +3344,15 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         const existingFilterOptions = data.filterOptions || initialData.filterOptions;
                         const sanitizedFilterOptions = sanitizeFilterOptions(existingFilterOptions, listings);
                         
+                        const sheetHeaders = sanitizeSheetHeaders(result.headers || result.sheetHeaders || (data && data.sheetHeaders));
+                        
                         data = {
                             listings: listings,
-                            filterOptions: sanitizedFilterOptions
+                            filterOptions: sanitizedFilterOptions,
+                            sheetHeaders: sheetHeaders
                         };
+                        
+                        updateTableHeaderLabelsFromSheet(sheetHeaders);
                         
                         applyFilterOptionCleanup(sanitizedFilterOptions);
                         
@@ -3363,11 +3471,15 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         const existingFilterOptions = data.filterOptions || initialData.filterOptions;
                         const sanitizedFilterOptions = sanitizeFilterOptions(existingFilterOptions, listings);
                         
+                        const sheetHeaders = sanitizeSheetHeaders(parsed.headers || (data && data.sheetHeaders));
+                        
                         data = {
                             listings: listings,
-                            filterOptions: sanitizedFilterOptions
+                            filterOptions: sanitizedFilterOptions,
+                            sheetHeaders: sheetHeaders
                         };
                         applyFilterOptionCleanup(sanitizedFilterOptions);
+                        updateTableHeaderLabelsFromSheet(sheetHeaders);
                         console.log('✅ Loaded ' + listings.length + ' listings from Google Sheets (CSV)');
                         updateSyncStatus(true, `✅ Loaded ${listings.length} listings (CSV)`);
                         renderListings();
@@ -3384,6 +3496,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             // If both fail, use initial data
             console.log('⚠️ Could not load from Google Sheets, using initial data');
             updateSyncStatus(false, '⚠️ Using local data only');
+            updateTableHeaderLabelsFromSheet((data && data.sheetHeaders) || DEFAULT_TABLE_HEADERS);
             
             // Show warning if running from file://
             if (isFileProtocol) {
@@ -7738,8 +7851,10 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                                 return sanitizeListing(listing);
                             });
                             data.filterOptions = sanitizedFilterOptions;
+                            data.sheetHeaders = sanitizeSheetHeaders(parsed.headers || (data && data.sheetHeaders));
                             
                             applyFilterOptionCleanup(sanitizedFilterOptions);
+                            updateTableHeaderLabelsFromSheet(data.sheetHeaders);
                             renderDataTable();
                             renderListings();
                             updateStats();
