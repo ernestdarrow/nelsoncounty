@@ -5971,7 +5971,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 
                 return '<div style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;">' +
                     '<div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">' +
-                    '<input type="text" id="categoryEmoji_' + categoryKey + '" value="' + category.emoji + '" style="width: 60px; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 24px; text-align: center;" onchange="updateCategory(\'' + categoryKey + '\')" placeholder="🎭" />' +
+                    '<div style="width: 60px; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 24px; text-align: center; background: #f8f9fa;">' + category.emoji + '</div>' +
                     '<input type="text" id="categoryName_' + categoryKey + '" value="' + category.name + '" style="flex: 1; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;" onchange="updateCategory(\'' + categoryKey + '\')" placeholder="Category Name" />' +
                     '</div>' +
                     '<div style="margin-bottom: 15px;">' +
@@ -5993,7 +5993,6 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             const category = TYPE_CATEGORIES[categoryKey];
             if (!category) return;
             
-            category.emoji = document.getElementById('categoryEmoji_' + categoryKey).value.trim();
             category.name = document.getElementById('categoryName_' + categoryKey).value.trim();
             category.description = document.getElementById('categoryDesc_' + categoryKey).value.trim();
             

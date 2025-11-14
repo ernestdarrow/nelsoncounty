@@ -312,8 +312,10 @@ function getData(sheet) {
         const value = row[colIndex] || '';
         const headerLower = String(header).toLowerCase().trim();
 
-        if (headerLower === 'id' || headerLower === 'slug') {
+        if (headerLower === 'id') {
           listing.id = String(value || (index + 1));
+        } else if (headerLower === 'slug') {
+          listing.slug = String(value || '');
         } else if (['title', 'name', 'listing name'].includes(headerLower)) {
           listing.name = String(value || '');
         } else if (headerLower === 'type') {
@@ -358,6 +360,11 @@ function getData(sheet) {
           listing[header] = String(value || '');
         }
       });
+      if (!listing.slug && listing.name) {
+        listing.slug = listing.name.toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+      }
       return listing;
     }).filter(l => l.name);
 
@@ -386,8 +393,10 @@ function saveListing(sheet, listing) {
     const rowData = [];
     headers.forEach(header => {
       const headerLower = String(header).toLowerCase().trim();
-      if (headerLower === 'id' || headerLower === 'slug') {
+      if (headerLower === 'id') {
         rowData.push(listing.id || '');
+      } else if (headerLower === 'slug') {
+        rowData.push(listing.slug || '');
       } else if (['title', 'name', 'listing name'].includes(headerLower)) {
         rowData.push(listing.name || '');
       } else if (headerLower === 'type') {
@@ -715,53 +724,65 @@ function handleImageKitRequest(request) {
 // -----------------------------------------------------------------------------
 
 function generateImageDescription(imageUrl) {
+  const result = generateImageDescriptionInternal(imageUrl);
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function generateImageDescriptionInternal(imageUrl) {
+  const scriptProperties = PropertiesService.getScriptProperties();
   try {
-    const scriptProperties = PropertiesService.getScriptProperties();
-    
     // Debug: Log all script properties (without values for security)
     const allProps = scriptProperties.getProperties();
     const propKeys = Object.keys(allProps);
     Logger.log('Available script properties: ' + propKeys.join(', '));
     
-    // Try Google Gemini first (default, free tier available)
-    const geminiApiKey = scriptProperties.getProperty('GEMINI_API_KEY');
-    Logger.log('GEMINI_API_KEY found: ' + (geminiApiKey ? 'Yes (length: ' + geminiApiKey.length + ')' : 'No'));
-    
-    if (geminiApiKey && geminiApiKey.trim()) {
-      Logger.log('Using Gemini API for description generation');
-      return generateImageDescriptionWithGemini(imageUrl, geminiApiKey);
-    }
-    
-    // Fallback to OpenAI (if API key is set)
+    // Try OpenAI first (primary)
     const openaiApiKey = scriptProperties.getProperty('OPENAI_API_KEY');
     Logger.log('OPENAI_API_KEY found: ' + (openaiApiKey ? 'Yes' : 'No'));
     
     if (openaiApiKey && openaiApiKey.trim()) {
-      Logger.log('Using OpenAI API for description generation');
-      return generateImageDescriptionWithOpenAI(imageUrl, openaiApiKey);
+      Logger.log('Using OpenAI API for description generation (primary)');
+      try {
+        return generateImageDescriptionWithOpenAI(imageUrl, openaiApiKey, scriptProperties.getProperty('OPENAI_IMAGE_MODEL'));
+      } catch (openAiError) {
+        Logger.log('OpenAI generation failed, falling back to Gemini: ' + openAiError.toString());
+      }
+    }
+    
+    // Fallback to Google Gemini
+    const geminiApiKey = scriptProperties.getProperty('GEMINI_API_KEY');
+    Logger.log('GEMINI_API_KEY found: ' + (geminiApiKey ? 'Yes (length: ' + geminiApiKey.length + ')' : 'No'));
+    
+    if (geminiApiKey && geminiApiKey.trim()) {
+      Logger.log('Using Gemini API for description generation (fallback)');
+      return generateImageDescriptionWithGemini(imageUrl, geminiApiKey);
     }
     
     // If neither API key is configured, return error with helpful message
     const errorMsg = 'No AI API key configured. Please add GEMINI_API_KEY (recommended, free) or OPENAI_API_KEY in Script Properties. Available properties: ' + propKeys.join(', ') + '. Get a free Gemini key at: https://aistudio.google.com/app/apikey';
     Logger.log('ERROR: ' + errorMsg);
-    throw new Error(errorMsg);
+    return {
+      success: false,
+      error: errorMsg
+    };
     
   } catch (error) {
     Logger.log('Error generating image description: ' + error.toString());
     Logger.log('Error stack: ' + (error.stack || 'N/A'));
-    return ContentService
-      .createTextOutput(JSON.stringify({
+    return {
         success: false,
         error: error.toString()
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
+    };
   }
 }
 
-function generateImageDescriptionWithOpenAI(imageUrl, apiKey) {
+function generateImageDescriptionWithOpenAI(imageUrl, apiKey, modelOverride) {
   const url = 'https://api.openai.com/v1/chat/completions';
+  const model = modelOverride && modelOverride.trim() ? modelOverride.trim() : 'gpt-4o';
   const payload = {
-    'model': 'gpt-4o',
+    'model': model,
     'messages': [
       {
         'role': 'user',
@@ -801,12 +822,10 @@ function generateImageDescriptionWithOpenAI(imageUrl, apiKey) {
     if (responseData.choices && responseData.choices[0] && responseData.choices[0].message) {
       const description = responseData.choices[0].message.content.trim();
       
-      return ContentService
-        .createTextOutput(JSON.stringify({
+      return {
           success: true,
           description: description
-        }))
-        .setMimeType(ContentService.MimeType.JSON);
+      };
     } else {
       throw new Error('Unexpected response format from OpenAI API');
     }
@@ -829,15 +848,15 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
   Logger.log('Image URL: ' + imageUrl);
   Logger.log('API Key length: ' + apiKey.length);
   
-  // Model priority: Start with most stable, fall back to newer models if needed
-  // Standard Gemini models available in v1beta API (January 2025)
+  // Model priority: Google moved most production models to the v1 API (Jan 2025)
   const models = [
-    'gemini-1.5-flash',              // Standard flash model - most stable
-    'gemini-1.5-flash-002',          // Flash with version suffix
-    'gemini-2.0-flash-exp',          // Experimental flash model
-    'gemini-1.5-pro',                // Pro model
-    'gemini-1.5-pro-002',            // Pro with version suffix
-    'gemini-pro'                     // Legacy model name fallback
+    'gemini-1.5-flash',
+    'gemini-1.5-flash-002',
+    'gemini-1.5-flash-8b',
+    'gemini-1.5-pro',
+    'gemini-1.5-pro-002',
+    'gemini-2.0-flash-exp',
+    'gemini-pro'
   ];
   
   // Get image data (with retry)
@@ -896,7 +915,7 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
   let lastError = null;
   for (let modelIndex = 0; modelIndex < models.length; modelIndex++) {
     const model = models[modelIndex];
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + apiKey;
+    const url = 'https://generativelanguage.googleapis.com/v1/models/' + model + ':generateContent?key=' + apiKey;
     
     Logger.log('Trying model ' + (modelIndex + 1) + '/' + models.length + ': ' + model);
     
@@ -904,8 +923,8 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
     // Longer delays for rate limits (429): 10s, 20s, 40s
     // Shorter delays for other retryable errors: 2s, 4s, 8s
     const maxRetries = 3;  // 3 retries = 4 total attempts (initial attempt + 3 retries)
-    const retryDelays429 = [10000, 20000, 40000]; // Longer delays for rate limits (429)
-    const retryDelaysOther = [2000, 4000, 8000]; // Shorter delays for other retryable errors
+    const retryDelays429 = [4000, 8000, 12000]; // Moderate delays for rate limits (429)
+    const retryDelaysOther = [1000, 2000, 4000]; // Shorter delays for other retryable errors
     
     let consecutive429s = 0; // Track consecutive 429 errors to use longer delays
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -981,8 +1000,8 @@ function generateImageDescriptionWithGemini(imageUrl, apiKey) {
         lastError = new Error('Failed after ' + maxRetries + ' retries: ' + status + ' - ' + responseText.substring(0, 200));
         // If we got rate limited, wait a bit before trying next model
         if (consecutive429s > 0) {
-          Logger.log('  Waiting 30s before trying next model (rate limit cooldown)...');
-          Utilities.sleep(30000); // Wait 30 seconds before trying next model
+          Logger.log('  Waiting 6s before trying next model (rate limit cooldown)...');
+          Utilities.sleep(6000); // Short cooldown before trying next model
         }
         consecutive429s = 0; // Reset counter
         break; // Break retry loop, try next model
@@ -1089,12 +1108,10 @@ function parseGeminiResponse(responseText, model) {
     
     Logger.log('Final description: ' + description);
     
-    return ContentService
-      .createTextOutput(JSON.stringify({
+    return {
         success: true,
         description: description
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
+    };
   } else {
     // Could not extract description
     Logger.log('❌ Could not extract description from response');
@@ -1559,7 +1576,7 @@ function testImageDescriptionGeneration() {
   Logger.log('');
   
   try {
-    const result = generateImageDescription(testImageUrl);
+    const result = generateImageDescriptionInternal(testImageUrl);
     
     if (result && result.success && result.description) {
       Logger.log('✅ SUCCESS! AI generated description:');
@@ -1738,8 +1755,12 @@ function migrateAllImagesToImageKit() {
   }
 
   const headers = values[0].map(String);
-  const findColumn = (aliases) =>
-    headers.findIndex(h => aliases.some(a => h.trim().toLowerCase() === a)) + 1;
+  const normalizeHeader = (header) => header.trim().toLowerCase();
+  const findColumn = (aliases) => {
+    const normalizedAliases = aliases.map(a => normalizeHeader(a));
+    const index = headers.findIndex(h => normalizedAliases.includes(normalizeHeader(h)));
+    return index + 1;
+  };
 
   const colName   = findColumn(['name', 'listing name', 'title']);
   const colImage1 = findColumn(['image 1', 'image1', 'image url 1', 'photo']);
@@ -1780,5 +1801,93 @@ function migrateAllImagesToImageKit() {
   }
 
   Logger.log('ImageKit migration complete!');
+}
+
+function generateAllImageDescriptionsInSheet() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(LISTINGS_SHEET_NAME);
+  if (!sheet) {
+    throw new Error('Sheet "' + LISTINGS_SHEET_NAME + '" not found. Update LISTINGS_SHEET_NAME to the correct tab name.');
+  }
+  
+  Logger.log('Using sheet: ' + sheet.getName());
+  const values = sheet.getDataRange().getValues();
+  Logger.log('Row count (including header): ' + values.length);
+  
+  if (values.length < 2) {
+    Logger.log('No data rows found – nothing to process.');
+    return;
+  }
+  
+  const headers = values[0].map(String);
+  const findColumn = (aliases) =>
+    headers.findIndex(h => aliases.some(a => h.trim().toLowerCase() === a.toLowerCase())) + 1;
+  
+  const colName = findColumn(['name', 'listing name', 'title']);
+  const colImage1 = findColumn(['image 1', 'image1', 'image url 1', 'photo']);
+  const colImage2 = findColumn(['image 2', 'image2', 'image url 2']);
+  const colImage3 = findColumn(['image 3', 'image3', 'image url 3']);
+  const colImage1Desc = findColumn(['image1 desc', 'image 1 desc', 'image1 description', 'image 1 description', 'photo 1 description', 'image1desc']);
+  const colImage2Desc = findColumn(['image2 desc', 'image 2 desc', 'image2 description', 'image 2 description', 'photo 2 description', 'image2desc']);
+  const colImage3Desc = findColumn(['image3 desc', 'image 3 desc', 'image3 description', 'image 3 description', 'photo 3 description', 'image3desc']);
+  
+  if (colName === 0 || colImage1 === 0 || colImage1Desc === 0) {
+    Logger.log('Available headers: ' + headers.join(' | '));
+    throw new Error('Missing required columns ("Name", "Image 1", "Image 1 Desc") in sheet "' + sheet.getName() + '". Run listSheetHeaders() to confirm headers.');
+  }
+  
+  const imageColumns = [
+    { imageCol: colImage1, descCol: colImage1Desc, label: 'image1' },
+    { imageCol: colImage2, descCol: colImage2Desc, label: 'image2' },
+    { imageCol: colImage3, descCol: colImage3Desc, label: 'image3' }
+  ].filter(function(col) { return col.imageCol > 0 && col.descCol > 0; });
+  
+  if (imageColumns.length === 0) {
+    Logger.log('No image columns with matching description columns found. Nothing to generate.');
+    return;
+  }
+  
+  let processed = 0;
+  let generated = 0;
+  let skipped = 0;
+  let errors = 0;
+  
+  for (let row = 2; row <= values.length; row++) {
+    const listingName = sheet.getRange(row, colName).getValue() || ('Row ' + row);
+    
+    for (let i = 0; i < imageColumns.length; i++) {
+      const { imageCol, descCol, label } = imageColumns[i];
+      const imageUrl = sheet.getRange(row, imageCol).getValue();
+      const existingDesc = sheet.getRange(row, descCol).getValue();
+      
+      if (!imageUrl || (existingDesc && String(existingDesc).trim())) {
+        skipped++;
+        continue;
+      }
+      
+      processed++;
+      Logger.log('Generating description for ' + listingName + ' (' + label + ')');
+      
+      try {
+        const result = generateImageDescriptionInternal(imageUrl);
+        if (result && result.success && result.description) {
+          sheet.getRange(row, descCol).setValue(result.description);
+          generated++;
+          Logger.log('✅ Generated description for ' + listingName + ' (' + label + ')');
+        } else {
+          errors++;
+          Logger.log('❌ Failed to generate description for ' + listingName + ' (' + label + '): ' + (result && result.error ? result.error : 'Unknown error'));
+        }
+      } catch (error) {
+        errors++;
+        Logger.log('❌ Exception generating description for ' + listingName + ' (' + label + '): ' + error.toString());
+      }
+      
+      Utilities.sleep(600); // brief pause to respect API limits
+    }
+  }
+  
+  const summary = 'AI descriptions complete. Generated: ' + generated + ', Skipped: ' + skipped + ', Errors: ' + errors + '.';
+  Logger.log(summary);
+  SpreadsheetApp.getActive().toast(summary, 'AI Generation');
 }
 
