@@ -5255,6 +5255,8 @@ function getIconClass(type, listing) {
 
 // Fallback placeholder image (SVG data URI) - forest green background with white camera icon
 const FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'%3E%3Crect width='800' height='600' fill='%232d6a4f'/%3E%3Cg transform='translate(400, 300) scale(1)'%3E%3Cpath d='M208,60H178.13477l-14.8125-22.21875A3.99853,3.99853,0,0,0,159.99414,36h-64A3.9985,3.9985,0,0,0,92.666,37.78125L77.85352,60H48A20.02229,20.02229,0,0,0,28,80V192a20.02229,20.02229,0,0,0,20,20H208a20.02229,20.02229,0,0,0,20-20V80A20.02229,20.02229,0,0,0,208,60Zm12,132a12.01312,12.01312,0,0,1-12,12H48a12.01312,12.01312,0,0,1-12-12V80A12.01312,12.01312,0,0,1,48,68H79.99414a3.99853,3.99853,0,0,0,3.32813-1.78125L98.13477,44h59.71875L172.666,66.21875A3.9985,3.9985,0,0,0,175.99414,68H208a12.01312,12.01312,0,0,1,12,12ZM128,92a40,40,0,1,0,40,40A40.04584,40.04584,0,0,0,128,92Zm0,72a32,32,0,1,1,32-32A32.03667,32.03667,0,0,1,128,164Z' fill='white' transform='translate(-128, -128)'/%3E%3C/g%3E%3C/svg%3E";
+const CARD_IMAGE_TRANSFORM = { width: 320, height: 320, cropMode: 'at_least', quality: 95, format: 'auto' };
+const MAP_POPUP_IMAGE_TRANSFORM = { width: 480, height: 320, cropMode: 'at_least', quality: 75, format: 'auto' };
 
 // Helper function to normalize image URLs - prepends CMS base URL if needed
 function normalizeImageUrl(url, transformOptions) {
@@ -6082,12 +6084,12 @@ function renderPreview(filteredListings) {
             return (listingName || 'Listing') + ' - Image ' + imageNumber;
         };
         
-        const cardImageTransform = { width: 250, height: 250, cropMode: 'at_least', quality: 70 };
-        
         // Add image1 if it exists
         if (listing.image1) {
             const img1 = document.createElement('img');
-            img1.src = normalizeImageUrl(listing.image1, cardImageTransform);
+            img1.src = normalizeImageUrl(listing.image1, CARD_IMAGE_TRANSFORM);
+            img1.loading = 'lazy';
+            img1.decoding = 'async';
             img1.alt = getImageAltText(listing.image1Desc, listing.name, 1);
             img1.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 24px; flex-shrink: 0; scroll-snap-align: start;';
             img1.onerror = function() {
@@ -6099,7 +6101,9 @@ function renderPreview(filteredListings) {
         // Add image2 if it exists
         if (listing.image2) {
             const img2 = document.createElement('img');
-            img2.src = normalizeImageUrl(listing.image2, cardImageTransform);
+            img2.src = normalizeImageUrl(listing.image2, CARD_IMAGE_TRANSFORM);
+            img2.loading = 'lazy';
+            img2.decoding = 'async';
             img2.alt = getImageAltText(listing.image2Desc, listing.name, 2);
             img2.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 24px; flex-shrink: 0; scroll-snap-align: start;';
             img2.onerror = function() {
@@ -6109,7 +6113,9 @@ function renderPreview(filteredListings) {
         }
         if (listing.image3) {
             const img3 = document.createElement('img');
-            img3.src = normalizeImageUrl(listing.image3, cardImageTransform);
+            img3.src = normalizeImageUrl(listing.image3, CARD_IMAGE_TRANSFORM);
+            img3.loading = 'lazy';
+            img3.decoding = 'async';
             img3.alt = getImageAltText(listing.image3Desc, listing.name, 3);
             img3.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 24px; flex-shrink: 0; scroll-snap-align: start;';
             img3.onerror = function() {
@@ -7105,8 +7111,8 @@ function updateMapMarkers(listings) {
                 
                 // Create popup content
                 var imageHtml = (listing.image1)
-                    ? '<img src="' + normalizeImageUrl(listing.image1) + '" onerror="this.onerror=null; this.src=FALLBACK_IMG;" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; display: block; margin: 0; padding: 0;">'
-                    : '<img src="' + FALLBACK_IMG + '" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; display: block; margin: 0; padding: 0;">';
+                    ? '<img src="' + normalizeImageUrl(listing.image1, MAP_POPUP_IMAGE_TRANSFORM) + '" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=FALLBACK_IMG;" style="width: 100%; height: 150px; object-fit: cover; border-radius: 12px; display: block; margin: 0; padding: 0;">'
+                    : '<img src="' + FALLBACK_IMG + '" loading="lazy" decoding="async" style="width: 100%; height: 150px; object-fit: cover; border-radius: 12px; display: block; margin: 0; padding: 0;">';
                 
                 var popupContent = 
                     '<div style="padding: 20px 16px; margin: 0; line-height: normal;">' +
@@ -7123,7 +7129,7 @@ function updateMapMarkers(listings) {
                 // Add click listener to show info window
                 marker.addListener('click', function() {
                     // Use square card style for both mobile and desktop
-                    var imageUrl = (listing.image1) ? normalizeImageUrl(listing.image1) : FALLBACK_IMG;
+                    var imageUrl = (listing.image1) ? normalizeImageUrl(listing.image1, CARD_IMAGE_TRANSFORM) : FALLBACK_IMG;
                     var cardWidth = (window.innerWidth < 969) ? 120 : 200;
                     var cardHeight = cardWidth; // Square
                     var fontSize = (window.innerWidth < 969) ? 12 : 14;
