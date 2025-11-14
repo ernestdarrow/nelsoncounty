@@ -3477,22 +3477,19 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             
             const errors = [];
             const slugCounts = {};
-            const idCounts = {};
             
-            // First pass: collect slugs and IDs for duplicate checking
+            // First pass: collect slugs for duplicate checking
             data.listings.forEach(function(listing, index) {
-                if (listing.slug) {
-                    if (!slugCounts[listing.slug]) {
-                        slugCounts[listing.slug] = [];
+                // Check slug - convert to string for consistent comparison
+                const slugValue = listing.slug;
+                if (slugValue !== undefined && slugValue !== null && slugValue !== '') {
+                    const slugStr = String(slugValue).trim();
+                    if (slugStr !== '') {
+                        if (!slugCounts[slugStr]) {
+                            slugCounts[slugStr] = [];
+                        }
+                        slugCounts[slugStr].push({ index: index, listing: listing });
                     }
-                    slugCounts[listing.slug].push({ index: index, listing: listing });
-                }
-                
-                if (listing.id) {
-                    if (!idCounts[listing.id]) {
-                        idCounts[listing.id] = [];
-                    }
-                    idCounts[listing.id].push({ index: index, listing: listing });
                 }
             });
             
@@ -3511,34 +3508,9 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 }
             });
             
-            // Check for duplicate IDs
-            Object.keys(idCounts).forEach(function(id) {
-                if (idCounts[id].length > 1) {
-                    idCounts[id].forEach(function(item) {
-                        errors.push({
-                            type: 'duplicate-id',
-                            severity: 'error',
-                            message: 'Duplicate ID: "' + id + '"',
-                            listing: item.listing,
-                            index: item.index
-                        });
-                    });
-                }
-            });
-            
             // Check each listing for issues
             data.listings.forEach(function(listing, index) {
-                // Required fields
-                if (!listing.id || listing.id.toString().trim() === '') {
-                    errors.push({
-                        type: 'missing-field',
-                        severity: 'error',
-                        message: 'Missing required field: id',
-                        listing: listing,
-                        index: index
-                    });
-                }
-                
+                // Required fields - only check name and slug
                 if (!listing.name || listing.name.trim() === '') {
                     errors.push({
                         type: 'missing-field',
@@ -3549,7 +3521,17 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     });
                 }
                 
-                if (!listing.slug || listing.slug.trim() === '') {
+                // Check slug - handle both string and numeric slugs
+                const slugValue = listing.slug;
+                let hasValidSlug = false;
+                
+                if (slugValue !== undefined && slugValue !== null) {
+                    // Convert to string and check if it's not empty after trimming
+                    const slugString = String(slugValue).trim();
+                    hasValidSlug = slugString !== '';
+                }
+                
+                if (!hasValidSlug) {
                     errors.push({
                         type: 'missing-field',
                         severity: 'error',
@@ -3773,13 +3755,12 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 
                 typeErrors.forEach(function(error) {
                     const listingName = error.listing.name || 'Unnamed Listing';
-                    const listingId = error.listing.id || 'No ID';
                     const listingSlug = error.listing.slug || 'No slug';
                     
                     html += '<div style="background: #f8f9fa; padding: 12px; margin: 8px 0; border-radius: 4px; cursor: pointer; transition: background 0.2s;" ';
                     html += 'onmouseover="this.style.background=\'#e9ecef\'" onmouseout="this.style.background=\'#f8f9fa\'" ';
                     html += 'onclick="navigateToListing(' + error.index + ')">';
-                    html += '<div style="font-weight: 600; color: #333; margin-bottom: 4px;">' + listingName + ' (ID: ' + listingId + ', Slug: ' + listingSlug + ')</div>';
+                    html += '<div style="font-weight: 600; color: #333; margin-bottom: 4px;">' + listingName + ' (Slug: ' + listingSlug + ')</div>';
                     html += '<div style="color: #666; font-size: 14px;">' + error.message + '</div>';
                     html += '</div>';
                 });
