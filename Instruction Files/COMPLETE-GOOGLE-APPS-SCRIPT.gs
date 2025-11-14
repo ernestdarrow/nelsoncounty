@@ -1750,34 +1750,30 @@ function migrateAllImagesToImageKit() {
     throw new Error('Missing required columns ("Name", "Image 1") in sheet "' + sheet.getName() + '". Run listSheetHeaders() to confirm headers.');
   }
 
+  const handleImageUpload = function(row, columnIndex, suffix) {
+    if (!columnIndex) return;
+    const original = sheet.getRange(row, columnIndex).getValue();
+    if (!original || String(original).startsWith('https://ik.imagekit.io/OE')) {
+      return;
+    }
+
+    try {
+      const newUrl = tryUpload(original, suffix);
+      setIfChanged(sheet, row, columnIndex, newUrl);
+      Logger.log('Row ' + row + ' ' + suffix + ' → ' + newUrl);
+    } catch (error) {
+      Logger.log('❌ Row ' + row + ' ' + suffix + ' failed: ' + error);
+      Logger.log('   Continuing to next image/listing after failure.');
+    }
+  };
+
   for (let row = 2; row <= values.length; row++) {
     const name = sheet.getRange(row, colName).getValue();
     const baseFile = name ? name.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'listing-' + row;
 
-    if (colImage1) {
-      const original = sheet.getRange(row, colImage1).getValue();
-      if (original && !String(original).startsWith('https://ik.imagekit.io/OE')) {
-        const newUrl = tryUpload(original, baseFile + '-image1');
-        setIfChanged(sheet, row, colImage1, newUrl);
-        Logger.log('Row ' + row + ' image1 → ' + newUrl);
-      }
-    }
-    if (colImage2) {
-      const original = sheet.getRange(row, colImage2).getValue();
-      if (original && !String(original).startsWith('https://ik.imagekit.io/OE')) {
-        const newUrl = tryUpload(original, baseFile + '-image2');
-        setIfChanged(sheet, row, colImage2, newUrl);
-        Logger.log('Row ' + row + ' image2 → ' + newUrl);
-      }
-    }
-    if (colImage3) {
-      const original = sheet.getRange(row, colImage3).getValue();
-      if (original && !String(original).startsWith('https://ik.imagekit.io/OE')) {
-        const newUrl = tryUpload(original, baseFile + '-image3');
-        setIfChanged(sheet, row, colImage3, newUrl);
-        Logger.log('Row ' + row + ' image3 → ' + newUrl);
-      }
-    }
+    handleImageUpload(row, colImage1, baseFile + '-image1');
+    handleImageUpload(row, colImage2, baseFile + '-image2');
+    handleImageUpload(row, colImage3, baseFile + '-image3');
 
     SpreadsheetApp.flush();
     Utilities.sleep(500);
