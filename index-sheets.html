@@ -1,3 +1,23 @@
+        function showUnsavedChangesBadge() {
+            unsavedChanges = true;
+            updateUnsavedChangesBadge();
+        }
+        
+        function resetUnsavedChanges() {
+            unsavedChanges = false;
+            updateUnsavedChangesBadge();
+        }
+        
+        function updateUnsavedChangesBadge() {
+            const badge = document.getElementById('unsavedChangesBadge');
+            if (!badge) return;
+            if (unsavedChanges) {
+                badge.classList.add('visible');
+            } else {
+                badge.classList.remove('visible');
+            }
+        }
+        
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -196,6 +216,27 @@
         .header h1 { font-size: 28px; margin-bottom: 10px; }
         .header p { opacity: 0.9; font-size: 16px; }
         .header-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+        .unsaved-changes-badge {
+            display: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: #b45309;
+            background: rgba(255, 237, 213, 0.9);
+            border: 1px solid rgba(251, 191, 36, 0.5);
+            border-radius: 999px;
+            padding: 6px 14px;
+            align-items: center;
+            gap: 6px;
+            line-height: 1;
+            white-space: nowrap;
+        }
+        .unsaved-changes-badge svg {
+            width: 14px;
+            height: 14px;
+        }
+        .unsaved-changes-badge.visible {
+            display: inline-flex;
+        }
         
         .tabs { max-width: 1600px; margin: 0 auto 0 auto; padding: 8px 20px; display: flex; gap: 0; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .tab-btn { background: transparent; border: none; color: rgba(33,37,41,0.7); padding: 12px 24px; cursor: pointer; font-size: 14px; font-weight: 600; border-radius: 20px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 2px; }
@@ -1474,6 +1515,14 @@
                     Logout
                 </button>
                 <button class="btn btn-success" onclick="openAddModal()">+ Add New Listing</button>
+                <span id="unsavedChangesBadge" class="unsaved-changes-badge" aria-live="polite">
+                    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 14h12l-6-12-6 12z" stroke="#b45309" stroke-width="1.5" stroke-linejoin="round"/>
+                        <path d="M8 6v3" stroke="#b45309" stroke-width="1.5" stroke-linecap="round"/>
+                        <circle cx="8" cy="11.5" r=".8" fill="#b45309"/>
+                    </svg>
+                    Unsaved changes
+                </span>
             </div>
         </div>
         <div class="tabs">
@@ -2993,10 +3042,31 @@ function updateTableHeaderLabelsFromSheet(headersList) {
             data.filterOptions = sanitizeFilterOptions(data.filterOptions, data.listings);
         }
         
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUnsavedChangesBadge();
+        });
+        
+        document.addEventListener('input', function(event) {
+            const target = event.target;
+            if (!target) return;
+            if (target.closest('#listingForm') || target.closest('#dataTable') || target.dataset.field) {
+                showUnsavedChangesBadge();
+            }
+        });
+        
+        document.addEventListener('change', function(event) {
+            const target = event.target;
+            if (!target) return;
+            if (target.closest('#listingForm') || target.closest('#dataTable') || target.dataset.field) {
+                showUnsavedChangesBadge();
+            }
+        });
+        
         updateTableHeaderLabelsFromSheet(data.sheetHeaders || DEFAULT_TABLE_HEADERS);
         
         let deleteConfirmId = null;
         let deleteConfirmTimeout = null;
+        let unsavedChanges = false;
         
         // Helper function to parse CSV text into array of objects
         function parseCSV(csvText) {
@@ -3351,6 +3421,7 @@ function updateTableHeaderLabelsFromSheet(headersList) {
                             filterOptions: sanitizedFilterOptions,
                             sheetHeaders: sheetHeaders
                         };
+                        resetUnsavedChanges();
                         
                         updateTableHeaderLabelsFromSheet(sheetHeaders);
                         
@@ -3480,6 +3551,8 @@ function updateTableHeaderLabelsFromSheet(headersList) {
                         };
                         applyFilterOptionCleanup(sanitizedFilterOptions);
                         updateTableHeaderLabelsFromSheet(sheetHeaders);
+                        resetUnsavedChanges();
+                        resetUnsavedChanges();
                         console.log('✅ Loaded ' + listings.length + ' listings from Google Sheets (CSV)');
                         updateSyncStatus(true, `✅ Loaded ${listings.length} listings (CSV)`);
                         renderListings();
@@ -3691,7 +3764,8 @@ function updateTableHeaderLabelsFromSheet(headersList) {
                 }
                 
                 if (result.success) {
-                    updateSyncStatus(true, `✅ Replaced all data in Google Sheets with ${data.listings.length} listings`);
+            updateSyncStatus(true, `✅ Replaced all data in Google Sheets with ${data.listings.length} listings`);
+            resetUnsavedChanges();
                     alert(`✅ Successfully saved all ${data.listings.length} listings to Google Sheets!`);
                 } else {
                     updateSyncStatus(false);
@@ -5282,8 +5356,9 @@ function updateTableHeaderLabelsFromSheet(headersList) {
                             // DON'T reload from Google Sheets - we've already updated local data
                             // The delete is already saved to Google Sheets, reloading would be redundant
                             // and could cause issues if there's a delay in Google Sheets processing
-                            console.log('✅ Listing deleted successfully from Google Sheets. Local data updated.');
-                            console.log('NOT reloading from Google Sheets - local data is already correct.');
+                        console.log('✅ Listing deleted successfully from Google Sheets. Local data updated.');
+                        console.log('NOT reloading from Google Sheets - local data is already correct.');
+                        showUnsavedChangesBadge();
                             
                             // Refresh the display immediately with updated local data
                             applyFilterOptionCleanup();
@@ -5371,6 +5446,7 @@ function updateTableHeaderLabelsFromSheet(headersList) {
             
             // Re-render the list to show the new duplicate
             renderListings();
+            showUnsavedChangesBadge();
             
             // Optionally open the duplicate for editing
             setTimeout(function() {
@@ -5523,6 +5599,7 @@ function updateTableHeaderLabelsFromSheet(headersList) {
             // Update filter options, refresh display, and close modal
             applyFilterOptionCleanup();
             renderListings();
+            showUnsavedChangesBadge();
             closeModal();
         }
         
@@ -7668,6 +7745,7 @@ function updateTableHeaderLabelsFromSheet(headersList) {
             
             // Changes saved locally only - user must click "Save All to Google Sheets" to sync
             if (changeCount > 0) {
+                showUnsavedChangesBadge();
                 alert('Table updated! ' + changeCount + ' field(s) changed locally.\n\n💾 Click "Save All to Google Sheets" to sync changes.');
             } else {
                 alert('No changes detected.');
@@ -7688,6 +7766,7 @@ function updateTableHeaderLabelsFromSheet(headersList) {
                 renderDataTable();
                 renderListings();
                 
+                showUnsavedChangesBadge();
                 alert('Deleted: ' + listing.name);
             } else {
                 // First click - set confirmation needed
@@ -7855,9 +7934,12 @@ function updateTableHeaderLabelsFromSheet(headersList) {
                             
                             applyFilterOptionCleanup(sanitizedFilterOptions);
                             updateTableHeaderLabelsFromSheet(data.sheetHeaders);
+                            applyFilterOptionCleanup(sanitizedFilterOptions);
+                            updateTableHeaderLabelsFromSheet(data.sheetHeaders);
                             renderDataTable();
                             renderListings();
                             updateStats();
+                            showUnsavedChangesBadge();
                             
                             // CSV imported locally only - user must click "Save All to Google Sheets" to sync
                             alert('CSV uploaded successfully! ' + newListings.length + ' listings imported locally.\n\n💾 Click "Save All to Google Sheets" to sync changes.');
