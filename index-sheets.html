@@ -1492,7 +1492,39 @@
                         style="background: #4E6B52; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                     <span>📥</span> Download CSV Backup
                 </button>
+                <button onclick="showErrorConsole()"
+                        style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                    <span>⚠️</span> Check for Errors
+                </button>
                 <div id="sheetsActionStatus" style="margin-left: auto; font-weight: 600; color: #34a853;"></div>
+            </div>
+        </div>
+        
+        <!-- Error Console Section -->
+        <div id="errorConsoleSection" class="error-console-section" style="width: 100%; margin: 30px 0; padding: 20px; background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%); border-radius: 8px; border-left: 4px solid #dc3545; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                <div>
+                    <h3 style="margin: 0 0 5px 0; color: #dc3545; display: flex; align-items: center; gap: 8px;">
+                        <span>⚠️</span> <span id="errorConsoleTitle">Framer Import Error Console</span>
+                    </h3>
+                    <p style="margin: 0; color: #666; font-size: 14px;">Issues that may prevent successful Framer Google Sheets import. Click on an error to navigate to the problematic listing.</p>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button onclick="validateListings()" 
+                            style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                        <span>🔄</span> Re-validate
+                    </button>
+                    <button onclick="document.getElementById('errorConsoleSection').style.display='none'" 
+                            style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                        ✕
+                    </button>
+                </div>
+            </div>
+            
+            <div id="errorConsoleContent" style="background: white; border-radius: 6px; padding: 15px; max-height: 500px; overflow-y: auto;">
+                <div style="text-align: center; padding: 40px; color: #999;">
+                    <p>Click "Re-validate" to check for errors</p>
+                </div>
             </div>
         </div>
         
@@ -3431,6 +3463,395 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
         // Store current sort value
         let currentAdminSort = 'name-asc';
         
+        // Error Console Functions
+        function showErrorConsole() {
+            document.getElementById('errorConsoleSection').style.display = 'block';
+            validateListings();
+        }
+        
+        async function validateListings() {
+            if (!data || !data.listings) {
+                console.warn('No data available to validate');
+                return;
+            }
+            
+            const errors = [];
+            const slugCounts = {};
+            const idCounts = {};
+            
+            // First pass: collect slugs and IDs for duplicate checking
+            data.listings.forEach(function(listing, index) {
+                if (listing.slug) {
+                    if (!slugCounts[listing.slug]) {
+                        slugCounts[listing.slug] = [];
+                    }
+                    slugCounts[listing.slug].push({ index: index, listing: listing });
+                }
+                
+                if (listing.id) {
+                    if (!idCounts[listing.id]) {
+                        idCounts[listing.id] = [];
+                    }
+                    idCounts[listing.id].push({ index: index, listing: listing });
+                }
+            });
+            
+            // Check for duplicate slugs
+            Object.keys(slugCounts).forEach(function(slug) {
+                if (slugCounts[slug].length > 1) {
+                    slugCounts[slug].forEach(function(item) {
+                        errors.push({
+                            type: 'duplicate-slug',
+                            severity: 'error',
+                            message: 'Duplicate slug: "' + slug + '"',
+                            listing: item.listing,
+                            index: item.index
+                        });
+                    });
+                }
+            });
+            
+            // Check for duplicate IDs
+            Object.keys(idCounts).forEach(function(id) {
+                if (idCounts[id].length > 1) {
+                    idCounts[id].forEach(function(item) {
+                        errors.push({
+                            type: 'duplicate-id',
+                            severity: 'error',
+                            message: 'Duplicate ID: "' + id + '"',
+                            listing: item.listing,
+                            index: item.index
+                        });
+                    });
+                }
+            });
+            
+            // Check each listing for issues
+            data.listings.forEach(function(listing, index) {
+                // Required fields
+                if (!listing.id || listing.id.toString().trim() === '') {
+                    errors.push({
+                        type: 'missing-field',
+                        severity: 'error',
+                        message: 'Missing required field: id',
+                        listing: listing,
+                        index: index
+                    });
+                }
+                
+                if (!listing.name || listing.name.trim() === '') {
+                    errors.push({
+                        type: 'missing-field',
+                        severity: 'error',
+                        message: 'Missing required field: name',
+                        listing: listing,
+                        index: index
+                    });
+                }
+                
+                if (!listing.slug || listing.slug.trim() === '') {
+                    errors.push({
+                        type: 'missing-field',
+                        severity: 'error',
+                        message: 'Missing required field: slug',
+                        listing: listing,
+                        index: index
+                    });
+                }
+                
+                // Validate dates
+                if (listing.publishedDate && listing.publishedDate.trim() !== '') {
+                    if (!/^\d{4}-\d{2}-\d{2}$/.test(listing.publishedDate)) {
+                        errors.push({
+                            type: 'invalid-date',
+                            severity: 'warning',
+                            message: 'Invalid date format for publishedDate: "' + listing.publishedDate + '" (expected YYYY-MM-DD)',
+                            listing: listing,
+                            index: index
+                        });
+                    }
+                }
+                
+                if (listing.modifiedDate && listing.modifiedDate.trim() !== '') {
+                    if (!/^\d{4}-\d{2}-\d{2}$/.test(listing.modifiedDate)) {
+                        errors.push({
+                            type: 'invalid-date',
+                            severity: 'warning',
+                            message: 'Invalid date format for modifiedDate: "' + listing.modifiedDate + '" (expected YYYY-MM-DD)',
+                            listing: listing,
+                            index: index
+                        });
+                    }
+                }
+                
+                // Validate status
+                if (listing.status && listing.status.trim() !== '') {
+                    const status = listing.status.toLowerCase();
+                    if (status !== 'publish' && status !== 'draft' && status !== 'private') {
+                        errors.push({
+                            type: 'invalid-status',
+                            severity: 'warning',
+                            message: 'Invalid status: "' + listing.status + '" (expected publish/draft/private)',
+                            listing: listing,
+                            index: index
+                        });
+                    }
+                }
+                
+                // Validate featured field
+                if (listing.featured !== undefined && listing.featured !== null && listing.featured !== '' && listing.featured !== 'TRUE' && listing.featured !== 'FALSE' && listing.featured !== true && listing.featured !== false) {
+                    errors.push({
+                        type: 'invalid-featured',
+                        severity: 'warning',
+                        message: 'Invalid featured value: "' + listing.featured + '" (expected TRUE/FALSE)',
+                        listing: listing,
+                        index: index
+                    });
+                }
+                
+                // Check URLs for validity (basic format check)
+                const urlFields = ['website', 'image1', 'image2', 'image3', 'directionsLink', 'externalWebsite'];
+                urlFields.forEach(function(field) {
+                    if (listing[field] && listing[field].trim() !== '') {
+                        const url = listing[field].trim();
+                        // Basic URL validation
+                        if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/')) {
+                            errors.push({
+                                type: 'invalid-url',
+                                severity: 'warning',
+                                message: 'Invalid URL format for ' + field + ': "' + url + '"',
+                                listing: listing,
+                                index: index
+                            });
+                        }
+                    }
+                });
+            });
+            
+            // Display errors first (synchronous checks)
+            displayErrors(errors);
+            
+            // Check for broken image URLs (async - check first few)
+            const imageErrors = [];
+            const checkedImages = new Set();
+            const maxChecks = 30; // Limit checks to avoid performance issues
+            
+            // Show loading state
+            const consoleContent = document.getElementById('errorConsoleContent');
+            const loadingHtml = consoleContent.innerHTML + '<div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 4px; color: #1976d2;"><strong>Checking images for 404 errors...</strong> This may take a moment.</div>';
+            consoleContent.innerHTML = loadingHtml;
+            
+            // Collect all images to check
+            const imagesToCheck = [];
+            for (let i = 0; i < Math.min(data.listings.length, maxChecks * 3); i++) {
+                const listing = data.listings[i];
+                const imageFields = ['image1', 'image2', 'image3'];
+                
+                for (let j = 0; j < imageFields.length; j++) {
+                    const imageUrl = listing[imageFields[j]];
+                    if (imageUrl && imageUrl.trim() !== '' && !checkedImages.has(imageUrl)) {
+                        checkedImages.add(imageUrl);
+                        try {
+                            const url = new URL(imageUrl);
+                            if (url.protocol === 'http:' || url.protocol === 'https:') {
+                                imagesToCheck.push({
+                                    url: imageUrl,
+                                    listing: listing,
+                                    index: i,
+                                    field: imageFields[j]
+                                });
+                            }
+                        } catch (e) {
+                            // Invalid URL format - already caught above
+                        }
+                    }
+                }
+                if (imagesToCheck.length >= maxChecks) break;
+            }
+            
+            // Check images in batches
+            const checkImage = function(imageInfo) {
+                return new Promise(function(resolve) {
+                    const img = new Image();
+                    let resolved = false;
+                    
+                    img.onload = function() {
+                        if (!resolved) {
+                            resolved = true;
+                            resolve({ error: null });
+                        }
+                    };
+                    
+                    img.onerror = function() {
+                        if (!resolved) {
+                            resolved = true;
+                            resolve({
+                                error: {
+                                    type: 'broken-image',
+                                    severity: 'error',
+                                    message: '404 or broken image: ' + imageInfo.url,
+                                    listing: imageInfo.listing,
+                                    index: imageInfo.index,
+                                    field: imageInfo.field
+                                }
+                            });
+                        }
+                    };
+                    
+                    img.src = imageInfo.url;
+                    
+                    // Timeout after 5 seconds
+                    setTimeout(function() {
+                        if (!resolved) {
+                            resolved = true;
+                            resolve({
+                                error: {
+                                    type: 'broken-image',
+                                    severity: 'error',
+                                    message: 'Image load timeout: ' + imageInfo.url,
+                                    listing: imageInfo.listing,
+                                    index: imageInfo.index,
+                                    field: imageInfo.field
+                                }
+                            });
+                        }
+                    }, 5000);
+                });
+            };
+            
+            // Check images sequentially to avoid overwhelming the browser
+            (async function() {
+                for (let i = 0; i < imagesToCheck.length; i++) {
+                    const result = await checkImage(imagesToCheck[i]);
+                    if (result.error) {
+                        imageErrors.push(result.error);
+                    }
+                }
+                
+                // Merge image errors with other errors and re-display
+                errors.push.apply(errors, imageErrors);
+                displayErrors(errors);
+            })();
+        }
+        
+        function displayErrors(errors) {
+            const consoleContent = document.getElementById('errorConsoleContent');
+            const consoleTitle = document.getElementById('errorConsoleTitle');
+            
+            if (errors.length === 0) {
+                consoleContent.innerHTML = '<div style="text-align: center; padding: 40px; color: #28a745;"><p style="font-size: 18px; font-weight: 600;">✅ No errors found!</p><p style="margin-top: 10px; color: #666;">All listings are ready for Framer Google Sheets import.</p></div>';
+                consoleTitle.textContent = 'Framer Import Error Console - No Errors';
+                return;
+            }
+            
+            // Sort errors by severity (errors first, then warnings)
+            errors.sort(function(a, b) {
+                if (a.severity === 'error' && b.severity !== 'error') return -1;
+                if (a.severity !== 'error' && b.severity === 'error') return 1;
+                return 0;
+            });
+            
+            // Group errors by type
+            const errorsByType = {};
+            errors.forEach(function(error) {
+                if (!errorsByType[error.type]) {
+                    errorsByType[error.type] = [];
+                }
+                errorsByType[error.type].push(error);
+            });
+            
+            let html = '<div style="margin-bottom: 20px;"><strong style="color: #dc3545; font-size: 16px;">Total Issues: ' + errors.length + '</strong></div>';
+            
+            Object.keys(errorsByType).forEach(function(type) {
+                const typeErrors = errorsByType[type];
+                const severity = typeErrors[0].severity;
+                const severityColor = severity === 'error' ? '#dc3545' : '#ffc107';
+                const severityIcon = severity === 'error' ? '❌' : '⚠️';
+                
+                html += '<div style="margin-bottom: 20px; border-left: 4px solid ' + severityColor + '; padding-left: 15px;">';
+                html += '<h4 style="margin: 0 0 10px 0; color: ' + severityColor + ';">' + severityIcon + ' ' + type.replace(/-/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); }) + ' (' + typeErrors.length + ')</h4>';
+                
+                typeErrors.forEach(function(error) {
+                    const listingName = error.listing.name || 'Unnamed Listing';
+                    const listingId = error.listing.id || 'No ID';
+                    const listingSlug = error.listing.slug || 'No slug';
+                    
+                    html += '<div style="background: #f8f9fa; padding: 12px; margin: 8px 0; border-radius: 4px; cursor: pointer; transition: background 0.2s;" ';
+                    html += 'onmouseover="this.style.background=\'#e9ecef\'" onmouseout="this.style.background=\'#f8f9fa\'" ';
+                    html += 'onclick="navigateToListing(' + error.index + ')">';
+                    html += '<div style="font-weight: 600; color: #333; margin-bottom: 4px;">' + listingName + ' (ID: ' + listingId + ', Slug: ' + listingSlug + ')</div>';
+                    html += '<div style="color: #666; font-size: 14px;">' + error.message + '</div>';
+                    html += '</div>';
+                });
+                
+                html += '</div>';
+            });
+            
+            consoleContent.innerHTML = html;
+            consoleTitle.textContent = 'Framer Import Error Console - ' + errors.length + ' Issue' + (errors.length !== 1 ? 's' : '');
+        }
+        
+        function navigateToListing(index) {
+            // Find the listing card by ID or slug
+            const listing = data.listings[index];
+            if (!listing) return;
+            
+            // Scroll to the listings grid
+            const grid = document.getElementById('listingsGrid');
+            if (!grid) return;
+            
+            // Find the card element for this listing by data attribute or by position
+            const cards = grid.querySelectorAll('.flip-card');
+            let targetCard = null;
+            
+            // Try to find by data attribute if it exists
+            cards.forEach(function(card) {
+                const cardId = card.getAttribute('data-id');
+                const cardSlug = card.getAttribute('data-slug');
+                if (cardId === listing.id || cardSlug === listing.slug) {
+                    targetCard = card;
+                }
+            });
+            
+            // Fallback: try by index
+            if (!targetCard && cards[index]) {
+                targetCard = cards[index];
+            }
+            
+            if (targetCard) {
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Highlight the card
+                targetCard.style.boxShadow = '0 0 0 4px #dc3545';
+                targetCard.style.transition = 'box-shadow 0.3s';
+                targetCard.style.zIndex = '1000';
+                setTimeout(function() {
+                    targetCard.style.boxShadow = '';
+                    targetCard.style.zIndex = '';
+                }, 2000);
+            } else {
+                // Card not found - might be filtered out, so clear filters and search for it
+                const searchInput = document.getElementById('adminSearchInput');
+                if (searchInput && listing.name) {
+                    // Clear all filters
+                    if (document.getElementById('adminTypeFilter')) {
+                        document.getElementById('adminTypeFilter').value = '';
+                    }
+                    if (document.getElementById('adminAreaFilter')) {
+                        document.getElementById('adminAreaFilter').value = '';
+                    }
+                    if (document.getElementById('adminAmenityFilter')) {
+                        document.getElementById('adminAmenityFilter').value = '';
+                    }
+                    searchInput.value = listing.name;
+                    filterListings();
+                    // Try again after a short delay
+                    setTimeout(function() {
+                        navigateToListing(index);
+                    }, 300);
+                }
+            }
+        }
+        
         function renderListings(listings) {
             if (!listings) listings = data.listings;
             const grid = document.getElementById('listingsGrid');
@@ -3465,6 +3886,13 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             sortedListings.forEach(function(listing) {
                 const card = document.createElement('div');
                 card.className = 'flip-card';
+                // Add data attributes for navigation
+                if (listing.id) {
+                    card.setAttribute('data-id', listing.id.toString());
+                }
+                if (listing.slug) {
+                    card.setAttribute('data-slug', listing.slug);
+                }
                 
                 // Flip functionality on click (but not when clicking buttons or links)
                 card.onclick = function(e) {
