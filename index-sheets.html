@@ -3613,24 +3613,22 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
             // Display errors first (synchronous checks)
             displayErrors(errors);
             
-            // Check for broken image URLs (async - check first few)
+            // Check for broken image URLs (async - check ALL images)
             const imageErrors = [];
             const checkedImages = new Set();
-            const maxChecks = 30; // Limit checks to avoid performance issues
             
             // Show loading state
             const consoleContent = document.getElementById('errorConsoleContent');
-            const loadingHtml = consoleContent.innerHTML + '<div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 4px; color: #1976d2;"><strong>Checking images for 404 errors...</strong> This may take a moment.</div>';
+            const loadingHtml = consoleContent.innerHTML + '<div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 4px; color: #1976d2;"><strong>Checking all images for 404 errors...</strong> <span id="imageCheckProgress">0</span> images checked. This may take a moment.</div>';
             consoleContent.innerHTML = loadingHtml;
             
-            // Collect all images to check
+            // Collect ALL images to check from all listings
             const imagesToCheck = [];
-            for (let i = 0; i < Math.min(data.listings.length, maxChecks * 3); i++) {
-                const listing = data.listings[i];
+            data.listings.forEach(function(listing, index) {
                 const imageFields = ['image1', 'image2', 'image3'];
                 
-                for (let j = 0; j < imageFields.length; j++) {
-                    const imageUrl = listing[imageFields[j]];
+                imageFields.forEach(function(field) {
+                    const imageUrl = listing[field];
                     if (imageUrl && imageUrl.trim() !== '' && !checkedImages.has(imageUrl)) {
                         checkedImages.add(imageUrl);
                         try {
@@ -3639,19 +3637,18 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                                 imagesToCheck.push({
                                     url: imageUrl,
                                     listing: listing,
-                                    index: i,
-                                    field: imageFields[j]
+                                    index: index,
+                                    field: field
                                 });
                             }
                         } catch (e) {
                             // Invalid URL format - already caught above
                         }
                     }
-                }
-                if (imagesToCheck.length >= maxChecks) break;
-            }
+                });
+            });
             
-            // Check images in batches
+            // Check images in parallel batches for better performance
             const checkImage = function(imageInfo) {
                 return new Promise(function(resolve) {
                     const img = new Image();
@@ -3682,7 +3679,7 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     
                     img.src = imageInfo.url;
                     
-                    // Timeout after 5 seconds
+                    // Timeout after 8 seconds (increased for slower connections)
                     setTimeout(function() {
                         if (!resolved) {
                             resolved = true;
@@ -3697,17 +3694,35 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                                 }
                             });
                         }
-                    }, 5000);
+                    }, 8000);
                 });
             };
             
-            // Check images sequentially to avoid overwhelming the browser
+            // Check images in parallel batches (10 at a time)
             (async function() {
-                for (let i = 0; i < imagesToCheck.length; i++) {
-                    const result = await checkImage(imagesToCheck[i]);
-                    if (result.error) {
-                        imageErrors.push(result.error);
-                    }
+                const batchSize = 10;
+                let checkedCount = 0;
+                
+                for (let i = 0; i < imagesToCheck.length; i += batchSize) {
+                    const batch = imagesToCheck.slice(i, i + batchSize);
+                    const batchPromises = batch.map(function(imageInfo) {
+                        return checkImage(imageInfo).then(function(result) {
+                            checkedCount++;
+                            // Update progress
+                            const progressEl = document.getElementById('imageCheckProgress');
+                            if (progressEl) {
+                                progressEl.textContent = checkedCount + ' / ' + imagesToCheck.length;
+                            }
+                            return result;
+                        });
+                    });
+                    
+                    const batchResults = await Promise.all(batchPromises);
+                    batchResults.forEach(function(result) {
+                        if (result && result.error) {
+                            imageErrors.push(result.error);
+                        }
+                    });
                 }
                 
                 // Merge image errors with other errors and re-display
