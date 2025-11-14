@@ -3634,22 +3634,44 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 });
             });
             
-            // Check images in parallel batches for better performance
+            // Check images using Image object - this should detect 404s
             const checkImage = function(imageInfo) {
                 return new Promise(function(resolve) {
                     const img = new Image();
                     let resolved = false;
+                    const timeout = 12000; // 12 second timeout
                     
+                    // Set up timeout first
+                    const timeoutId = setTimeout(function() {
+                        if (!resolved) {
+                            resolved = true;
+                            resolve({
+                                error: {
+                                    type: 'broken-image',
+                                    severity: 'error',
+                                    message: 'Image load timeout (12s): ' + imageInfo.url,
+                                    listing: imageInfo.listing,
+                                    index: imageInfo.index,
+                                    field: imageInfo.field
+                                }
+                            });
+                        }
+                    }, timeout);
+                    
+                    // Image loaded successfully
                     img.onload = function() {
                         if (!resolved) {
                             resolved = true;
+                            clearTimeout(timeoutId);
                             resolve({ error: null });
                         }
                     };
                     
+                    // Image failed to load (404, network error, etc.)
                     img.onerror = function() {
                         if (!resolved) {
                             resolved = true;
+                            clearTimeout(timeoutId);
                             resolve({
                                 error: {
                                     type: 'broken-image',
@@ -3663,29 +3685,16 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         }
                     };
                     
-                    img.src = imageInfo.url;
-                    
-                    // Timeout after 8 seconds (increased for slower connections)
-                    setTimeout(function() {
-                        if (!resolved) {
-                            resolved = true;
-                            resolve({
-                                error: {
-                                    type: 'broken-image',
-                                    severity: 'error',
-                                    message: 'Image load timeout: ' + imageInfo.url,
-                                    listing: imageInfo.listing,
-                                    index: imageInfo.index,
-                                    field: imageInfo.field
-                                }
-                            });
-                        }
-                    }, 8000);
+                    // Start loading the image
+                    // Add cache busting to ensure fresh check
+                    const separator = imageInfo.url.includes('?') ? '&' : '?';
+                    img.src = imageInfo.url + separator + '_check=' + Date.now();
                 });
             };
             
             // Check images in parallel batches (10 at a time)
             (async function() {
+                console.log('🔍 Starting image validation for', imagesToCheck.length, 'images');
                 const batchSize = 10;
                 let checkedCount = 0;
                 
@@ -3699,6 +3708,12 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                             if (progressEl) {
                                 progressEl.textContent = checkedCount + ' / ' + imagesToCheck.length;
                             }
+                            
+                            // Log errors for debugging
+                            if (result && result.error) {
+                                console.log('❌ Broken image found:', result.error.message, 'for listing:', result.error.listing.name);
+                            }
+                            
                             return result;
                         });
                     });
@@ -3710,6 +3725,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                         }
                     });
                 }
+                
+                console.log('✅ Image validation complete. Found', imageErrors.length, 'broken images');
                 
                 // Merge image errors with other errors and re-display
                 errors.push.apply(errors, imageErrors);
@@ -3756,12 +3773,11 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                 
                 typeErrors.forEach(function(error) {
                     const listingName = error.listing.name || 'Unnamed Listing';
-                    const listingSlug = error.listing.slug || 'No slug';
                     
                     html += '<div style="background: #f8f9fa; padding: 12px; margin: 8px 0; border-radius: 4px; cursor: pointer; transition: background 0.2s;" ';
                     html += 'onmouseover="this.style.background=\'#e9ecef\'" onmouseout="this.style.background=\'#f8f9fa\'" ';
                     html += 'onclick="navigateToListing(' + error.index + ')">';
-                    html += '<div style="font-weight: 600; color: #333; margin-bottom: 4px;">' + listingName + ' (Slug: ' + listingSlug + ')</div>';
+                    html += '<div style="font-weight: 600; color: #333; margin-bottom: 4px;">' + listingName + '</div>';
                     html += '<div style="color: #666; font-size: 14px;">' + error.message + '</div>';
                     html += '</div>';
                 });
