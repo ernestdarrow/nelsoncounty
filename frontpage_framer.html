@@ -5255,7 +5255,7 @@ function getIconClass(type, listing) {
 
 // Fallback placeholder image (SVG data URI) - forest green background with white camera icon
 const FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'%3E%3Crect width='800' height='600' fill='%232d6a4f'/%3E%3Cg transform='translate(400, 300) scale(1)'%3E%3Cpath d='M208,60H178.13477l-14.8125-22.21875A3.99853,3.99853,0,0,0,159.99414,36h-64A3.9985,3.9985,0,0,0,92.666,37.78125L77.85352,60H48A20.02229,20.02229,0,0,0,28,80V192a20.02229,20.02229,0,0,0,20,20H208a20.02229,20.02229,0,0,0,20-20V80A20.02229,20.02229,0,0,0,208,60Zm12,132a12.01312,12.01312,0,0,1-12,12H48a12.01312,12.01312,0,0,1-12-12V80A12.01312,12.01312,0,0,1,48,68H79.99414a3.99853,3.99853,0,0,0,3.32813-1.78125L98.13477,44h59.71875L172.666,66.21875A3.9985,3.9985,0,0,0,175.99414,68H208a12.01312,12.01312,0,0,1,12,12ZM128,92a40,40,0,1,0,40,40A40.04584,40.04584,0,0,0,128,92Zm0,72a32,32,0,1,1,32-32A32.03667,32.03667,0,0,1,128,164Z' fill='white' transform='translate(-128, -128)'/%3E%3C/g%3E%3C/svg%3E";
-const CARD_IMAGE_TRANSFORM = { width: 550, cropMode: 'at_least', quality: 100, format: 'auto' };
+const CARD_IMAGE_TRANSFORM = { width: 500, height: 500, cropMode: 'at_least', quality: 95, format: 'auto' };
 const MAP_POPUP_IMAGE_TRANSFORM = { width: 200, cropMode: 'at_least', quality: 85, format: 'auto' };
 
 // Helper function to normalize image URLs - prepends CMS base URL if needed
