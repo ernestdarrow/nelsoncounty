@@ -201,7 +201,7 @@
             font-size: 13px;
             font-weight: 600;
             color: #b45309;
-            background: rgba(255, 237, 213, 0.9);
+            background: rgba(255, 237, 213, 0.95);
             border: 1px solid rgba(251, 191, 36, 0.5);
             border-radius: 999px;
             padding: 6px 14px;
@@ -209,10 +209,11 @@
             gap: 6px;
             line-height: 1;
             white-space: nowrap;
-            position: sticky;
-            top: 15px;
-            right: 0;
-            z-index: 10;
+            position: fixed;
+            top: 20px;
+            right: 30px;
+            z-index: 1000;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
         .unsaved-changes-badge svg {
             width: 14px;
@@ -220,6 +221,13 @@
         }
         .unsaved-changes-badge.visible {
             display: inline-flex;
+        }
+        @media (max-width: 768px) {
+            .unsaved-changes-badge {
+                top: auto;
+                bottom: 20px;
+                right: 20px;
+            }
         }
         
         .tabs { max-width: 1600px; margin: 0 auto 0 auto; padding: 8px 20px; display: flex; gap: 0; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
