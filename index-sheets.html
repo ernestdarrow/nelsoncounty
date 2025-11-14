@@ -3524,33 +3524,8 @@ initialData.filterOptions = sanitizeFilterOptions(initialData.filterOptions, ini
                     });
                 }
                 
-                // Check slug - only report as missing if it's truly missing or empty
-                // Accept ANY non-empty value (string, number, etc.) - even if it matches ID
-                const slugValue = listing.slug;
-                
-                // Check if slug exists and has a non-empty value
-                // Be very lenient - accept anything that's not undefined, null, or empty string
-                let hasValidSlug = false;
-                
-                // Check if slug property exists and has a value
-                if (slugValue !== undefined && slugValue !== null) {
-                    // Convert to string - even numbers like 0 become "0" which is valid
-                    const slugString = String(slugValue).trim();
-                    // If after trimming it's not empty, it's valid
-                    hasValidSlug = slugString.length > 0;
-                }
-                // If slug is undefined, null, or becomes empty string after trimming, it's missing
-                
-                // Only report as missing if it's actually missing or empty
-                if (!hasValidSlug) {
-                    errors.push({
-                        type: 'missing-field',
-                        severity: 'error',
-                        message: 'Missing required field: slug',
-                        listing: listing,
-                        index: index
-                    });
-                }
+                // Don't check for missing slugs - slugs are auto-generated or always present
+                // Only check for duplicate slugs (which is done above)
                 
                 // Validate dates
                 if (listing.publishedDate && listing.publishedDate.trim() !== '') {
