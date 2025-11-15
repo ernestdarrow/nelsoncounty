@@ -1465,6 +1465,10 @@
         body:not(.logged-in) .tab-content {
             display: none;
         }
+        
+        body.error-console-open {
+            background: #ffffff !important;
+        }
     </style>
 
 </head>
@@ -1632,7 +1636,7 @@
                             style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                         <span>🔄</span> Re-validate
                     </button>
-                    <button onclick="document.getElementById('errorConsoleSection').style.display='none'" 
+                    <button onclick="hideErrorConsole()" 
                             style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600;">
                         ✕
                     </button>
@@ -3836,7 +3840,13 @@ function updateUnsavedChangesBadge() {
         // Error Console Functions
         function showErrorConsole() {
             document.getElementById('errorConsoleSection').style.display = 'block';
+            document.body.classList.add('error-console-open');
             validateListings();
+        }
+        
+        function hideErrorConsole() {
+            document.getElementById('errorConsoleSection').style.display = 'none';
+            document.body.classList.remove('error-console-open');
         }
         
         async function validateListings() {
