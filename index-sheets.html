@@ -2335,6 +2335,27 @@ const REMOVED_LISTING_FIELDS = [
     'missingFields'
 ];
 
+const ADMIN_IMAGE_TRANSFORM_WIDTH = 400;
+
+function getAdminImageUrl(url) {
+    if (!url || typeof url !== 'string') return url;
+    let finalUrl = url.trim();
+    if (!finalUrl) return finalUrl;
+    const isImageKit = finalUrl.startsWith('https://ik.imagekit.io/');
+    const isDataUrl = finalUrl.startsWith('data:');
+    if (!isImageKit || isDataUrl) {
+        return finalUrl;
+    }
+    const transformParam = 'tr=w-' + ADMIN_IMAGE_TRANSFORM_WIDTH + ',f-auto,q-85';
+    const parts = finalUrl.split('?');
+    const base = parts[0];
+    const query = parts[1] ? parts[1].split('&').filter(function(param) {
+        return param && !param.startsWith('tr=');
+    }) : [];
+    query.push(transformParam);
+    return base + '?' + query.join('&');
+}
+
 function sanitizeListing(listing) {
     if (!listing || typeof listing !== 'object') return listing;
     
@@ -4292,7 +4313,7 @@ function updateUnsavedChangesBadge() {
                 // Add image1 if it exists
                 if (listing.image1) {
                     const img1 = document.createElement('img');
-                    img1.src = listing.image1;
+                    img1.src = getAdminImageUrl(listing.image1);
                     img1.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 240px; object-fit: cover; display: block; border-radius: 12px; flex-shrink: 0; scroll-snap-align: start;';
                     img1.onerror = function() {
                         this.src = 'https://via.placeholder.com/400x400?text=No+Image';
@@ -4303,7 +4324,7 @@ function updateUnsavedChangesBadge() {
                 // Add image2 if it exists
                 if (listing.image2) {
                     const img2 = document.createElement('img');
-                    img2.src = listing.image2;
+                    img2.src = getAdminImageUrl(listing.image2);
                     img2.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 240px; object-fit: cover; display: block; border-radius: 12px; flex-shrink: 0; scroll-snap-align: start;';
                     img2.onerror = function() {
                         this.src = 'https://via.placeholder.com/400x400?text=No+Image';
@@ -4314,7 +4335,7 @@ function updateUnsavedChangesBadge() {
                 // Add image3 if it exists
                 if (listing.image3) {
                     const img3 = document.createElement('img');
-                    img3.src = listing.image3;
+                    img3.src = getAdminImageUrl(listing.image3);
                     img3.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 240px; object-fit: cover; display: block; border-radius: 12px; flex-shrink: 0; scroll-snap-align: start;';
                     img3.onerror = function() {
                         this.src = 'https://via.placeholder.com/400x400?text=No+Image';
@@ -7260,7 +7281,7 @@ function updateUnsavedChangesBadge() {
                 // Add image1 if it exists
                 if (listing.image1) {
                     const img1 = document.createElement('img');
-                    img1.src = listing.image1;
+                    img1.src = getAdminImageUrl(listing.image1);
                     img1.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 240px; object-fit: cover; display: block; border-radius: 12px; flex-shrink: 0; scroll-snap-align: start;';
                     img1.onerror = function() {
                         this.src = 'https://via.placeholder.com/400x400?text=No+Image';
@@ -7271,7 +7292,7 @@ function updateUnsavedChangesBadge() {
                 // Add image2 if it exists
                 if (listing.image2) {
                     const img2 = document.createElement('img');
-                    img2.src = listing.image2;
+                    img2.src = getAdminImageUrl(listing.image2);
                     img2.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 240px; object-fit: cover; display: block; border-radius: 12px; flex-shrink: 0; scroll-snap-align: start;';
                     img2.onerror = function() {
                         this.src = 'https://via.placeholder.com/400x400?text=No+Image';
@@ -7282,7 +7303,7 @@ function updateUnsavedChangesBadge() {
                 // Add image3 if it exists
                 if (listing.image3) {
                     const img3 = document.createElement('img');
-                    img3.src = listing.image3;
+                    img3.src = getAdminImageUrl(listing.image3);
                     img3.style.cssText = 'position: relative; width: 100%; min-width: 100%; max-width: 100%; height: 240px; object-fit: cover; display: block; border-radius: 12px; flex-shrink: 0; scroll-snap-align: start;';
                     img3.onerror = function() {
                         this.src = 'https://via.placeholder.com/400x400?text=No+Image';
