@@ -453,54 +453,76 @@ function saveListing(sheet, listing) {
   }
 }
 
+const CANONICAL_LISTING_HEADERS = [
+  'id',
+  'name',
+  'slug',
+  'type',
+  'category',
+  'area',
+  'description',
+  'detailedDescription',
+  'customHtml',
+  'image1',
+  'image1Desc',
+  'image1FileId',
+  'image2',
+  'image2Desc',
+  'image2FileId',
+  'image3',
+  'image3Desc',
+  'image3FileId',
+  'website',
+  'phone',
+  'address',
+  'authorName',
+  'publishedDate',
+  'modifiedDate',
+  'directionsLink',
+  'amenities',
+  'featured',
+  'googleMapsUrl'
+];
+
 function replaceAllListings(sheet, listings) {
   try {
+    sheet.clear();
+
+    const headers = CANONICAL_LISTING_HEADERS.slice();
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+
     if (!listings || !Array.isArray(listings) || listings.length === 0) {
-      sheet.clear();
       return { success: true, message: 'Sheet cleared' };
     }
 
-    const allHeaders = new Set();
-    listings.forEach(listing => {
-      Object.keys(listing).forEach(key => allHeaders.add(key));
-    });
-
-    const standardHeaders = [
-      'id', 'slug', 'title', 'name', 'listing name',
-      'type', 'area', 'description', 'detailedDescription',
-      'photo', 'image1', 'image 1', 'image url 1',
-      'image2', 'image 2', 'image url 2',
-      'image3', 'image 3', 'image url 3',
-      'external website', 'website', 'url',
-      'phone', 'address', 'amenities', 'featured'
-    ];
-
-    const headers = [];
-    standardHeaders.forEach(h => {
-      if (allHeaders.has(h)) {
-        headers.push(h);
-        allHeaders.delete(h);
+    const toCsvValue = function(value, headerKey) {
+      if (headerKey === 'amenities') {
+        if (Array.isArray(value)) {
+          return value.join(', ');
+        }
+        return value || '';
       }
-    });
-    Array.from(allHeaders).forEach(h => headers.push(h));
-
-    sheet.clear();
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      if (headerKey === 'featured') {
+        return value ? 'TRUE' : 'FALSE';
+      }
+      return value || '';
+    };
 
     const rows = listings.map(listing => {
       return headers.map(header => {
-        const headerLower = String(header).toLowerCase().trim();
-        let value = listing[header] || listing[headerLower] || '';
+        const normalizedKey = String(header || '').trim();
+        const lowerKey = normalizedKey.toLowerCase();
+        const snakeKey = normalizedKey
+          .replace(/([A-Z])/g, '_$1')
+          .toLowerCase();
 
-        if (headerLower === 'amenities') {
-          value = Array.isArray(listing.amenities) ? listing.amenities.join(', ') : String(value);
-        } else if (headerLower === 'featured') {
-          value = listing.featured ? 'TRUE' : 'FALSE';
-        } else {
-          value = String(value || '');
-        }
+        let value =
+          listing[normalizedKey] ??
+          listing[lowerKey] ??
+          listing[snakeKey] ??
+          '';
 
-        return value;
+        return toCsvValue(value, normalizedKey);
       });
     });
 
