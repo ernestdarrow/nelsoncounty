@@ -7902,35 +7902,36 @@ function updateUnsavedChangesBadge() {
                 ];
                 
                 const rows = data.listings.map(function(listing) {
+                    const safeAmenities = joinList(listing.amenities || []);
                     return [
-                        listing.id || '',
+                        escapeCsv(listing.id || ''),
                         escapeCsv(listing.name || ''),
                         escapeCsv(listing.slug || ''),
-                        listing.type || '',
-                        listing.category || '', // Category field
-                        listing.area || '',
+                        escapeCsv(listing.type || ''),
+                        escapeCsv(listing.category || ''),
+                        escapeCsv(listing.area || ''),
                         escapeCsv(listing.description || ''),
                         escapeCsv(listing.detailedDescription || ''),
                         escapeCsv(listing.customHtml || ''),
                         escapeCsv(listing.image1 || ''),
                         escapeCsv(listing.image1Desc || ''),
-                        listing.image1FileId || '',
+                        escapeCsv(listing.image1FileId || ''),
                         escapeCsv(listing.image2 || ''),
                         escapeCsv(listing.image2Desc || ''),
-                        listing.image2FileId || '',
+                        escapeCsv(listing.image2FileId || ''),
                         escapeCsv(listing.image3 || ''),
                         escapeCsv(listing.image3Desc || ''),
-                        listing.image3FileId || '',
-                        listing.website || '',
-                        listing.phone || '',
+                        escapeCsv(listing.image3FileId || ''),
+                        escapeCsv(listing.website || ''),
+                        escapeCsv(listing.phone || ''),
                         escapeCsv(listing.address || ''),
-                        listing.authorName || '',
-                        listing.publishedDate || '',
-                        listing.modifiedDate || '',
-                        listing.directionsLink || '',
-                        escapeCsv(joinList(listing.amenities || [])),
-                        listing.featured ? 'true' : 'false',
-                        listing.googleMapsUrl || listing.directionsLink || ''
+                        escapeCsv(listing.authorName || ''),
+                        escapeCsv(listing.publishedDate || ''),
+                        escapeCsv(listing.modifiedDate || ''),
+                        escapeCsv(listing.directionsLink || ''),
+                        escapeCsv(safeAmenities),
+                        escapeCsv(listing.featured ? 'true' : 'false'),
+                        escapeCsv(listing.googleMapsUrl || listing.directionsLink || '')
                     ].join(',');
                 });
                 
