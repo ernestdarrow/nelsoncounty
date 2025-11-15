@@ -2646,6 +2646,35 @@ if (!TYPE_CATEGORIES || Object.keys(TYPE_CATEGORIES).length === 0) {
     }
 }
 
+function normalizeCategoryInput(value) {
+    if (!value) return '';
+    const trimmed = String(value).trim();
+    if (!trimmed) return '';
+    const lower = trimmed.toLowerCase();
+    
+    if (TYPE_CATEGORIES[lower]) {
+        return lower;
+    }
+    
+    for (const categoryKey in TYPE_CATEGORIES) {
+        const category = TYPE_CATEGORIES[categoryKey];
+        if (!category) continue;
+        if (category.name && category.name.toLowerCase() === lower) {
+            return categoryKey;
+        }
+        if (category.emoji && category.emoji === trimmed) {
+            return categoryKey;
+        }
+    }
+    
+    const slugified = lower.replace(/\s+/g, '-');
+    if (TYPE_CATEGORIES[slugified]) {
+        return slugified;
+    }
+    
+    return trimmed;
+}
+
 // Keyword mappings for automatic category assignment based on type content
 // Used when exact type match is not found in category types array
 const TYPE_KEYWORD_MAPPINGS = {
@@ -3273,12 +3302,13 @@ function updateUnsavedChangesBadge() {
             const directionsLinkField = getField('directionsLink', ['Directions Link', 'Directions URL', 'Map Link', 'map directions', 'directions url']);
             
             const categoryValue = getField('Category', ['category']);
+            const normalizedCategoryValue = normalizeCategoryInput(categoryValue);
             
             const listing = {
                 id: getField('ID', ['id', 'Id']),
                 name: getField('Title', ['Name', 'name', 'title']) || getField('name'),
                 type: getField('Type', ['type']),
-                category: categoryValue || undefined, // Only set if provided
+                category: normalizedCategoryValue || undefined, // Only set if provided
                 area: getField('Area', ['area']),
                 description: getField('Description', ['description', 'Desc', 'desc']),
                 detailedDescription: detailedDescriptionValue,
@@ -5541,7 +5571,7 @@ function updateUnsavedChangesBadge() {
             const generatedId = editingId || Date.now().toString();
             
             // Get category override, if provided
-            const categoryOverride = getValue('listingCategory');
+            const categoryOverride = normalizeCategoryInput(getValue('listingCategory'));
             
             // Get fileIds from dataset attributes (stored during upload or loaded from listing data)
             const image1Field = document.getElementById('listingImage1');

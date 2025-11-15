@@ -1,86 +1,5 @@
 id,name,slug,type,category,area,description,detailedDescription,customHtml,image1,image1Desc,image1FileId,image2,image2Desc,image2FileId,image3,image3Desc,image3FileId,website,phone,address,authorName,publishedDate,modifiedDate,directionsLink,amenities,featured,googleMapsUrl
-1,Sweet Bliss Bakery,sweet-bliss-bakery,Coffee Shops,Taste,Nellysford,"Handcrafts cheesecakes, cakes, and pastries with local seasonal ingredients, plus Virginia’s Finest soups and a specialty quiche made fresh daily.","Handmade cheesecakes, cakes, pies, and pastries are baked daily with local ingredients, never frozen, and often accented with liqueurs, nuts, and fruit. The bakery rotates more than 50 flavors, serves soup and quiche of the day, and carries the Virginia's Finest label for quality.","<!DOCTYPE html>
-<html lang=""en"">
-<head>
-    <meta charset=""UTF-8"">
-    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
-    <title>Sample Web Page</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 0;
-            text-align: center;
-        }
-        .container {
-            width: 80%;
-            margin: 20px auto;
-        }
-        .main-content {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-        }
-        .text-content {
-            width: 60%;
-        }
-        .image-content {
-            width: 35%;
-        }
-        img {
-            width: 100%;
-            border-radius: 8px;
-        }
-        footer {
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 10px 0;
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
-
-    <header>
-        <h1>Welcome to My Sample Web Page</h1>
-    </header>
-
-    <div class=""container"">
-        <div class=""main-content"">
-            <!-- Text Content Section -->
-            <div class=""text-content"">
-                <h2>Introduction</h2>
-                <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam scelerisque felis nec urna maximus, sit amet placerat est placerat. Proin ac lorem quis sem pretium consectetur. Sed vel magna eu nisi vehicula luctus. Donec euismod, magna vel aliquam facilisis, eros mi euismod orci, vel facilisis erat eros nec velit.
-                </p>
-                <p>
-                    Cras in orci nisl. Sed egestas nunc at felis sodales, sed tempor elit iaculis. Vivamus egestas condimentum erat, at euismod ante. Nulla facilisi. Integer consectetur, mi vel lacinia cursus, sapien sapien feugiat neque, sed fringilla turpis leo at ligula.
-                </p>
-            </div>
-
-            <!-- Image Content Section -->
-            <div class=""image-content"">
-                <h2>Beautiful Landscape</h2>
-                <img src=""https://ik.imagekit.io/OE/nelson-county/listings/sweet-bliss-bakery-image1_FHF7TQVl9"" alt=""Beautiful Landscape"">
-                <p>Above is an image of a beautiful landscape taken during a hike in the mountains.</p>
-            </div>
-        </div>
-    </div>
-
-    <footer>
-        <p>&copy; 2025 My Sample Web Page. All rights reserved.</p>
-    </footer>
-
-</body>
-</html>
-",https://ik.imagekit.io/OE/nelson-county/listings/sweet-bliss-bakery-image1_FHF7TQVl9,"Red bakery sign with gold patterns, hanging from black bracket, lit by lights.",,https://ik.imagekit.io/OE/nelson-county/listings/580491678_1383168947141534_4714761369298268773_n_97vkbKC3aK.jpg,Two tiramisu slices with cream topping on decorative red plate.,6917b6265c7cd75eb82bcd95,https://ik.imagekit.io/OE/nelson-county/listings/579081421_1378529360938826_5551127572586969165_n_fiT4T_bUFw.jpg,Freshly baked muffins with cranberries in white paper liners on tray.,6917b64b5c7cd75eb82cf0f2,https://www.facebook.com/thecheesecakelady123/,(434) 465-6776,"2789 Rockfish Valley Highway, Nellysford, VA 22958",josh,,,https://www.google.com/maps/dir/?api=1&destination=2789%20Rockfish%20Valley%20Highway%2C%20Nellysford%2C%20VA%2022958,Cafe; Coffee; Local Ingredients; Seasonal Menu; Tea,true,https://www.google.com/maps/dir/?api=1&destination=2789%20Rockfish%20Valley%20Highway%2C%20Nellysford%2C%20VA%2022958
+1,Sweet Bliss Bakery,sweet-bliss-bakery,Coffee Shops,Taste,Nellysford,"Handcrafts cheesecakes, cakes, and pastries with local seasonal ingredients, plus Virginia’s Finest soups and a specialty quiche made fresh daily.","Handmade cheesecakes, cakes, pies, and pastries are baked daily with local ingredients, never frozen, and often accented with liqueurs, nuts, and fruit. The bakery rotates more than 50 flavors, serves soup and quiche of the day, and carries the Virginia's Finest label for quality.",,https://ik.imagekit.io/OE/nelson-county/listings/sweet-bliss-bakery-image1_FHF7TQVl9,"Red bakery sign with gold patterns, hanging from black bracket, lit by lights.",,https://ik.imagekit.io/OE/nelson-county/listings/580491678_1383168947141534_4714761369298268773_n_97vkbKC3aK.jpg,Two tiramisu slices with cream topping on decorative red plate.,6917b6265c7cd75eb82bcd95,https://ik.imagekit.io/OE/nelson-county/listings/579081421_1378529360938826_5551127572586969165_n_fiT4T_bUFw.jpg,Freshly baked muffins with cranberries in white paper liners on tray.,6917b64b5c7cd75eb82cf0f2,https://www.facebook.com/thecheesecakelady123/,(434) 465-6776,"2789 Rockfish Valley Highway, Nellysford, VA 22958",josh,,,https://www.google.com/maps/dir/?api=1&destination=2789%20Rockfish%20Valley%20Highway%2C%20Nellysford%2C%20VA%2022958,Cafe; Coffee; Local Ingredients; Seasonal Menu; Tea,true,https://www.google.com/maps/dir/?api=1&destination=2789%20Rockfish%20Valley%20Highway%2C%20Nellysford%2C%20VA%2022958
 2,Terrace Café,terrace-cafe-at-wintergreen-resort,Coffee Shops,Taste,Wintergreen Resort,"Wintergreen Resort café pouring Starbucks beverages with breakfast sandwiches, sweet treats, and warm specialty drinks for skiers and resort guests.","Wintergreen's Terrace Café pours Starbucks espresso drinks alongside breakfast sandwiches, pastries, and seasonal treats—a quick grab-and-go boost before hitting the slopes or trails. Hours shift with the resort season, so travelers can refuel morning or midday right on the Mountain Inn loop.",,https://ik.imagekit.io/OE/nelson-county/listings/terrace-caf--image1_rtR-GB-_3,"People enjoying coffee and conversation in cozy, stone-walled cafe with fireplace.",,,,,,,,https://www.wintergreenresort.com/terrace-cafe/,(434) 325-8080,"39 Mountain Inn Loop, Wintergreen, VA 22958",josh,,,https://www.google.com/maps/dir/?api=1&destination=39%20Mountain%20Inn%20Loop%2C%20Wintergreen%2C%20VA%2022958,Breakfast; Desserts; Seasonal Menu; Coffee; Tea; Cafe,false,https://www.google.com/maps/dir/?api=1&destination=39%20Mountain%20Inn%20Loop%2C%20Wintergreen%2C%20VA%2022958
 3,Trager Brothers Coffee 1.0,trager-brothers-coffee-1-0,Coffee Shops,Taste,Lovingston,Small-batch organic roastery and café in downtown Lovingston roasting to order and serving certified organic coffee sourced through long-term sustainable partnerships.,"Family-owned Trager Brothers Coffee roasts certified-organic beans to order in Lovingston, sight-roasting small batches and cupping each origin to highlight its flavor profile. The café pours fresh espresso, sells whole beans, and champions sustainable sourcing relationships with growers worldwide.",,https://ik.imagekit.io/OE/nelson-county/listings/trager-brothers-coffee-1-0-image1_CD5zSPxJ7,"Two people smiling, one holding coffee logo sticker towards camera.",,,,,,,,https://www.tbcroasters.com/,(434) 996-3138,"486 Front Street, Lovingston, VA 22949",josh,,,https://www.google.com/maps/dir/?api=1&destination=486%20Front%20Street%2C%20Lovingston%2C%20VA%2022949,Coffee; Organic; Order Pickup; Tea; Cafe,true,https://www.google.com/maps/dir/?api=1&destination=486%20Front%20Street%2C%20Lovingston%2C%20VA%2022949
 4,Trager Brothers Coffee 2.0,trager-brothers-coffee-2-0,Coffee Shops,Taste,Afton,"Organic coffeehouse at the Rockfish Valley School campus with freshly roasted beans, espresso drinks, and grab-and-go service from Trager Brothers Coffee.","The Afton outpost of Trager Brothers Coffee mirrors the flagship with on-site organic roasting, meticulous profile development, and hand-built espresso drinks. It's a community hub tucked beside Rockfish Valley School where guests can sip ultra-fresh coffee and take home whole beans minutes from Nelson 151.",,https://ik.imagekit.io/OE/nelson-county/listings/trager-brothers-coffee-2-0-image1_onAYYsQs0L,Barista decorating coffee foam with chocolate in a black cup.,,,,,,,,https://www.tbcroasters.com/,(434) 263-8916,"190 Rockfish Valley School Lane, Afton, VA 22920",josh,,,https://www.google.com/maps/dir/?api=1&destination=190%20Rockfish%20Valley%20School%20Lane%2C%20Afton%2C%20VA%2022920,Coffee; Organic; Bar; Tea; Cafe,false,https://www.google.com/maps/dir/?api=1&destination=190%20Rockfish%20Valley%20School%20Lane%2C%20Afton%2C%20VA%2022920
@@ -469,17 +388,4 @@ id,name,slug,type,category,area,description,detailedDescription,customHtml,image
 387,Rockwell Ridge Inn,rockwellridgeinn,Cabins & Cottages,Stay,Afton,"Rockwell Ridge Inn is a pet-friendly retreat on 20 acres in Afton with private trails, seasonal gardens, creeks, and accommodations including a 3-bedroom inn, pet-friendly cottages, and nature immersion spaces.","Rockwell Ridge Inn invites guests to roam 20 acres of Afton trails, gardens, and creeks while choosing between a three-bedroom inn or pet-friendly cottages for a true nature immersion.",,https://ik.imagekit.io/OE/nelson-county/listings/rockwell-ridge-inn-image1_7TKqEFWib,"Blue cabin with wooden doors, decorated wreaths, surrounded by trees.",,https://ik.imagekit.io/OE/nelson-county/listings/rockwell-ridge-inn-image2_XBpXGhjEG,"Blue wooden cabin with porch, surrounded by trees and shrubs.",,https://ik.imagekit.io/OE/nelson-county/listings/rockwell-ridge-inn-image3_AOrMTU8L0,"Wooden kitchen with vaulted ceiling, island, and dining table under pendant lights.",,,,"Afton, VA 22920",WG,,,https://www.google.com/maps/dir/?api=1&destination=Afton%2C%20VA%2022920,Pet Friendly; Seasonal Menu; Lodging; Cabins,false,https://www.google.com/maps/dir/?api=1&destination=Afton%2C%20VA%2022920
 388,Everett Estate,everettestate,Whole House Rentals,Stay,Wintergreen Resort,Everett Estate (duplicate entry)—verify active listing details before enriching.,,,https://ik.imagekit.io/OE/nelson-county/listings/everett-estate-image1_hDitKstLu,"House with trees, stairs leading up, and stone wall in foreground.",,https://ik.imagekit.io/OE/nelson-county/listings/everett-estate-image2_y5dCp-_c7,"White house with large tree, fountain, and green lawn under clear blue sky.",,https://ik.imagekit.io/OE/nelson-county/listings/everett-estate-image3_pntIHpCJ6,"Floral wallpapered kitchen, stained glass window, wooden table with floral centerpiece.",,,,"56 Rodes Farm Drive, Nellysford, VA 22958",WG,,,https://www.google.com/maps/dir/?api=1&destination=56%20Rodes%20Farm%20Drive%2C%20Nellysford%2C%20VA%2022958,Coffee; Events; Scenic Views; Tea; Pet Friendly; Lodging,false,https://www.google.com/maps/dir/?api=1&destination=56%20Rodes%20Farm%20Drive%2C%20Nellysford%2C%20VA%2022958
 389,Don Lupe Mexican Restaurant,donlupe,Restaurants,Taste,Roseland,Don Lupe Mexican Restaurant serves authentic Mexican cuisine with high-quality ingredients and attentive service on Rockfish Valley Highway.,"At Don Lupe Restaurant, we take pride in offering the authentic taste of Mexican cuisine in each of our dishes. With the highest quality ingredients and traditional recipes, we stand out for our exceptional service, attentive care, and unparalleled flavor.",,https://ik.imagekit.io/OE/nelson-county/listings/don-lupe-mexican-restaurant-image1_CFnON7sma,Child playing guitar in sombrero and poncho near cactus.,,,,,,,,,(434) 218-1789,"2815 Rockfish Valley Highway, Nellysford, VA 22958",WG,,,https://www.google.com/maps/dir/?api=1&destination=2815%20Rockfish%20Valley%20Highway%2C%20Nellysford%2C%20VA%2022958,Local Ingredients,false,https://www.google.com/maps/dir/?api=1&destination=2815%20Rockfish%20Valley%20Highway%2C%20Nellysford%2C%20VA%2022958
-12-ridges-vineyard,12 Ridges Vineyard,12-ridges-vineyard,Vineyards & Wineries,Taste,Vesuvius,"High-elevation vineyard at Mile 25 on the Blue Ridge Parkway pouring cool-climate sparkling and still wines with sweeping 360° views. The hilltop tasting room, expansive terrace, and private event spaces sit at 3,300 feet.","A new vision has come to life at one of the most beautiful locations in all of Virginia. ​ 12 Ridges, a family-owned vineyard formerly known as Skylark Farm, now offers an intimate Tasting Room, over seven thousand five hundred square feet of outdoor patio space, and glorious 360 degree hilltop views.","<div style=""padding:20px; background:#f3f3f3; border:1px solid #ccc; border-radius:8px;"">
-  <h2 style=""margin:0 0 10px; color:#333; font-size:20px;"">
-    Custom Test Block
-  </h2>
-  <p style=""margin:0 0 10px; color:#555; font-size:14px; line-height:1.5;"">
-    This is a simple test section added with inline-styled HTML.
-  </p>
-  <a href=""#"" 
-     style=""display:inline-block; padding:8px 12px; background:#007aff; color:white; 
-            text-decoration:none; border-radius:4px; font-size:14px;"">
-    Click Me
-  </a>
-</div>
-",https://ik.imagekit.io/OE/nelson-county/listings/12-ridges-vineyard-image1_2M-P87f-B,,,,,,,,,https://12ridges.com/,(434) 996-4252,"24981 Blue Ridge Pkwy, Vesuvius, VA 24483",josh,,,https://www.google.com/maps/dir/?api=1&destination=24981%20Blue%20Ridge%20Pkwy%2C%20Vesuvius%2C%20VA%2024483,Events; Outdoor Seating; Scenic Views; Tastings; Wine,false,https://www.google.com/maps/dir/?api=1&destination=24981%20Blue%20Ridge%20Pkwy%2C%20Vesuvius%2C%20VA%2024483
+12-ridges-vineyard,12 Ridges Vineyard,12-ridges-vineyard,Vineyards & Wineries,Taste,Vesuvius,"High-elevation vineyard at Mile 25 on the Blue Ridge Parkway pouring cool-climate sparkling and still wines with sweeping 360° views. The hilltop tasting room, expansive terrace, and private event spaces sit at 3,300 feet.","A new vision has come to life at one of the most beautiful locations in all of Virginia. ​ 12 Ridges, a family-owned vineyard formerly known as Skylark Farm, now offers an intimate Tasting Room, over seven thousand five hundred square feet of outdoor patio space, and glorious 360 degree hilltop views.",,https://ik.imagekit.io/OE/nelson-county/listings/12-ridges-vineyard-image1_2M-P87f-B,,,,,,,,,https://12ridges.com/,(434) 996-4252,"24981 Blue Ridge Pkwy, Vesuvius, VA 24483",josh,,,https://www.google.com/maps/dir/?api=1&destination=24981%20Blue%20Ridge%20Pkwy%2C%20Vesuvius%2C%20VA%2024483,Events; Outdoor Seating; Scenic Views; Tastings; Wine,false,https://www.google.com/maps/dir/?api=1&destination=24981%20Blue%20Ridge%20Pkwy%2C%20Vesuvius%2C%20VA%2024483
