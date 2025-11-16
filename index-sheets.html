@@ -1530,6 +1530,10 @@
                     Logout
                 </button>
                 <button class="btn btn-success" onclick="openAddModal()">+ Add New Listing</button>
+                <input type="file" id="csvUploadMain" accept=".csv" style="display: none;" onchange="handleCSVUpload(event)">
+                <button class="btn btn-primary" onclick="document.getElementById('csvUploadMain').click()">
+                    Upload CSV
+                </button>
                 <span id="unsavedChangesBadge" class="unsaved-changes-badge" aria-live="polite">
                     <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M2 14h12l-6-12-6 12z" stroke="#b45309" stroke-width="1.5" stroke-linejoin="round"/>
