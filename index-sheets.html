@@ -1533,7 +1533,6 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('admin')">Admin</button>
             <button class="tab-btn" onclick="switchTab('data')">Data Table</button>
-            <button class="tab-btn" onclick="switchTab('categories')">Categories</button>
             <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
         </div>
     </div>
@@ -1823,35 +1822,6 @@
 
     <button type="button" id="backToTopBtn" class="back-to-top hidden" aria-label="Back to top">⬆</button>
     
-    <div id="categoriesTab" class="tab-content">
-        <div class="settings-container" style="width: 100%; margin: 0; padding: 20px;">
-            <div style="margin-bottom: 30px;">
-                <h2 style="margin: 0 0 10px 0; color: #212529;">Category Management</h2>
-                <p style="color: #6c757d; margin: 0;">Manage broad category filters that group listings by type. Categories control how listings appear in the main filter sidebar.</p>
-            </div>
-            
-            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #4E6B52;">
-                <p style="margin: 0; color: #6c757d;">
-                    <strong>How it works:</strong> Categories contain multiple types. When a listing's type matches a category's types, it appears under that category filter. You can manually override a listing's category in the Add/Edit form.
-                </p>
-            </div>
-            
-            <div id="categoriesList" style="display: grid; gap: 20px; margin-bottom: 30px;">
-                <!-- Categories will be rendered here -->
-            </div>
-            
-            <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
-                <button onclick="resetCategoriesToDefaults()" class="btn btn-secondary" style="margin-right: 10px;">Reset to Defaults</button>
-                <button onclick="exportCategories()" class="btn btn-primary" style="margin-right: 10px;">Export Categories</button>
-                <button onclick="document.getElementById('importCategoriesFile').click()" class="btn btn-primary">Import Categories</button>
-                <input type="file" id="importCategoriesFile" accept=".json" style="display: none;" onchange="importCategories(event)" />
-                <p style="margin: 15px 0 0 0; color: #6c757d; font-size: 14px;">
-                    <strong>Note:</strong> Changes are saved automatically to your browser's local storage. Categories sync between admin panel and front page.
-                </p>
-            </div>
-        </div>
-    </div>
-    
     <div id="settingsTab" class="tab-content">
         <div class="settings-container" style="width: 100%; margin: 0; padding: 20px;">
             <div style="margin-bottom: 30px;">
@@ -1883,6 +1853,19 @@
                     <div style="display: flex; gap: 10px;">
                         <input type="text" id="newAreaInput" placeholder="Add new area..." style="flex: 1; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;" onkeypress="if(event.key==='Enter') addArea()" />
                         <button onclick="addArea()" class="btn btn-success" style="padding: 8px 16px;">Add</button>
+                    </div>
+                </div>
+                
+                <!-- Categories Section -->
+                <div class="settings-card" style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;">
+                    <h3 style="margin: 0 0 15px 0; color: #212529; font-size: 18px;">Categories</h3>
+                    <p style="color: #6c757d; font-size: 14px; margin: 0 0 15px 0;">Broad category filters that group listings by type</p>
+                    <div id="categoriesList" style="margin-bottom: 15px; max-height: 300px; overflow-y: auto;">
+                        <!-- Categories will be rendered here -->
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="newCategoryInput" placeholder="Add new category name..." style="flex: 1; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;" onkeypress="if(event.key==='Enter') addCategory()" />
+                        <button onclick="addCategory()" class="btn btn-success" style="padding: 8px 16px;">Add</button>
                     </div>
                 </div>
                 
@@ -1938,12 +1921,11 @@
                     </div>
                     
                     <div class="form-group">
-                        <label>Category</label>
-                        <select id="listingCategory">
-                            <option value="">Auto-assign from Type</option>
+                        <label>Category *</label>
+                        <select id="listingCategory" required>
+                            <option value="">Select Category</option>
                             <!-- Options will be populated dynamically from TYPE_CATEGORIES -->
                         </select>
-                        <small style="color: #6c757d; font-size: 12px; margin-top: 5px; display: block;">Optional: Override automatic category assignment</small>
                     </div>
                     
                     <div class="form-group">
@@ -3454,13 +3436,16 @@ function updateUnsavedChangesBadge() {
             }
             
             if (message) {
-                actionStatus.textContent = message;
-                // Only clear temporary messages (like "Saving..."), not the loaded count
+                // Don't show "Loaded X listings" messages - they're redundant with the status badge
                 const isPermanentMessage = message.includes('Loaded') && message.match(/\d+\s+listings?/);
                 if (!isPermanentMessage) {
+                    actionStatus.textContent = message;
                     setTimeout(() => {
                         actionStatus.textContent = '';
                     }, 3000);
+                } else {
+                    // Clear the action status for loaded messages
+                    actionStatus.textContent = '';
                 }
             }
         }
@@ -5964,13 +5949,8 @@ function updateUnsavedChangesBadge() {
                 document.getElementById('dataTab').classList.add('active');
                 header.style.display = 'block';
                 renderDataTable();
-            } else if (tab === 'categories') {
-                document.querySelectorAll('.tab-btn')[2].classList.add('active');
-                document.getElementById('categoriesTab').classList.add('active');
-                header.style.display = 'block';
-                renderCategories();
             } else if (tab === 'settings') {
-                document.querySelectorAll('.tab-btn')[3].classList.add('active');
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
                 document.getElementById('settingsTab').classList.add('active');
                 header.style.display = 'block';
                 renderSettings();
@@ -5984,6 +5964,7 @@ function updateUnsavedChangesBadge() {
             renderTypesList();
             renderAreasList();
             renderAmenitiesList();
+            renderCategoriesList();
         }
         
         function renderTypesList() {
@@ -6124,6 +6105,87 @@ function updateUnsavedChangesBadge() {
                 saveFilterOptions();
                 renderAmenitiesList();
                 updateAmenitiesCheckboxes();
+            }
+        }
+        
+        function renderCategoriesList() {
+            const container = document.getElementById('categoriesList');
+            if (!container) return;
+            
+            // Get all category keys and sort by name
+            const categoryKeys = Object.keys(TYPE_CATEGORIES).slice().sort(function(a, b) {
+                const nameA = (TYPE_CATEGORIES[a].name || '').toLowerCase();
+                const nameB = (TYPE_CATEGORIES[b].name || '').toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+            
+            container.innerHTML = categoryKeys.map(function(categoryKey) {
+                const category = TYPE_CATEGORIES[categoryKey];
+                const displayName = (category.emoji || '') + ' ' + (category.name || categoryKey);
+                const escapedKey = categoryKey.replace(/'/g, "\\'");
+                return '<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #f8f9fa; border-radius: 4px; margin-bottom: 8px;">' +
+                    '<span>' + escapeHtml(displayName) + '</span>' +
+                    '<button onclick="removeCategory(\'' + escapedKey + '\')" style="background: #ffcccc; color: #000; border: none; padding: 4px 12px; border-radius: 18px; cursor: pointer; font-size: 12px;">Remove</button>' +
+                    '</div>';
+            }).join('');
+        }
+        
+        function addCategory() {
+            const input = document.getElementById('newCategoryInput');
+            const categoryName = input.value.trim();
+            if (!categoryName) return;
+            
+            // Check if category name already exists
+            const existingCategory = Object.keys(TYPE_CATEGORIES).find(function(key) {
+                return TYPE_CATEGORIES[key].name && TYPE_CATEGORIES[key].name.toLowerCase() === categoryName.toLowerCase();
+            });
+            
+            if (existingCategory) {
+                alert('A category with this name already exists.');
+                return;
+            }
+            
+            // Prompt for emoji
+            const emoji = prompt('Enter an emoji for this category (optional):', '📁');
+            const finalEmoji = emoji ? emoji.trim() : '📁';
+            
+            // Create category key from name (lowercase, replace spaces with hyphens)
+            const categoryKey = categoryName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            
+            // Check if key already exists
+            if (TYPE_CATEGORIES[categoryKey]) {
+                alert('A category with this key already exists. Please use a different name.');
+                return;
+            }
+            
+            // Add new category
+            TYPE_CATEGORIES[categoryKey] = {
+                emoji: finalEmoji,
+                name: categoryName,
+                description: categoryName + ' listings',
+                icon: 'icon-default',
+                types: []
+            };
+            
+            saveCategoriesToStorage(TYPE_CATEGORIES);
+            renderCategoriesList();
+            updateCategoryDropdown();
+            input.value = '';
+        }
+        
+        function removeCategory(categoryKey) {
+            const category = TYPE_CATEGORIES[categoryKey];
+            if (!category) return;
+            
+            const confirmed = confirm('Remove Category: "' + (category.name || categoryKey) + '"\n\n' +
+                                    'This will remove the category from filter options.\n\n' +
+                                    'Click OK to remove this category\n' +
+                                    'Click Cancel to keep it');
+            if (confirmed) {
+                delete TYPE_CATEGORIES[categoryKey];
+                saveCategoriesToStorage(TYPE_CATEGORIES);
+                renderCategoriesList();
+                updateCategoryDropdown();
             }
         }
         
