@@ -3436,15 +3436,16 @@ function updateUnsavedChangesBadge() {
             }
             
             if (message) {
-                // Don't show "Loaded X listings" messages - they're redundant with the status badge
+                // Don't show "Loaded X listings" or "Connecting..." messages - they're redundant with the status badge
                 const isPermanentMessage = message.includes('Loaded') && message.match(/\d+\s+listings?/);
-                if (!isPermanentMessage) {
+                const isConnectingMessage = message.includes('Connecting') || message.includes('🔄');
+                if (!isPermanentMessage && !isConnectingMessage) {
                     actionStatus.textContent = message;
                     setTimeout(() => {
                         actionStatus.textContent = '';
                     }, 3000);
                 } else {
-                    // Clear the action status for loaded messages
+                    // Clear the action status for redundant messages
                     actionStatus.textContent = '';
                 }
             }
