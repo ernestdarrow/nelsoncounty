@@ -253,10 +253,10 @@
         .tab-btn { background: transparent; border: none; color: rgba(33,37,41,0.7); padding: 12px 24px; cursor: pointer; font-size: 14px; font-weight: 600; border-radius: 18px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 2px; }
         .tab-btn:not(:last-child)::after { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 1px; height: 60%; background: #e0e0e0; }
         .tab-btn svg { stroke: rgba(33,37,41,0.7); transition: stroke 0.3s; }
-        .tab-btn:hover { color: #ffffff; background: linear-gradient(135deg, #007AFF 0%, #0051D5 100%); }
+        .tab-btn:hover { color: #ffffff; background: #007AFF; }
         .tab-btn:hover svg { stroke: #ffffff; }
         .tab-btn:hover::after { display: none; }
-        .tab-btn.active { color: #ffffff; background: linear-gradient(135deg, #007AFF 0%, #0051D5 100%); box-shadow: 0 2px 8px rgba(0,122,255,0.3); }
+        .tab-btn.active { color: #ffffff; background: #007AFF; }
         .tab-btn.active svg { stroke: #ffffff; }
         .tab-btn.active::after { display: none; }
         
@@ -682,12 +682,12 @@
         
         .preview-search { margin-bottom: 20px; }
         .preview-search label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
-        .preview-search input { width: 100%; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; transition: border-color 0.2s; background: var(--bg-hover); }
+        .preview-search input { width: 100%; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 18px; font-size: 14px; transition: border-color 0.2s; background: var(--bg-hover); }
         .preview-search input:focus { outline: none; border-color: #007AFF; background: var(--card-bg); }
         
         .preview-filter-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
         .preview-filter-group label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
-        .preview-filter-group select { width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; background: var(--bg-hover); cursor: pointer; transition: all 0.2s; color: var(--text-primary); appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+        .preview-filter-group select { width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 18px; font-size: 13px; background: var(--bg-hover); cursor: pointer; transition: all 0.2s; color: var(--text-primary); appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
         .preview-filter-group select:hover { border-color: #cbd5e1; background: var(--card-bg); }
         .preview-filter-group select:focus { outline: none; border-color: #007AFF; background: var(--card-bg); }
         
@@ -805,7 +805,7 @@
         .data-table thead tr.filter-row th:hover { background: #2a2a2a; }
         .data-table .filter-input { width: 100%; padding: 4px 6px; border: 1px solid #444; border-radius: 4px; font-size: 12px; background: #333; color: white; }
         .data-table .filter-input:focus { outline: none; border-color: #007AFF; background: #3a3a3a; }
-        .data-table .filter-select { width: 100%; padding: 4px 6px; border: 1px solid #444; border-radius: 4px; font-size: 12px; background: #333; color: white; cursor: pointer; }
+        .data-table .filter-select { width: 100%; padding: 4px 6px; border: 1px solid #444; border-radius: 18px; font-size: 12px; background: #333; color: white; cursor: pointer; }
         .data-table .filter-select:focus { outline: none; border-color: #007AFF; }
         .data-table tbody tr { border-bottom: 1px solid var(--border-color); transition: background 0.2s; }
         .data-table tbody tr:hover { background: var(--bg-hover); }
@@ -1574,7 +1574,7 @@
         </div>
         
         <!-- Google Sheets Status Section -->
-        <div class="google-sheets-status-section" style="width: 100%; margin: 30px 0; padding: 20px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; border-left: 4px solid #34a853; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div class="google-sheets-status-section" style="width: 100%; margin: 30px 0; padding: 20px; background: #fff; border-radius: 8px; border-left: 4px solid #34a853; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
                 <div>
                     <h3 style="margin: 0 0 5px 0; color: #34a853; display: flex; align-items: center; gap: 8px;">
@@ -1747,7 +1747,7 @@
                     
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                         <div id="listingsCount" style="font-size: 14px; color: var(--text-secondary); font-weight: 500;"></div>
-                        <select id="adminSortDropdown" onchange="sortAdminListings()" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                        <select id="adminSortDropdown" onchange="sortAdminListings()" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 18px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
                             <option value="name-asc" selected style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Name (A-Z)</option>
                             <option value="name-desc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Name (Z-A)</option>
                             <option value="area-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Area (A-Z)</option>
@@ -1811,16 +1811,16 @@
                             <th><select class="filter-select" data-filter="area"><option value="">All</option></select></th>
                             <th><input type="text" class="filter-input" data-filter="description" placeholder="Filter..." /></th>
                             <th><input type="text" class="filter-input" data-filter="detailedDescription" placeholder="Filter..." /></th>
-                            <th><input type="text" class="filter-input" data-filter="customHtml" placeholder="Filter..." /></th>
-                            <th></th>
+                            <th><input type="text" class="filter-input" data-filter="customHtml" placeholder="Filter... (type 'has' for non-empty)" /></th>
+                            <th><input type="text" class="filter-input" data-filter="image1" placeholder="Filter... (type 'has' for non-empty)" /></th>
                             <th><input type="text" class="filter-input" data-filter="image1Desc" placeholder="Filter..." /></th>
-                            <th></th>
+                            <th><input type="text" class="filter-input" data-filter="image2" placeholder="Filter... (type 'has' for non-empty)" /></th>
                             <th><input type="text" class="filter-input" data-filter="image2Desc" placeholder="Filter..." /></th>
-                            <th></th>
+                            <th><input type="text" class="filter-input" data-filter="image3" placeholder="Filter... (type 'has' for non-empty)" /></th>
                             <th><input type="text" class="filter-input" data-filter="image3Desc" placeholder="Filter..." /></th>
-                            <th><input type="text" class="filter-input" data-filter="website" placeholder="Filter..." /></th>
-                            <th><input type="text" class="filter-input" data-filter="phone" placeholder="Filter..." /></th>
-                            <th><input type="text" class="filter-input" data-filter="address" placeholder="Filter..." /></th>
+                            <th><input type="text" class="filter-input" data-filter="website" placeholder="Filter... (type 'has' for non-empty)" /></th>
+                            <th><input type="text" class="filter-input" data-filter="phone" placeholder="Filter... (type 'has' for non-empty)" /></th>
+                            <th><input type="text" class="filter-input" data-filter="address" placeholder="Filter... (type 'has' for non-empty)" /></th>
                             <th><input type="text" class="filter-input" data-filter="authorName" placeholder="Filter..." /></th>
                             <th><input type="text" class="filter-input" data-filter="publishedDate" placeholder="Filter..." /></th>
                             <th><input type="text" class="filter-input" data-filter="modifiedDate" placeholder="Filter..." /></th>
@@ -2976,6 +2976,11 @@ function refreshFilterSelect(selectId, values) {
     const currentValue = select.value;
     const safeValues = Array.isArray(values) ? values : [];
     
+    // Sort values alphabetically
+    const sortedValues = safeValues.slice().sort(function(a, b) {
+        return a.toLowerCase().localeCompare(b.toLowerCase());
+    });
+    
     select.innerHTML = '';
     
     const firstOption = document.createElement('option');
@@ -2983,14 +2988,14 @@ function refreshFilterSelect(selectId, values) {
     firstOption.textContent = placeholderText;
     select.appendChild(firstOption);
     
-    safeValues.forEach(function(value) {
+    sortedValues.forEach(function(value) {
         const option = document.createElement('option');
         option.value = value;
         option.textContent = value;
         select.appendChild(option);
     });
     
-    if (safeValues.indexOf(currentValue) > -1) {
+    if (sortedValues.indexOf(currentValue) > -1) {
         select.value = currentValue;
     } else {
         select.value = '';
@@ -5985,10 +5990,16 @@ function updateUnsavedChangesBadge() {
             const container = document.getElementById('typesList');
             if (!container) return;
             
-            container.innerHTML = data.filterOptions.types.map(function(type, index) {
+            // Sort types alphabetically
+            const sortedTypes = data.filterOptions.types.slice().sort(function(a, b) {
+                return a.toLowerCase().localeCompare(b.toLowerCase());
+            });
+            
+            container.innerHTML = sortedTypes.map(function(type) {
+                const index = data.filterOptions.types.indexOf(type);
                 return '<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #f8f9fa; border-radius: 4px; margin-bottom: 8px;">' +
                     '<span>' + type + '</span>' +
-                    '<button onclick="removeType(' + index + ')" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 18px; cursor: pointer; font-size: 12px;">Remove</button>' +
+                    '<button onclick="removeType(' + index + ')" style="background: #ffcccc; color: #000; border: none; padding: 4px 12px; border-radius: 18px; cursor: pointer; font-size: 12px;">Remove</button>' +
                     '</div>';
             }).join('');
         }
@@ -5997,10 +6008,16 @@ function updateUnsavedChangesBadge() {
             const container = document.getElementById('areasList');
             if (!container) return;
             
-            container.innerHTML = data.filterOptions.areas.map(function(area, index) {
+            // Sort areas alphabetically
+            const sortedAreas = data.filterOptions.areas.slice().sort(function(a, b) {
+                return a.toLowerCase().localeCompare(b.toLowerCase());
+            });
+            
+            container.innerHTML = sortedAreas.map(function(area) {
+                const index = data.filterOptions.areas.indexOf(area);
                 return '<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #f8f9fa; border-radius: 4px; margin-bottom: 8px;">' +
                     '<span>' + area + '</span>' +
-                    '<button onclick="removeArea(' + index + ')" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 18px; cursor: pointer; font-size: 12px;">Remove</button>' +
+                    '<button onclick="removeArea(' + index + ')" style="background: #ffcccc; color: #000; border: none; padding: 4px 12px; border-radius: 18px; cursor: pointer; font-size: 12px;">Remove</button>' +
                     '</div>';
             }).join('');
         }
@@ -6009,10 +6026,16 @@ function updateUnsavedChangesBadge() {
             const container = document.getElementById('amenitiesList');
             if (!container) return;
             
-            container.innerHTML = data.filterOptions.amenities.map(function(amenity, index) {
+            // Sort amenities alphabetically
+            const sortedAmenities = data.filterOptions.amenities.slice().sort(function(a, b) {
+                return a.toLowerCase().localeCompare(b.toLowerCase());
+            });
+            
+            container.innerHTML = sortedAmenities.map(function(amenity) {
+                const index = data.filterOptions.amenities.indexOf(amenity);
                 return '<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #f8f9fa; border-radius: 4px;">' +
                     '<span>' + amenity + '</span>' +
-                    '<button onclick="removeAmenity(' + index + ')" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 18px; cursor: pointer; font-size: 12px;">Remove</button>' +
+                    '<button onclick="removeAmenity(' + index + ')" style="background: #ffcccc; color: #000; border: none; padding: 4px 12px; border-radius: 18px; cursor: pointer; font-size: 12px;">Remove</button>' +
                     '</div>';
             }).join('');
         }
@@ -6165,7 +6188,7 @@ function updateUnsavedChangesBadge() {
                     iconOptions +
                     '</select>' +
                     '</div>' +
-                    '<button class="remove-icon-mapping-btn" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 18px; cursor: pointer; font-size: 14px;">Remove</button>';
+                    '<button class="remove-icon-mapping-btn" style="background: #ffcccc; color: #000; border: none; padding: 8px 16px; border-radius: 18px; cursor: pointer; font-size: 14px;">Remove</button>';
                 
                 tempContainer.appendChild(item);
             });
@@ -6360,7 +6383,7 @@ function updateUnsavedChangesBadge() {
                 const typesHtml = category.types.map(function(type, typeIndex) {
                     return '<div style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #f8f9fa; border-radius: 4px; margin: 4px 0;">' +
                         '<span style="flex: 1;">' + type + '</span>' +
-                        '<button onclick="removeTypeFromCategory(\'' + categoryKey + '\', ' + typeIndex + ')" style="background: #dc3545; color: white; border: none; padding: 4px 10px; border-radius: 18px; cursor: pointer; font-size: 12px;">Remove</button>' +
+                        '<button onclick="removeTypeFromCategory(\'' + categoryKey + '\', ' + typeIndex + ')" style="background: #ffcccc; color: #000; border: none; padding: 4px 10px; border-radius: 18px; cursor: pointer; font-size: 12px;">Remove</button>' +
                         '</div>';
                 }).join('');
                 
@@ -6507,10 +6530,14 @@ function updateUnsavedChangesBadge() {
             }
             
             const currentValue = select.value;
+            // Sort types alphabetically
+            const sortedTypes = data.filterOptions.types.slice().sort(function(a, b) {
+                return a.toLowerCase().localeCompare(b.toLowerCase());
+            });
             // Build options list, preserving the current value if it's not in filterOptions.types
-            const typesSet = new Set(data.filterOptions.types);
+            const typesSet = new Set(sortedTypes);
             let optionsHtml = '<option value="">Select Type</option>' +
-                data.filterOptions.types.map(function(type) {
+                sortedTypes.map(function(type) {
                     return '<option value="' + escapeHtml(type) + '">' + escapeHtml(type) + '</option>';
                 }).join('');
             
@@ -6537,9 +6564,13 @@ function updateUnsavedChangesBadge() {
             }
             
             const currentValue = select.value;
+            // Sort areas alphabetically
+            const sortedAreas = data.filterOptions.areas.slice().sort(function(a, b) {
+                return a.toLowerCase().localeCompare(b.toLowerCase());
+            });
             select.innerHTML = '<option value="">Select Area</option>' +
-                data.filterOptions.areas.map(function(area) {
-                    return '<option value="' + area + '">' + area + '</option>';
+                sortedAreas.map(function(area) {
+                    return '<option value="' + escapeHtml(area) + '">' + escapeHtml(area) + '</option>';
                 }).join('');
             select.value = currentValue;
         }
@@ -7668,8 +7699,21 @@ function updateUnsavedChangesBadge() {
                         listingValue = String(listing[field] || '').toLowerCase();
                         if (filterValue !== listingValue) return false;
                     } else {
-                        listingValue = String(listing[field] || '').toLowerCase();
-                        if (listingValue.indexOf(filterValue) === -1) return false;
+                        // Special handling for fields that can be filtered by presence
+                        const presenceFields = ['customHtml', 'image1', 'image2', 'image3', 'website', 'phone', 'address'];
+                        if (presenceFields.indexOf(field) > -1 && filterValue === 'has') {
+                            // Filter for listings that have this field (non-empty)
+                            const fieldValue = String(listing[field] || '').trim();
+                            if (!fieldValue) return false;
+                        } else if (presenceFields.indexOf(field) > -1 && filterValue === 'empty') {
+                            // Filter for listings that don't have this field (empty)
+                            const fieldValue = String(listing[field] || '').trim();
+                            if (fieldValue) return false;
+                        } else {
+                            // Normal text search
+                            listingValue = String(listing[field] || '').toLowerCase();
+                            if (listingValue.indexOf(filterValue) === -1) return false;
+                        }
                     }
                 }
                 return true;
