@@ -2798,10 +2798,12 @@ function normalizeCategoryInput(value) {
     if (!trimmed) return '';
     const lower = trimmed.toLowerCase();
     
+    // First check if it's a direct key match
     if (TYPE_CATEGORIES[lower]) {
         return lower;
     }
     
+    // Check if it matches a category name
     for (const categoryKey in TYPE_CATEGORIES) {
         const category = TYPE_CATEGORIES[categoryKey];
         if (!category) continue;
@@ -2813,11 +2815,15 @@ function normalizeCategoryInput(value) {
         }
     }
     
+    // Check if it matches a slugified version
     const slugified = lower.replace(/\s+/g, '-');
     if (TYPE_CATEGORIES[slugified]) {
         return slugified;
     }
     
+    // If no match found, return the original trimmed value
+    // This preserves custom categories that aren't in TYPE_CATEGORIES yet
+    console.log('⚠️ normalizeCategoryInput: Category "' + trimmed + '" not found in TYPE_CATEGORIES, preserving original value');
     return trimmed;
 }
 
@@ -3457,14 +3463,20 @@ function updateUnsavedChangesBadge() {
             const googleMapsUrlField = getField('Google Maps URL', ['Google Map URL', 'Google Maps Link', 'Maps URL', 'Map URL', 'Google Maps', 'googleMapsUrl', 'google_maps_url', 'map url', 'maps link']);
             const directionsLinkField = getField('directionsLink', ['Directions Link', 'Directions URL', 'Map Link', 'map directions', 'directions url']);
             
-            const categoryValue = getField('Category', ['category']);
-            const normalizedCategoryValue = normalizeCategoryInput(categoryValue);
+            const categoryValue = getField('Category', ['category'], true); // preserveEmpty = true to keep empty strings
+            let categoryFinal = undefined;
+            if (categoryValue && categoryValue.trim() !== '') {
+                const normalizedCategoryValue = normalizeCategoryInput(categoryValue);
+                // Use normalized value if it exists and is not empty, otherwise use original value
+                categoryFinal = (normalizedCategoryValue && normalizedCategoryValue.trim() !== '') ? normalizedCategoryValue : categoryValue.trim();
+                console.log('📋 Category mapping:', categoryValue, '->', categoryFinal);
+            }
             
             const listing = {
                 id: getField('ID', ['id', 'Id']),
                 name: getField('Title', ['Name', 'name', 'title']) || getField('name'),
                 type: getField('Type', ['type']),
-                category: normalizedCategoryValue || undefined, // Only set if provided
+                category: categoryFinal, // Preserve category value from Google Sheets
                 area: getField('Area', ['area']),
                 description: getField('Description', ['description', 'Desc', 'desc']),
                 detailedDescription: detailedDescriptionValue,
