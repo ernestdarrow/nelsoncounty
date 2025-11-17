@@ -6027,66 +6027,139 @@ function renderPreview(filteredListings) {
     grid.innerHTML = '';
     
     // Populate filters on first render
+    // Helper function to ensure an option exists in a dropdown
+    function ensureDropdownOption(select, value, text) {
+        if (!select || !value) return;
+        // Check if option already exists
+        const existingOption = Array.from(select.options).find(opt => opt.value === value);
+        if (!existingOption) {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = text || value;
+            select.appendChild(option);
+        }
+    }
+    
+    // Populate filter dropdowns - always refresh from data.filterOptions
     const typeFilter = document.getElementById('previewTypeFilter');
-    if (typeFilter && typeFilter.options.length === 1 && data.filterOptions && data.filterOptions.types) {
+    if (typeFilter && data.filterOptions && data.filterOptions.types) {
+        const currentValue = typeFilter.value; // Preserve current selection
+        // Clear all options except the first "All" option
+        while (typeFilter.options.length > 1) {
+            typeFilter.remove(1);
+        }
+        // Add all types from filterOptions
         data.filterOptions.types.forEach(function(type) {
             const option = document.createElement('option');
             option.value = type;
             option.textContent = type;
             typeFilter.appendChild(option);
         });
+        // Restore selection if it still exists
+        if (currentValue && Array.from(typeFilter.options).some(opt => opt.value === currentValue)) {
+            typeFilter.value = currentValue;
+        }
     }
     
     const areaFilter = document.getElementById('previewAreaFilter');
-    if (areaFilter && areaFilter.options.length === 1 && data.filterOptions) {
+    if (areaFilter && data.filterOptions && data.filterOptions.areas) {
+        const currentValue = areaFilter.value; // Preserve current selection
+        // Clear all options except the first "All" option
+        while (areaFilter.options.length > 1) {
+            areaFilter.remove(1);
+        }
+        // Add all areas from filterOptions
         data.filterOptions.areas.forEach(function(area) {
             const option = document.createElement('option');
             option.value = area;
             option.textContent = area;
             areaFilter.appendChild(option);
         });
+        // Restore selection if it still exists
+        if (currentValue && Array.from(areaFilter.options).some(opt => opt.value === currentValue)) {
+            areaFilter.value = currentValue;
+        }
     }
     
     const amenityFilter = document.getElementById('previewAmenityFilter');
-    if (amenityFilter && amenityFilter.options.length === 1 && data.filterOptions) {
+    if (amenityFilter && data.filterOptions && data.filterOptions.amenities) {
+        const currentValue = amenityFilter.value; // Preserve current selection
+        // Clear all options except the first "All" option
+        while (amenityFilter.options.length > 1) {
+            amenityFilter.remove(1);
+        }
+        // Add all amenities from filterOptions
         data.filterOptions.amenities.forEach(function(amenity) {
             const option = document.createElement('option');
             option.value = amenity;
             option.textContent = amenity;
             amenityFilter.appendChild(option);
         });
+        // Restore selection if it still exists
+        if (currentValue && Array.from(amenityFilter.options).some(opt => opt.value === currentValue)) {
+            amenityFilter.value = currentValue;
+        }
     }
     
-    // Populate mobile filter dropdowns
+    // Populate mobile filter dropdowns - always refresh from data.filterOptions
     const mobileTypeFilter = document.getElementById('mobileTypeFilter');
-    if (mobileTypeFilter && mobileTypeFilter.options.length === 1 && data.filterOptions && data.filterOptions.types) {
-        // Use the same complete list of types as desktop version
+    if (mobileTypeFilter && data.filterOptions && data.filterOptions.types) {
+        const currentValue = mobileTypeFilter.value; // Preserve current selection
+        // Clear all options except the first "All" option
+        while (mobileTypeFilter.options.length > 1) {
+            mobileTypeFilter.remove(1);
+        }
+        // Add all types from filterOptions
         data.filterOptions.types.forEach(function(type) {
             const option = document.createElement('option');
             option.value = type;
             option.textContent = type;
             mobileTypeFilter.appendChild(option);
         });
+        // Restore selection if it still exists
+        if (currentValue && Array.from(mobileTypeFilter.options).some(opt => opt.value === currentValue)) {
+            mobileTypeFilter.value = currentValue;
+        }
     }
     
     const mobileAreaFilter = document.getElementById('mobileAreaFilter');
-    if (mobileAreaFilter && mobileAreaFilter.options.length === 1 && data.filterOptions) {
+    if (mobileAreaFilter && data.filterOptions && data.filterOptions.areas) {
+        const currentValue = mobileAreaFilter.value; // Preserve current selection
+        // Clear all options except the first "All" option
+        while (mobileAreaFilter.options.length > 1) {
+            mobileAreaFilter.remove(1);
+        }
+        // Add all areas from filterOptions
         data.filterOptions.areas.forEach(function(area) {
             const option = document.createElement('option');
             option.value = area;
             option.textContent = area;
             mobileAreaFilter.appendChild(option);
         });
+        // Restore selection if it still exists
+        if (currentValue && Array.from(mobileAreaFilter.options).some(opt => opt.value === currentValue)) {
+            mobileAreaFilter.value = currentValue;
+        }
     }
     
     const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
-    if (mobileAmenityFilter && mobileAmenityFilter.options.length === 1 && data.filterOptions) {
+    if (mobileAmenityFilter && data.filterOptions && data.filterOptions.amenities) {
+        const currentValue = mobileAmenityFilter.value; // Preserve current selection
+        // Clear all options except the first "All" option
+        while (mobileAmenityFilter.options.length > 1) {
+            mobileAmenityFilter.remove(1);
+        }
+        // Add all amenities from filterOptions
         data.filterOptions.amenities.forEach(function(amenity) {
             const option = document.createElement('option');
             option.value = amenity;
             option.textContent = amenity;
             mobileAmenityFilter.appendChild(option);
         });
+        // Restore selection if it still exists
+        if (currentValue && Array.from(mobileAmenityFilter.options).some(opt => opt.value === currentValue)) {
+            mobileAmenityFilter.value = currentValue;
+        }
     }
     
     // Sort listings before rendering (always default to name-asc)
