@@ -3950,6 +3950,7 @@ function mapCSVRowToListing(row, index) {
     return {
         id: getField('ID', ['id', 'Id']) || String(index + 1),
         name: getField('Title', ['Name', 'name', 'title']) || 'Unnamed',
+        slug: getField('Slug', ['slug']) || '',
         type: getField('Type', ['type']) || '',
         area: getField('Area', ['area']) || '',
         description: getField('Description', ['description', 'Desc', 'desc']) || '',
@@ -6042,10 +6043,12 @@ function renderPreview(filteredListings) {
         if (index < 3 || index >= sortedListings.length - 3) {
             console.log(`🎨 Rendering card ${index + 1}/${sortedListings.length}:`, listing.name);
         }
-        // Create slug from listing name or use listing.slug if it exists
-        const slug = listing.slug || listing.name.toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '');
+        // Use listing.slug if it exists and is not empty, otherwise generate from name
+        const slug = (listing.slug && listing.slug.trim() !== '') 
+            ? listing.slug.trim() 
+            : listing.name.toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
         
         // Create card as a div (not a link) for flip functionality
         const card = document.createElement('div');

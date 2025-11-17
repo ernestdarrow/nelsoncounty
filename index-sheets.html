@@ -4002,8 +4002,17 @@ function updateUnsavedChangesBadge() {
                     });
                 }
                 
-                // Don't check for missing slugs - slugs are auto-generated or always present
-                // Only check for duplicate slugs (which is done above)
+                // Check for missing slug - slugs are needed for View Details URLs
+                const slugValue = listing.slug;
+                if (!slugValue || slugValue === null || slugValue === '' || String(slugValue).trim() === '') {
+                    errors.push({
+                        type: 'missing-slug',
+                        severity: 'warning',
+                        message: 'Missing slug: "' + (listing.name || 'Unnamed listing') + '" will use auto-generated slug from name',
+                        listing: listing,
+                        index: index
+                    });
+                }
                 
                 // Validate dates
                 if (listing.publishedDate && listing.publishedDate.trim() !== '') {
