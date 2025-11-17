@@ -4219,19 +4219,65 @@ if (!TYPE_CATEGORIES || Object.keys(TYPE_CATEGORIES).length === 0) {
     }
 }
 
-// Listen for storage changes to automatically update categories when changed in admin panel
-window.addEventListener('storage', function(e) {
-    if (e.key === 'nelsonCounty_categories') {
-        console.log('🔄 Categories updated in localStorage, reloading...');
-        if (reloadCategoriesFromStorage()) {
-            // Re-render filter buttons if data is already loaded
-            if (data && data.listings) {
-                renderTypeFilterButtons(data.listings, '.type-quick-filters');
-                renderPreview(); // Re-render to reflect category changes
-            }
+// Function to refresh categories and re-render filters
+function refreshCategoriesAndFilters() {
+    console.log('🔄 Manually refreshing categories from localStorage...');
+    if (reloadCategoriesFromStorage()) {
+        // Re-render filter buttons if data is already loaded
+        if (data && data.listings) {
+            console.log('🔄 Re-rendering filter buttons with updated categories...');
+            renderTypeFilterButtons(data.listings, '.type-quick-filters');
+            renderPreview(); // Re-render to reflect category changes
+            return true;
         }
     }
+    return false;
+}
+
+// Listen for storage changes to automatically update categories when changed in admin panel (works across tabs)
+window.addEventListener('storage', function(e) {
+    if (e.key === 'nelsonCounty_categories') {
+        console.log('🔄 Categories updated in localStorage (storage event), reloading...');
+        refreshCategoriesAndFilters();
+    }
 });
+
+// Also listen for custom events (for same-tab updates)
+window.addEventListener('categoriesUpdated', function() {
+    console.log('🔄 Categories updated (custom event), reloading...');
+    refreshCategoriesAndFilters();
+});
+
+// Poll for category changes every 2 seconds (fallback for same-tab updates)
+let lastCategoryHash = null;
+function checkForCategoryUpdates() {
+    try {
+        const stored = localStorage.getItem('nelsonCounty_categories');
+        if (stored) {
+            const currentHash = stored; // Simple hash - just the string itself
+            if (lastCategoryHash !== null && currentHash !== lastCategoryHash) {
+                console.log('🔄 Categories changed in localStorage (polling detected), reloading...');
+                refreshCategoriesAndFilters();
+            }
+            lastCategoryHash = currentHash;
+        }
+    } catch (e) {
+        // Silently fail if localStorage is not accessible
+    }
+}
+
+// Initialize hash on load
+try {
+    const stored = localStorage.getItem('nelsonCounty_categories');
+    if (stored) {
+        lastCategoryHash = stored;
+    }
+} catch (e) {
+    // Silently fail
+}
+
+// Poll every 2 seconds for category updates
+setInterval(checkForCategoryUpdates, 2000);
 
 // Keyword mappings for automatic category assignment based on type content
 // Used when exact type match is not found in category types array
