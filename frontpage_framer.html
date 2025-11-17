@@ -4170,6 +4170,28 @@ const DEFAULT_TYPE_CATEGORIES = {
 // Initialize TYPE_CATEGORIES from localStorage or defaults
 let TYPE_CATEGORIES = loadCategoriesFromStorage() || DEFAULT_TYPE_CATEGORIES;
 
+// Function to reload categories from localStorage (called when data loads or when storage changes)
+function reloadCategoriesFromStorage() {
+    const loadedCategories = loadCategoriesFromStorage();
+    if (loadedCategories && Object.keys(loadedCategories).length > 0) {
+        TYPE_CATEGORIES = loadedCategories;
+        // Ensure all categories have icons from defaults
+        for (const categoryKey in DEFAULT_TYPE_CATEGORIES) {
+            if (TYPE_CATEGORIES[categoryKey]) {
+                // If category exists but doesn't have an icon, set it from defaults
+                if (!TYPE_CATEGORIES[categoryKey].icon && DEFAULT_TYPE_CATEGORIES[categoryKey].icon) {
+                    TYPE_CATEGORIES[categoryKey].icon = DEFAULT_TYPE_CATEGORIES[categoryKey].icon;
+                }
+            } else {
+                // If category is missing, add it from defaults
+                TYPE_CATEGORIES[categoryKey] = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES[categoryKey]));
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
 // Ensure we always have the default structure and icons
 if (!TYPE_CATEGORIES || Object.keys(TYPE_CATEGORIES).length === 0) {
     TYPE_CATEGORIES = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES));
@@ -4187,6 +4209,20 @@ if (!TYPE_CATEGORIES || Object.keys(TYPE_CATEGORIES).length === 0) {
         }
     }
 }
+
+// Listen for storage changes to automatically update categories when changed in admin panel
+window.addEventListener('storage', function(e) {
+    if (e.key === 'nelsonCounty_categories') {
+        console.log('🔄 Categories updated in localStorage, reloading...');
+        if (reloadCategoriesFromStorage()) {
+            // Re-render filter buttons if data is already loaded
+            if (data && data.listings) {
+                renderTypeFilterButtons(data.listings, '.type-quick-filters');
+                renderPreview(); // Re-render to reflect category changes
+            }
+        }
+    }
+});
 
 // Keyword mappings for automatic category assignment based on type content
 // Used when exact type match is not found in category types array
@@ -4953,6 +4989,9 @@ loadDataFromGoogleSheets()
         console.log('📊 First listing name:', data.listings[0]?.name || 'N/A');
         console.log('📊 Last listing name:', data.listings[data.listings.length - 1]?.name || 'N/A');
         
+        // Reload categories from localStorage to get latest changes from admin panel
+        reloadCategoriesFromStorage();
+        
         // Ensure filterOptions exist (if loaded from CSV, they're already there)
         if (!data.filterOptions && data.listings) {
             data.filterOptions = extractFilterOptions(data.listings);
@@ -5001,6 +5040,10 @@ loadDataFromGoogleSheets()
         console.error('❌ Error details:', error.message, error.stack);
         console.warn('🔄 Falling back to embedded data');
         data = fallbackData;
+        
+        // Reload categories from localStorage to get latest changes from admin panel
+        reloadCategoriesFromStorage();
+        
         // Ensure filterOptions exist for fallback data
         if (!data.filterOptions && data.listings) {
             data.filterOptions = extractFilterOptions(data.listings);
