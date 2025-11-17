@@ -4426,9 +4426,28 @@ function getCategoriesByUsage(listings) {
     
     // Add custom categories to TYPE_CATEGORIES temporarily for display
     // (They'll be shown in sidebar but won't persist - admin should add them properly)
+    // Check localStorage for emoji/name from admin before adding
+    const categoriesFromStorage = loadCategoriesFromStorage();
     for (const customKey in customCategories) {
         if (!TYPE_CATEGORIES[customKey]) {
-            TYPE_CATEGORIES[customKey] = {
+            // Check if category exists in localStorage (from admin) for emoji/name
+            let categoryData = null;
+            if (categoriesFromStorage && categoriesFromStorage[customKey]) {
+                categoryData = categoriesFromStorage[customKey];
+                console.log('✅ Found custom category in localStorage (from admin):', customKey, 'with emoji:', categoryData.emoji);
+            } else if (DEFAULT_TYPE_CATEGORIES[customKey]) {
+                categoryData = DEFAULT_TYPE_CATEGORIES[customKey];
+                console.log('✅ Found custom category in DEFAULT_TYPE_CATEGORIES:', customKey, 'with emoji:', categoryData.emoji);
+            }
+            
+            // Use data from admin/localStorage if available, otherwise use minimal entry
+            TYPE_CATEGORIES[customKey] = categoryData ? {
+                name: categoryData.name || customCategories[customKey].name,
+                emoji: categoryData.emoji || '',
+                description: categoryData.description || customCategories[customKey].description,
+                types: categoryData.types || [],
+                icon: categoryData.icon || ''
+            } : {
                 name: customCategories[customKey].name,
                 emoji: customCategories[customKey].emoji,
                 description: customCategories[customKey].description,
@@ -4436,7 +4455,19 @@ function getCategoriesByUsage(listings) {
             };
             categoryCounts[customKey] = customCategories[customKey].count;
             categoryTypesMap[customKey] = customCategories[customKey].types;
-            console.log('✅ Added custom category to TYPE_CATEGORIES:', customKey, 'with', customCategories[customKey].count, 'listings');
+            console.log('✅ Added custom category to TYPE_CATEGORIES:', customKey, 'with', customCategories[customKey].count, 'listings, emoji:', TYPE_CATEGORIES[customKey].emoji || '(none)');
+        } else {
+            // Category already exists - sync emoji from localStorage/admin
+            if (categoriesFromStorage && categoriesFromStorage[customKey]) {
+                const storageCategory = categoriesFromStorage[customKey];
+                if (storageCategory.emoji) {
+                    TYPE_CATEGORIES[customKey].emoji = storageCategory.emoji;
+                    console.log('🔄 Synced emoji for existing custom category', customKey, 'from admin:', storageCategory.emoji);
+                }
+                if (storageCategory.name) {
+                    TYPE_CATEGORIES[customKey].name = storageCategory.name;
+                }
+            }
         }
     }
     
@@ -5195,17 +5226,33 @@ loadDataFromGoogleSheets()
                 addedCustomCategories = true;
                 console.log('✅ Added category from Google Sheets to TYPE_CATEGORIES:', categoryKey, 'with emoji:', TYPE_CATEGORIES[categoryKey].emoji || '(none)');
             } else if (TYPE_CATEGORIES[categoryKey]) {
-                // Category already exists - ensure it has the latest emoji from localStorage/admin
+                // Category already exists - ALWAYS sync emoji/name from localStorage/admin
+                // Google Sheets only stores the category key, not the emoji
                 if (categoriesFromStorage && categoriesFromStorage[categoryKey]) {
                     const storageCategory = categoriesFromStorage[categoryKey];
-                    // Update emoji and name if they've changed in admin
-                    if (storageCategory.emoji && storageCategory.emoji !== TYPE_CATEGORIES[categoryKey].emoji) {
+                    // Always update emoji from admin if it exists (even if currently empty)
+                    if (storageCategory.emoji) {
                         TYPE_CATEGORIES[categoryKey].emoji = storageCategory.emoji;
-                        console.log('🔄 Updated emoji for category', categoryKey, 'from admin:', storageCategory.emoji);
+                        console.log('🔄 Synced emoji for category', categoryKey, 'from admin:', storageCategory.emoji);
                     }
-                    if (storageCategory.name && storageCategory.name !== TYPE_CATEGORIES[categoryKey].name) {
+                    // Always update name from admin if it exists
+                    if (storageCategory.name) {
                         TYPE_CATEGORIES[categoryKey].name = storageCategory.name;
-                        console.log('🔄 Updated name for category', categoryKey, 'from admin:', storageCategory.name);
+                        console.log('🔄 Synced name for category', categoryKey, 'from admin:', storageCategory.name);
+                    }
+                    // Sync other properties too
+                    if (storageCategory.description) {
+                        TYPE_CATEGORIES[categoryKey].description = storageCategory.description;
+                    }
+                    if (storageCategory.icon) {
+                        TYPE_CATEGORIES[categoryKey].icon = storageCategory.icon;
+                    }
+                } else if (DEFAULT_TYPE_CATEGORIES[categoryKey]) {
+                    // Fallback to defaults if not in localStorage
+                    const defaultCategory = DEFAULT_TYPE_CATEGORIES[categoryKey];
+                    if (defaultCategory.emoji && !TYPE_CATEGORIES[categoryKey].emoji) {
+                        TYPE_CATEGORIES[categoryKey].emoji = defaultCategory.emoji;
+                        console.log('🔄 Using default emoji for category', categoryKey, ':', defaultCategory.emoji);
                     }
                 }
             }
