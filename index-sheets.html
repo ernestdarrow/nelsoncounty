@@ -3683,18 +3683,39 @@ function updateUnsavedChangesBadge() {
                     const result = await response.json();
                     
                     if (result.success && result.listings && result.listings.length > 0) {
-                        const listings = result.listings.map(function(listing) {
+                        // Debug: Check first listing's category before processing
+                        if (result.listings.length > 0) {
+                            console.log('🔍 First listing from Google Sheets (before processing):', {
+                                name: result.listings[0].name,
+                                category: result.listings[0].category,
+                                hasCategory: 'category' in result.listings[0],
+                                allKeys: Object.keys(result.listings[0])
+                            });
+                        }
+                        
+                        const listings = result.listings.map(function(listing, index) {
                             // Preserve category field from Google Sheets - don't let sanitizeListing remove it
                             const originalCategory = listing.category;
+                            console.log('🔍 Processing listing', index + ':', listing.name, '- Original category:', originalCategory, typeof originalCategory);
+                            
                             const sanitized = sanitizeListing(Object.assign({}, listing));
+                            
                             // Ensure category is preserved from Google Sheets
                             if (originalCategory !== undefined && originalCategory !== null && originalCategory !== '') {
                                 sanitized.category = String(originalCategory).trim();
-                                console.log('📋 Preserved category from Google Sheets:', sanitized.name, '->', sanitized.category);
-                            } else if (sanitized.category === undefined || sanitized.category === null || sanitized.category === '') {
-                                // If category is missing, log it but don't auto-assign
-                                console.log('⚠️ No category in Google Sheets for:', sanitized.name);
+                                console.log('✅ Preserved category from Google Sheets:', sanitized.name, '->', sanitized.category);
+                            } else {
+                                // Check if sanitized still has it
+                                if (sanitized.category !== undefined && sanitized.category !== null && sanitized.category !== '') {
+                                    console.log('✅ Category preserved in sanitized:', sanitized.name, '->', sanitized.category);
+                                } else {
+                                    // If category is missing, log it but don't auto-assign
+                                    console.log('⚠️ No category in Google Sheets for:', sanitized.name, '- Original was:', originalCategory);
+                                }
                             }
+                            
+                            // Final check
+                            console.log('🔍 Final listing category:', sanitized.name, '->', sanitized.category);
                             return sanitized;
                         });
                         
@@ -5517,8 +5538,17 @@ function updateUnsavedChangesBadge() {
                 // Always use the category from the listing (from Google Sheets)
                 // Don't auto-assign - respect what's in Google Sheets
                 const categoryValue = listing.category || '';
-                categoryInput.value = categoryValue;
+                console.log('🔍 editListing - Listing object:', {
+                    name: listing.name,
+                    category: listing.category,
+                    hasCategory: 'category' in listing,
+                    categoryType: typeof listing.category,
+                    allKeys: Object.keys(listing).filter(k => k.includes('categor'))
+                });
                 console.log('📋 Setting category dropdown for', listing.name, 'to:', categoryValue, '(from Google Sheets)');
+                console.log('📋 Category dropdown current options:', Array.from(categoryInput.options).map(opt => opt.value));
+                categoryInput.value = categoryValue;
+                console.log('📋 Category dropdown value after setting:', categoryInput.value);
             }
             const image1Input = document.getElementById('listingImage1');
             if (image1Input) {
@@ -7979,12 +8009,22 @@ function updateUnsavedChangesBadge() {
                 row.setAttribute('data-index', index);
                 
                 // Build category dropdown options
-                const categoryOptions = '<option value="">Auto-assign from Type</option>' +
-                    Object.keys(TYPE_CATEGORIES).map(function(categoryKey) {
+                // Include all categories from TYPE_CATEGORIES
+                const categoryKeys = Object.keys(TYPE_CATEGORIES);
+                const categoryKeysSet = new Set(categoryKeys);
+                let categoryOptions = '<option value="">Select Category</option>' +
+                    categoryKeys.map(function(categoryKey) {
                         const category = TYPE_CATEGORIES[categoryKey];
                         const isSelected = safe(listing.category) === categoryKey;
-                        return '<option value="' + categoryKey + '" ' + (isSelected ? 'selected' : '') + '>' + category.emoji + ' ' + category.name + '</option>';
+                        return '<option value="' + escapeHtml(categoryKey) + '" ' + (isSelected ? 'selected' : '') + '>' + escapeHtml(category.emoji || '') + ' ' + escapeHtml(category.name) + '</option>';
                     }).join('');
+                
+                // If this listing has a custom category not in TYPE_CATEGORIES, add it to the dropdown
+                const listingCategory = safe(listing.category);
+                if (listingCategory && listingCategory.trim() !== '' && !categoryKeysSet.has(listingCategory)) {
+                    categoryOptions += '<option value="' + escapeHtml(listingCategory) + '" selected>' + escapeHtml(listingCategory) + ' (from Google Sheets)</option>';
+                    console.log('📋 Adding custom category to table dropdown:', listingCategory, 'for listing:', listing.name);
+                }
                 
                 row.innerHTML = 
                     '<td class="cell-id"><input type="text" value="' + safe(listing.id) + '" data-field="id" /></td>' +
