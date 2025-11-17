@@ -3989,13 +3989,27 @@ function loadCategoriesFromStorage() {
         if (stored) {
             const parsed = JSON.parse(stored);
             if (parsed && typeof parsed === 'object') {
+                console.log('✅ loadCategoriesFromStorage: Found', Object.keys(parsed).length, 'categories in localStorage');
                 return parsed;
             }
         }
     } catch (e) {
         console.error('Error loading categories from storage:', e);
     }
+    console.log('⚠️ loadCategoriesFromStorage: No categories found in localStorage');
     return null;
+}
+
+// Save categories to localStorage (synced with admin panel)
+function saveCategoriesToStorage(categories) {
+    try {
+        localStorage.setItem('nelsonCounty_categories', JSON.stringify(categories));
+        console.log('✅ saveCategoriesToStorage: Saved', Object.keys(categories).length, 'categories to localStorage');
+        return true;
+    } catch (e) {
+        console.error('Error saving categories to storage:', e);
+        return false;
+    }
 }
 
 // Load icon mappings from localStorage or use defaults (sync with admin.js)
@@ -4204,22 +4218,37 @@ function reloadCategoriesFromStorage() {
 }
 
 // Ensure we always have the default structure and icons
+// But preserve custom categories from localStorage
 if (!TYPE_CATEGORIES || Object.keys(TYPE_CATEGORIES).length === 0) {
     TYPE_CATEGORIES = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES));
+    saveCategoriesToStorage(TYPE_CATEGORIES);
 } else {
-    // Ensure all categories have icons from defaults
+    // Ensure all default categories have icons (but preserve custom categories)
+    let needsUpdate = false;
     for (const categoryKey in DEFAULT_TYPE_CATEGORIES) {
         if (TYPE_CATEGORIES[categoryKey]) {
             // If category exists but doesn't have an icon, set it from defaults
             if (!TYPE_CATEGORIES[categoryKey].icon && DEFAULT_TYPE_CATEGORIES[categoryKey].icon) {
                 TYPE_CATEGORIES[categoryKey].icon = DEFAULT_TYPE_CATEGORIES[categoryKey].icon;
+                needsUpdate = true;
             }
         } else {
-            // If category is missing, add it from defaults
+            // If default category is missing, add it from defaults
             TYPE_CATEGORIES[categoryKey] = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES[categoryKey]));
+            needsUpdate = true;
         }
     }
+    // Only save if we added missing defaults, don't overwrite custom categories
+    if (needsUpdate) {
+        saveCategoriesToStorage(TYPE_CATEGORIES);
+    }
 }
+
+// Log initial categories for debugging
+console.log('📋 Initial TYPE_CATEGORIES on page load:', Object.keys(TYPE_CATEGORIES).length, 'categories');
+console.log('📋 Category names:', Object.keys(TYPE_CATEGORIES).map(function(k) {
+    return TYPE_CATEGORIES[k].name;
+}).join(', '));
 
 // Function to refresh categories and re-render filters
 function refreshCategoriesAndFilters() {
@@ -5072,7 +5101,9 @@ loadDataFromGoogleSheets()
         }
         
         console.log('🎯 About to render', data.listings.length, 'listings');
-        console.log('📋 TYPE_CATEGORIES before rendering:', Object.keys(TYPE_CATEGORIES).map(function(k) {
+        console.log('📋 TYPE_CATEGORIES before rendering:', Object.keys(TYPE_CATEGORIES).length, 'categories');
+        console.log('📋 Category keys:', Object.keys(TYPE_CATEGORIES));
+        console.log('📋 Category names:', Object.keys(TYPE_CATEGORIES).map(function(k) {
             return TYPE_CATEGORIES[k].name;
         }).join(', '));
         
