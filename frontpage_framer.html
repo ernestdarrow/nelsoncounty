@@ -3949,11 +3949,16 @@ function mapCSVRowToListing(row, index) {
     const featuredStr = getField('Featured', ['featured']);
     const featured = featuredStr === 'TRUE' || featuredStr === 'true' || featuredStr === '1' || featuredStr === 'Yes' || featuredStr === 'yes';
     
+    // Read category field from Google Sheets - preserve it exactly as stored
+    const categoryValue = getField('Category', ['category']);
+    const category = categoryValue ? categoryValue.trim() : '';
+    
     return {
         id: getField('ID', ['id', 'Id']) || String(index + 1),
         name: getField('Title', ['Name', 'name', 'title']) || 'Unnamed',
         slug: getField('Slug', ['slug']) || '',
         type: getField('Type', ['type']) || '',
+        category: category, // Preserve category from Google Sheets
         area: getField('Area', ['area']) || '',
         description: getField('Description', ['description', 'Desc', 'desc']) || '',
         detailedDescription: getField('Detailed Description', ['detailedDescription', 'detaileddescription', 'DetailedDescription', 'longdescription', 'longDescription', 'fulldescription', 'fullDescription']) || '',
@@ -4999,8 +5004,18 @@ function loadDataFromGoogleSheets() {
             console.log('📊 Listing count breakdown:', {
                 total: listings.length,
                 withNames: listings.filter(l => l.name && l.name.trim()).length,
-                withoutNames: listings.filter(l => !l.name || !l.name.trim()).length
+                withoutNames: listings.filter(l => !l.name || !l.name.trim()).length,
+                withCategories: listings.filter(l => l.category && l.category.trim()).length,
+                categoryExamples: listings.filter(l => l.category && l.category.trim()).slice(0, 5).map(l => ({ name: l.name, category: l.category }))
             });
+            
+            // Log category usage
+            const categoriesInData = [...new Set(listings.map(l => l.category).filter(Boolean))];
+            if (categoriesInData.length > 0) {
+                console.log('📋 Categories found in Google Sheets data:', categoriesInData);
+            } else {
+                console.log('⚠️ No categories found in Google Sheets data - will use auto-assignment');
+            }
             
             if (listings.length > 0) {
                 console.log('📋 First listing:', JSON.stringify(listings[0]).substring(0, 300));
