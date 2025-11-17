@@ -3684,7 +3684,18 @@ function updateUnsavedChangesBadge() {
                     
                     if (result.success && result.listings && result.listings.length > 0) {
                         const listings = result.listings.map(function(listing) {
-                            return sanitizeListing(Object.assign({}, listing));
+                            // Preserve category field from Google Sheets - don't let sanitizeListing remove it
+                            const originalCategory = listing.category;
+                            const sanitized = sanitizeListing(Object.assign({}, listing));
+                            // Ensure category is preserved from Google Sheets
+                            if (originalCategory !== undefined && originalCategory !== null && originalCategory !== '') {
+                                sanitized.category = String(originalCategory).trim();
+                                console.log('📋 Preserved category from Google Sheets:', sanitized.name, '->', sanitized.category);
+                            } else if (sanitized.category === undefined || sanitized.category === null || sanitized.category === '') {
+                                // If category is missing, log it but don't auto-assign
+                                console.log('⚠️ No category in Google Sheets for:', sanitized.name);
+                            }
+                            return sanitized;
                         });
                         
                         // Preserve existing filterOptions when loading from Sheets
@@ -5500,10 +5511,14 @@ function updateUnsavedChangesBadge() {
                 slugInput.value = listing.slug || slugify(listing.name || '');
             }
             
-            // Set category if it exists, otherwise leave blank for auto-assignment
+            // Set category from Google Sheets - always use the value from the listing
             const categoryInput = document.getElementById('listingCategory');
             if (categoryInput) {
-                categoryInput.value = listing.category || '';
+                // Always use the category from the listing (from Google Sheets)
+                // Don't auto-assign - respect what's in Google Sheets
+                const categoryValue = listing.category || '';
+                categoryInput.value = categoryValue;
+                console.log('📋 Setting category dropdown for', listing.name, 'to:', categoryValue, '(from Google Sheets)');
             }
             const image1Input = document.getElementById('listingImage1');
             if (image1Input) {
@@ -6710,12 +6725,24 @@ function updateUnsavedChangesBadge() {
             if (!select) return;
             
             const currentValue = select.value;
-            select.innerHTML = '<option value="">Auto-assign from Type</option>' +
-                Object.keys(TYPE_CATEGORIES).map(function(categoryKey) {
+            const categoryKeys = Object.keys(TYPE_CATEGORIES);
+            const categoryKeysSet = new Set(categoryKeys);
+            
+            // Build options list with all categories from TYPE_CATEGORIES
+            let optionsHtml = '<option value="">Select Category</option>' +
+                categoryKeys.map(function(categoryKey) {
                     const category = TYPE_CATEGORIES[categoryKey];
-                    return '<option value="' + categoryKey + '">' + category.emoji + ' ' + category.name + '</option>';
+                    return '<option value="' + escapeHtml(categoryKey) + '">' + escapeHtml(category.emoji || '') + ' ' + escapeHtml(category.name) + '</option>';
                 }).join('');
-            select.value = currentValue;
+            
+            // If current value exists but isn't in TYPE_CATEGORIES, add it to preserve custom categories from Google Sheets
+            if (currentValue && currentValue.trim() && !categoryKeysSet.has(currentValue)) {
+                optionsHtml += '<option value="' + escapeHtml(currentValue) + '">' + escapeHtml(currentValue) + ' (from Google Sheets)</option>';
+                console.log('📋 Adding custom category to dropdown:', currentValue);
+            }
+            
+            select.innerHTML = optionsHtml;
+            select.value = currentValue; // This will now work even for custom categories
         }
         
         function updateTypeDropdown() {
