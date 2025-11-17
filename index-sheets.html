@@ -201,7 +201,7 @@
             font-size: 12px;
             font-weight: 500;
             color: #ffffff;
-            background: #ff6b00;
+            background: #34a853;
             border: none;
             border-radius: 0;
             padding: 0;
@@ -220,12 +220,11 @@
             z-index: 1000;
             box-shadow: none;
         }
-        .unsaved-changes-badge button {
-            font-family: inherit;
+        .unsaved-changes-badge:focus {
+            outline: none;
         }
-        .unsaved-changes-badge button:hover {
-            background: rgba(255,255,255,0.2) !important;
-            border-color: rgba(255,255,255,0.8) !important;
+        .unsaved-changes-badge:active {
+            opacity: 0.9;
         }
         .unsaved-changes-badge svg {
             width: 16px;
@@ -1521,14 +1520,13 @@
                 <button class="btn btn-primary" onclick="document.getElementById('csvUploadMain').click()">
                     Upload CSV
                 </button>
-                <span id="unsavedChangesBadge" class="unsaved-changes-badge" aria-live="polite">
+                <span id="unsavedChangesBadge" class="unsaved-changes-badge" aria-live="polite" onclick="saveAllToSheets()" style="cursor: pointer;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
                         <line x1="12" y1="9" x2="12" y2="13"></line>
                         <line x1="12" y1="17" x2="12.01" y2="17"></line>
                     </svg>
-                    Unsaved changes
-                    <button onclick="saveAllToSheets()" style="background: transparent; border: 1px solid rgba(255,255,255,0.5); color: #ffffff; padding: 4px 12px; border-radius: 12px; cursor: pointer; font-size: 12px; font-weight: 500; margin-left: 12px; transition: all 0.2s;">Save to Google Sheets now</button>
+                    Unsaved changes - Save to Google Sheets now
                 </span>
             </div>
         </div>
@@ -3429,7 +3427,20 @@ function updateUnsavedChangesBadge() {
             if (success) {
                 statusBadge.style.background = '#34a853';
                 statusIcon.textContent = '✓';
-                statusText.textContent = 'Connected';
+                
+                // Extract count from messages like "✅ Loaded 390 listings" or "✅ Loaded 390 listings (CSV)"
+                if (message) {
+                    const countMatch = message.match(/(\d+)\s+listings?/);
+                    if (countMatch) {
+                        const count = countMatch[1];
+                        statusText.textContent = `Connected (${count} listings)`;
+                    } else {
+                        statusText.textContent = 'Connected';
+                    }
+                } else {
+                    statusText.textContent = 'Connected';
+                }
+                
                 lastSync.textContent = new Date().toLocaleTimeString();
             } else {
                 // Check if it's a loading/connecting state or an error
@@ -3446,9 +3457,13 @@ function updateUnsavedChangesBadge() {
             
             if (message) {
                 actionStatus.textContent = message;
-                setTimeout(() => {
-                    actionStatus.textContent = '';
-                }, 3000);
+                // Only clear temporary messages (like "Saving..."), not the loaded count
+                const isPermanentMessage = message.includes('Loaded') && message.match(/\d+\s+listings?/);
+                if (!isPermanentMessage) {
+                    setTimeout(() => {
+                        actionStatus.textContent = '';
+                    }, 3000);
+                }
             }
         }
         
