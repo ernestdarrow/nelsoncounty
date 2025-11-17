@@ -4407,13 +4407,13 @@ function getCategoriesByUsage(listings) {
                     // Category exists in Google Sheets but not in TYPE_CATEGORIES
                     // Add it as a custom category so it shows in sidebar
                     if (!customCategories[listingCategory]) {
-                        customCategories[listingCategory] = {
-                            name: listingCategory,
-                            emoji: '',
-                            description: 'Custom category from Google Sheets',
-                            count: 0,
-                            types: []
-                        };
+                    customCategories[listingCategory] = {
+                        name: listingCategory,
+                        emoji: '⭐',
+                        description: 'Custom category from Google Sheets',
+                        count: 0,
+                        types: []
+                    };
                     }
                     customCategories[listingCategory].count++;
                     if (listing.type && customCategories[listingCategory].types.indexOf(listing.type) === -1) {
@@ -4449,7 +4449,7 @@ function getCategoriesByUsage(listings) {
                 icon: categoryData.icon || ''
             } : {
                 name: customCategories[customKey].name,
-                emoji: customCategories[customKey].emoji,
+                emoji: customCategories[customKey].emoji || '⭐',
                 description: customCategories[customKey].description,
                 types: []
             };
@@ -5219,7 +5219,7 @@ loadDataFromGoogleSheets()
                     icon: categoryData.icon || ''
                 } : {
                     name: categoryKey,
-                    emoji: '',
+                    emoji: '⭐',
                     description: 'Custom category from Google Sheets',
                     types: []
                 };

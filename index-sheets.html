@@ -3774,7 +3774,7 @@ function updateUnsavedChangesBadge() {
                                     icon: categoryData.icon || ''
                                 } : {
                                     name: categoryKey,
-                                    emoji: '',
+                                    emoji: '⭐',
                                     description: 'Custom category from Google Sheets',
                                     types: []
                                 };
@@ -3977,7 +3977,7 @@ function updateUnsavedChangesBadge() {
                                     icon: categoryData.icon || ''
                                 } : {
                                     name: categoryKey,
-                                    emoji: '',
+                                    emoji: '⭐',
                                     description: 'Custom category from Google Sheets',
                                     types: []
                                 };
@@ -5442,13 +5442,13 @@ function updateUnsavedChangesBadge() {
                             // Category exists in Google Sheets but not in TYPE_CATEGORIES
                             // Add it as a custom category so it shows in sidebar
                             if (!customCategories[listingCategory]) {
-                                customCategories[listingCategory] = {
-                                    name: listingCategory,
-                                    emoji: '',
-                                    description: 'Custom category from Google Sheets',
-                                    count: 0,
-                                    types: []
-                                };
+                        customCategories[listingCategory] = {
+                            name: listingCategory,
+                            emoji: '⭐',
+                            description: 'Custom category from Google Sheets',
+                            count: 0,
+                            types: []
+                        };
                             }
                             customCategories[listingCategory].count++;
                             if (listing.type && customCategories[listingCategory].types.indexOf(listing.type) === -1) {
@@ -6537,8 +6537,8 @@ function updateUnsavedChangesBadge() {
             }
             
             // Prompt for emoji
-            const emoji = prompt('Enter an emoji for this category (optional):', '📁');
-            const finalEmoji = emoji ? emoji.trim() : '📁';
+            const emoji = prompt('Enter an emoji for this category (optional):', '⭐');
+            const finalEmoji = emoji ? emoji.trim() : '⭐';
             
             // Create category key from name (lowercase, replace spaces with hyphens)
             const categoryKey = categoryName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
