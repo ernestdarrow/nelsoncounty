@@ -661,7 +661,7 @@
         
         .preview-container { width: 100%; margin: 0; padding: 0; }
         .preview-content-wrapper { display: flex; gap: 0; align-items: stretch; }
-        .preview-sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 0; height: 100vh; align-self: flex-start; background: #ffffff; }
+        .preview-sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 50px; height: calc(100vh - 50px); align-self: flex-start; background: #ffffff; }
         .preview-filters { background: #ffffff; padding: 0; border-radius: 0; box-shadow: none; height: 100%; display: flex; flex-direction: column; }
         .preview-filters h3 { font-size: 18px; color: var(--text-primary); margin-bottom: 0; padding: 20px 20px 15px; background: #ffffff; flex-shrink: 0; }
         .preview-main { flex: 1; min-width: 0; padding: 0 30px 30px 30px; }
@@ -1711,7 +1711,7 @@
                                     </select>
                                 </div>
                                 
-                                <button class="btn btn-secondary" onclick="clearAdminFilters()">Clear Filters</button>
+                                <button class="btn btn-secondary" onclick="clearAdminFilters()" style="display: none;">Clear Filters</button>
                             </div>
                         </div>
                     </div>
@@ -4998,13 +4998,12 @@ function updateUnsavedChangesBadge() {
             if (!clearButton) return;
             
             if (hasActiveFilters()) {
+                clearButton.style.display = '';
                 clearButton.style.background = '#dc3545';
                 clearButton.style.color = 'white';
                 clearButton.style.borderColor = '#dc3545';
             } else {
-                clearButton.style.background = '';
-                clearButton.style.color = '';
-                clearButton.style.borderColor = '';
+                clearButton.style.display = 'none';
             }
         }
         
