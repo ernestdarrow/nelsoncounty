@@ -4348,6 +4348,8 @@ function renderTypeFilterButtons(listings, containerSelector, maxVisible) {
     console.log('📊 All categories (showing all regardless of usage):', categoriesByUsage.map(function(c) {
         return c.category.name + ' (' + c.count + ' listings)';
     }).join(', '));
+    console.log('📋 TYPE_CATEGORIES keys:', Object.keys(TYPE_CATEGORIES));
+    console.log('📋 TYPE_CATEGORIES count:', Object.keys(TYPE_CATEGORIES).length);
     
     // Show ALL categories - if maxVisible is not specified or is less than total, show all
     // Otherwise respect maxVisible but default to showing all
@@ -5063,6 +5065,10 @@ loadDataFromGoogleSheets()
         console.warn('⚠️ NOTE: You are seeing FALLBACK DATA (20 items). Google Sheets fetch failed!');
         // Update head meta from fallback so head isn't stale
         updateHeadFromData(data);
+        
+        console.log('📋 TYPE_CATEGORIES before rendering (fallback):', Object.keys(TYPE_CATEGORIES).map(function(k) {
+            return TYPE_CATEGORIES[k].name;
+        }).join(', '));
         
         // Render type filter buttons dynamically based on usage
         renderTypeFilterButtons(data.listings, '.type-quick-filters'); // Show all categories
