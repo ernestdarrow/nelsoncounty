@@ -5556,7 +5556,7 @@ function filterPreview() {
         // Priority 1: If a category filter is active (user clicked a category button), filter by category
         // Priority 2: If only individual types are selected (user clicked a type badge/button), filter by exact type match
         let matchesType = true;
-        if (currentCategoryFilter && currentTypeFilter.length > 1) {
+        if (currentCategoryFilter) {
             // Category filter mode: User clicked a category button
             // Filter by category using getCategoryForType (handles exact match, keyword match, and category override)
             const listingCategory = getCategoryForType(listing.type, listing);
@@ -5582,7 +5582,7 @@ function filterPreview() {
     });
     
     // Debug logging for filtering
-    if (currentCategoryFilter && currentTypeFilter.length > 1) {
+    if (currentCategoryFilter) {
         // Category filter mode
         console.log('🔍 Filtering by category:', currentCategoryFilter, '| Filtered results:', filtered.length, 'of', data.listings.length);
         if (filtered.length === 0) {
