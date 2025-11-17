@@ -2481,8 +2481,8 @@ function loadCategoriesFromStorage() {
                 const directAccess = localStorage['nelsonCounty_categories'];
                 if (directAccess) {
                     console.log('⚠️ Found value via direct access:', directAccess);
-                }
-            } catch (e) {
+        }
+    } catch (e) {
                 console.log('⚠️ Direct access also failed:', e);
             }
         }
@@ -3538,7 +3538,7 @@ function updateUnsavedChangesBadge() {
                         const count = countMatch[1];
                         statusText.textContent = `Connected (${count} listings)`;
                     } else {
-                        statusText.textContent = 'Connected';
+                statusText.textContent = 'Connected';
                     }
                 } else {
                     statusText.textContent = 'Connected';
@@ -3563,10 +3563,10 @@ function updateUnsavedChangesBadge() {
                 const isPermanentMessage = message.includes('Loaded') && message.match(/\d+\s+listings?/);
                 const isConnectingMessage = message.includes('Connecting') || message.includes('🔄');
                 if (!isPermanentMessage && !isConnectingMessage) {
-                    actionStatus.textContent = message;
-                    setTimeout(() => {
-                        actionStatus.textContent = '';
-                    }, 3000);
+                actionStatus.textContent = message;
+                setTimeout(() => {
+                    actionStatus.textContent = '';
+                }, 3000);
                 } else {
                     // Clear the action status for redundant messages
                     actionStatus.textContent = '';
@@ -5548,23 +5548,14 @@ function updateUnsavedChangesBadge() {
                 slugInput.value = listing.slug || slugify(listing.name || '');
             }
             
-            // Set category from Google Sheets - always use the value from the listing
+            // Set category from Google Sheets - simple, direct (no auto-assignment)
             const categoryInput = document.getElementById('listingCategory');
             if (categoryInput) {
-                // Always use the category from the listing (from Google Sheets)
-                // Don't auto-assign - respect what's in Google Sheets
+                // Use category from listing (from Google Sheets) - no auto-assignment
                 const categoryValue = listing.category || '';
-                console.log('🔍 editListing - Listing object:', {
-                    name: listing.name,
-                    category: listing.category,
-                    hasCategory: 'category' in listing,
-                    categoryType: typeof listing.category,
-                    allKeys: Object.keys(listing).filter(k => k.includes('categor'))
-                });
-                console.log('📋 Setting category dropdown for', listing.name, 'to:', categoryValue, '(from Google Sheets)');
-                console.log('📋 Category dropdown current options:', Array.from(categoryInput.options).map(opt => opt.value));
+                // Set the value directly (same as type field)
                 categoryInput.value = categoryValue;
-                console.log('📋 Category dropdown value after setting:', categoryInput.value);
+                console.log('📋 Set category for', listing.name, 'to:', categoryValue, '(from Google Sheets, no auto-assignment)');
             }
             const image1Input = document.getElementById('listingImage1');
             if (image1Input) {
@@ -5844,8 +5835,10 @@ function updateUnsavedChangesBadge() {
             const existingListing = isUpdate ? data.listings.find(function(l) { return l.id === editingId; }) : null;
             const generatedId = editingId || Date.now().toString();
             
-            // Get category override, if provided
-            const categoryOverride = normalizeCategoryInput(getValue('listingCategory'));
+            // Get category - handle EXACTLY like type (simple, direct, no normalization)
+            // Type: getValue('listingType') - no transformation
+            // Category: getValue('listingCategory') - same approach
+            const categoryValue = getValue('listingCategory');
             
             // Get fileIds from dataset attributes (stored during upload or loaded from listing data)
             const image1Field = document.getElementById('listingImage1');
@@ -5856,7 +5849,7 @@ function updateUnsavedChangesBadge() {
                 id: generatedId,
                 name: getValue('listingName'),
                 slug: getValue('listingSlug'),
-                type: getValue('listingType'),
+                type: getValue('listingType'), // Simple, direct - no normalization
                 area: getValue('listingArea'),
                 description: getValue('listingDescription'),
                 detailedDescription: getValue('listingDetailedDescription'),
@@ -5881,7 +5874,7 @@ function updateUnsavedChangesBadge() {
                 modifiedDate: getValue('listingModifiedDate'),
                 directionsLink: getValue('listingDirectionsLink'),
                 googleMapsUrl: getValue('listingDirectionsLink'),
-                category: categoryOverride || undefined // Only save if explicitly set
+                category: categoryValue || '' // Simple, direct - same as type (empty string if not selected)
             };
             
             const listing = sanitizeListing(Object.assign({}, existingListing || {}, listingUpdates));
@@ -7983,8 +7976,8 @@ function updateUnsavedChangesBadge() {
                             if (fieldValue) return false;
                         } else {
                             // Normal text search
-                            listingValue = String(listing[field] || '').toLowerCase();
-                            if (listingValue.indexOf(filterValue) === -1) return false;
+                        listingValue = String(listing[field] || '').toLowerCase();
+                        if (listingValue.indexOf(filterValue) === -1) return false;
                         }
                     }
                 }
