@@ -338,11 +338,11 @@ function getData(sheet) {
           listing.image2Desc = String(value || '');
         } else if (['image3desc', 'image3 desc', 'image 3 desc', 'image description 3'].includes(headerLower)) {
           listing.image3Desc = String(value || '');
-        } else if (['image1fileid', 'image1 fileid', 'image 1 fileid', 'image1fileId', 'image1 fileId'].includes(headerLower)) {
+        } else if (['image1fileid', 'image1 fileid', 'image 1 fileid', 'image1fileId', 'image1 fileId', 'image1fileid', 'image1_fileid', 'image 1 file id'].includes(headerLower)) {
           listing.image1FileId = String(value || '');
-        } else if (['image2fileid', 'image2 fileid', 'image 2 fileid', 'image2fileId', 'image2 fileId'].includes(headerLower)) {
+        } else if (['image2fileid', 'image2 fileid', 'image 2 fileid', 'image2fileId', 'image2 fileId', 'image2fileid', 'image2_fileid', 'image 2 file id'].includes(headerLower)) {
           listing.image2FileId = String(value || '');
-        } else if (['image3fileid', 'image3 fileid', 'image 3 fileid', 'image3fileId', 'image3 fileId'].includes(headerLower)) {
+        } else if (['image3fileid', 'image3 fileid', 'image 3 fileid', 'image3fileId', 'image3 fileId', 'image3fileid', 'image3_fileid', 'image 3 file id'].includes(headerLower)) {
           listing.image3FileId = String(value || '');
         } else if (['external website', 'website', 'url'].includes(headerLower)) {
           listing.website = String(value || '');
@@ -357,9 +357,31 @@ function getData(sheet) {
           const featuredVal = String(value || '').toLowerCase();
           listing.featured = featuredVal === 'true' || featuredVal === 'yes' || featuredVal === '1';
         } else {
-          listing[header] = String(value || '');
+          // Fallback: set field directly, but also check for image file ID fields by header name
+          const headerStr = String(header || '').trim();
+          if (headerStr.toLowerCase().includes('image1fileid') || headerStr.toLowerCase().includes('image1_fileid')) {
+            listing.image1FileId = String(value || '');
+          } else if (headerStr.toLowerCase().includes('image2fileid') || headerStr.toLowerCase().includes('image2_fileid')) {
+            listing.image2FileId = String(value || '');
+          } else if (headerStr.toLowerCase().includes('image3fileid') || headerStr.toLowerCase().includes('image3_fileid')) {
+            listing.image3FileId = String(value || '');
+          } else {
+            listing[header] = String(value || '');
+          }
         }
       });
+      
+      // Ensure image file ID fields are always present (required by Framer)
+      if (!listing.hasOwnProperty('image1FileId')) {
+        listing.image1FileId = '';
+      }
+      if (!listing.hasOwnProperty('image2FileId')) {
+        listing.image2FileId = '';
+      }
+      if (!listing.hasOwnProperty('image3FileId')) {
+        listing.image3FileId = '';
+      }
+      
       if (!listing.slug && listing.name) {
         listing.slug = listing.name.toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
@@ -445,7 +467,9 @@ function saveListing(sheet, listing) {
         // Preserve existing date if incoming value is empty
         const incomingValue = listing.publishedDate || listing.publisheddate || '';
         if (incomingValue && incomingValue.trim() !== '') {
-          rowData.push(incomingValue);
+          // Convert date string to Date object for proper formatting
+          const dateValue = typeof incomingValue === 'string' ? parseDateString(incomingValue) : incomingValue;
+          rowData.push(dateValue);
         } else if (existingRow && colIndex < existingRow.length && existingRow[colIndex]) {
           rowData.push(existingRow[colIndex]); // Preserve existing date
         } else {
@@ -455,7 +479,9 @@ function saveListing(sheet, listing) {
         // Preserve existing date if incoming value is empty
         const incomingValue = listing.modifiedDate || listing.modifieddate || '';
         if (incomingValue && incomingValue.trim() !== '') {
-          rowData.push(incomingValue);
+          // Convert date string to Date object for proper formatting
+          const dateValue = typeof incomingValue === 'string' ? parseDateString(incomingValue) : incomingValue;
+          rowData.push(dateValue);
         } else if (existingRow && colIndex < existingRow.length && existingRow[colIndex]) {
           rowData.push(existingRow[colIndex]); // Preserve existing date
         } else {
@@ -468,8 +494,29 @@ function saveListing(sheet, listing) {
 
     if (rowIndex > 0) {
       sheet.getRange(rowIndex, 1, 1, rowData.length).setValues([rowData]);
+      
+      // Format date columns for this row
+      headers.forEach((header, colIndex) => {
+        const headerLower = String(header).toLowerCase().trim();
+        if (['publisheddate', 'published date', 'publish date', 'created date'].includes(headerLower) ||
+            ['modifieddate', 'modified date', 'updated date', 'last updated'].includes(headerLower)) {
+          const dateColumn = colIndex + 1;
+          sheet.getRange(rowIndex, dateColumn).setNumberFormat('mmm d, yyyy');
+        }
+      });
     } else {
       sheet.appendRow(rowData);
+      
+      // Format date columns for the newly appended row
+      const newRowIndex = sheet.getLastRow();
+      headers.forEach((header, colIndex) => {
+        const headerLower = String(header).toLowerCase().trim();
+        if (['publisheddate', 'published date', 'publish date', 'created date'].includes(headerLower) ||
+            ['modifieddate', 'modified date', 'updated date', 'last updated'].includes(headerLower)) {
+          const dateColumn = colIndex + 1;
+          sheet.getRange(newRowIndex, dateColumn).setNumberFormat('mmm d, yyyy');
+        }
+      });
     }
 
     return { success: true, message: 'Listing saved successfully' };
@@ -510,12 +557,51 @@ const CANONICAL_LISTING_HEADERS = [
   'googleMapsUrl'
 ];
 
+// Helper function to convert date string (YYYY-MM-DD) to Date object
+function parseDateString(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') {
+    return dateStr;
+  }
+  const trimmed = dateStr.trim();
+  if (!trimmed) {
+    return '';
+  }
+  // Check if it's in YYYY-MM-DD format
+  const dateMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (dateMatch) {
+    const year = parseInt(dateMatch[1], 10);
+    const month = parseInt(dateMatch[2], 10) - 1; // JavaScript months are 0-indexed
+    const day = parseInt(dateMatch[3], 10);
+    return new Date(year, month, day);
+  }
+  // If not in expected format, try to parse as-is
+  const parsed = new Date(trimmed);
+  if (!isNaN(parsed.getTime())) {
+    return parsed;
+  }
+  return dateStr; // Return original if can't parse
+}
+
 function replaceAllListings(sheet, listings) {
   try {
     sheet.clear();
 
     const headers = CANONICAL_LISTING_HEADERS.slice();
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    
+    // Format date column headers (for future rows)
+    const publishedDateIndex = headers.indexOf('publishedDate');
+    const modifiedDateIndex = headers.indexOf('modifiedDate');
+    
+    if (publishedDateIndex >= 0) {
+      const dateColumn = publishedDateIndex + 1;
+      sheet.getRange(1, dateColumn).setNumberFormat('mmm d, yyyy');
+    }
+    
+    if (modifiedDateIndex >= 0) {
+      const dateColumn = modifiedDateIndex + 1;
+      sheet.getRange(1, dateColumn).setNumberFormat('mmm d, yyyy');
+    }
 
     if (!listings || !Array.isArray(listings) || listings.length === 0) {
       return { success: true, message: 'Sheet cleared' };
@@ -530,6 +616,13 @@ function replaceAllListings(sheet, listings) {
       }
       if (headerKey === 'featured') {
         return value ? 'TRUE' : 'FALSE';
+      }
+      // Convert date strings to Date objects for proper formatting
+      if (headerKey === 'publishedDate' || headerKey === 'modifiedDate') {
+        if (value && typeof value === 'string' && value.trim()) {
+          return parseDateString(value);
+        }
+        return value || '';
       }
       return value || '';
     };
@@ -554,6 +647,22 @@ function replaceAllListings(sheet, listings) {
 
     if (rows.length > 0) {
       sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+      
+      // Format date columns to display as dates only (no time)
+      const publishedDateIndex = headers.indexOf('publishedDate');
+      const modifiedDateIndex = headers.indexOf('modifiedDate');
+      
+      if (publishedDateIndex >= 0) {
+        const dateColumn = publishedDateIndex + 1;
+        const dateRange = sheet.getRange(2, dateColumn, rows.length, 1);
+        dateRange.setNumberFormat('mmm d, yyyy'); // Format: "Nov 16, 2025"
+      }
+      
+      if (modifiedDateIndex >= 0) {
+        const dateColumn = modifiedDateIndex + 1;
+        const dateRange = sheet.getRange(2, dateColumn, rows.length, 1);
+        dateRange.setNumberFormat('mmm d, yyyy'); // Format: "Nov 16, 2025"
+      }
     }
 
     return { success: true, message: 'All listings replaced successfully' };
