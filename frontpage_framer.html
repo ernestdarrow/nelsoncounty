@@ -4378,20 +4378,65 @@ function getCategoriesByUsage(listings) {
         categoryTypesMap[categoryKey] = [];
     }
     
+    // Track custom categories from Google Sheets that aren't in TYPE_CATEGORIES
+    const customCategories = {};
+    
     // Count listings for each category if we have listings
+    // Use category from Google Sheets directly (no auto-assignment)
     if (listings && listings.length > 0) {
         listings.forEach(function(listing) {
-            if (listing.type) {
-                const listingCategory = getCategoryForType(listing.type, listing);
-                if (listingCategory && TYPE_CATEGORIES[listingCategory]) {
+            // Use category from Google Sheets if it exists (simple, direct - no auto-assignment)
+            let listingCategory = null;
+            if (listing.category && listing.category.trim() !== '') {
+                // Use category directly from Google Sheets
+                listingCategory = listing.category.trim();
+            } else if (listing.type) {
+                // Only use auto-assignment as fallback if no category in Google Sheets
+                listingCategory = getCategoryForType(listing.type, listing);
+            }
+            
+            if (listingCategory) {
+                if (TYPE_CATEGORIES[listingCategory]) {
+                    // Category exists in TYPE_CATEGORIES - count it
                     categoryCounts[listingCategory] = (categoryCounts[listingCategory] || 0) + 1;
                     // Track which types belong to this category
-                    if (categoryTypesMap[listingCategory].indexOf(listing.type) === -1) {
+                    if (listing.type && categoryTypesMap[listingCategory].indexOf(listing.type) === -1) {
                         categoryTypesMap[listingCategory].push(listing.type);
+                    }
+                } else {
+                    // Category exists in Google Sheets but not in TYPE_CATEGORIES
+                    // Add it as a custom category so it shows in sidebar
+                    if (!customCategories[listingCategory]) {
+                        customCategories[listingCategory] = {
+                            name: listingCategory,
+                            emoji: '',
+                            description: 'Custom category from Google Sheets',
+                            count: 0,
+                            types: []
+                        };
+                    }
+                    customCategories[listingCategory].count++;
+                    if (listing.type && customCategories[listingCategory].types.indexOf(listing.type) === -1) {
+                        customCategories[listingCategory].types.push(listing.type);
                     }
                 }
             }
         });
+    }
+    
+    // Add custom categories to TYPE_CATEGORIES temporarily for display
+    // (They'll be shown in sidebar but won't persist - admin should add them properly)
+    for (const customKey in customCategories) {
+        if (!TYPE_CATEGORIES[customKey]) {
+            TYPE_CATEGORIES[customKey] = {
+                name: customCategories[customKey].name,
+                emoji: customCategories[customKey].emoji,
+                description: customCategories[customKey].description,
+                types: []
+            };
+            categoryCounts[customKey] = customCategories[customKey].count;
+            categoryTypesMap[customKey] = customCategories[customKey].types;
+        }
     }
     
     // Convert all categories to array
@@ -5671,8 +5716,15 @@ function filterPreview() {
         let matchesType = true;
         if (currentCategoryFilter) {
             // Category filter mode: User clicked a category button
-            // Filter by category using getCategoryForType (handles exact match, keyword match, and category override)
-            const listingCategory = getCategoryForType(listing.type, listing);
+            // Use category from Google Sheets directly (no auto-assignment)
+            let listingCategory = null;
+            if (listing.category && listing.category.trim() !== '') {
+                // Use category directly from Google Sheets
+                listingCategory = listing.category.trim();
+            } else if (listing.type) {
+                // Only use auto-assignment as fallback if no category in Google Sheets
+                listingCategory = getCategoryForType(listing.type, listing);
+            }
             matchesType = listingCategory === currentCategoryFilter;
         } else if (currentTypeFilter.length > 0) {
             // Individual type filter mode: User selected specific type(s) via badge, URL param, mobile filter, or individual type button
