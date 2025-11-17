@@ -3781,17 +3781,33 @@ function updateUnsavedChangesBadge() {
                                 addedCustomCategories = true;
                                 console.log('✅ Added category from Google Sheets to TYPE_CATEGORIES:', categoryKey, 'with emoji:', TYPE_CATEGORIES[categoryKey].emoji || '(none)');
                             } else if (TYPE_CATEGORIES[categoryKey]) {
-                                // Category already exists - ensure it has the latest emoji from localStorage/admin
+                                // Category already exists - ALWAYS sync emoji/name from localStorage/admin
+                                // Google Sheets only stores the category key, not the emoji
                                 if (categoriesFromStorage && categoriesFromStorage[categoryKey]) {
                                     const storageCategory = categoriesFromStorage[categoryKey];
-                                    // Update emoji and name if they've changed in admin
-                                    if (storageCategory.emoji && storageCategory.emoji !== TYPE_CATEGORIES[categoryKey].emoji) {
+                                    // Always update emoji from admin if it exists (even if currently empty)
+                                    if (storageCategory.emoji) {
                                         TYPE_CATEGORIES[categoryKey].emoji = storageCategory.emoji;
-                                        console.log('🔄 Updated emoji for category', categoryKey, 'from admin:', storageCategory.emoji);
+                                        console.log('🔄 Synced emoji for category', categoryKey, 'from admin:', storageCategory.emoji);
                                     }
-                                    if (storageCategory.name && storageCategory.name !== TYPE_CATEGORIES[categoryKey].name) {
+                                    // Always update name from admin if it exists
+                                    if (storageCategory.name) {
                                         TYPE_CATEGORIES[categoryKey].name = storageCategory.name;
-                                        console.log('🔄 Updated name for category', categoryKey, 'from admin:', storageCategory.name);
+                                        console.log('🔄 Synced name for category', categoryKey, 'from admin:', storageCategory.name);
+                                    }
+                                    // Sync other properties too
+                                    if (storageCategory.description) {
+                                        TYPE_CATEGORIES[categoryKey].description = storageCategory.description;
+                                    }
+                                    if (storageCategory.icon) {
+                                        TYPE_CATEGORIES[categoryKey].icon = storageCategory.icon;
+                                    }
+                                } else if (DEFAULT_TYPE_CATEGORIES[categoryKey]) {
+                                    // Fallback to defaults if not in localStorage
+                                    const defaultCategory = DEFAULT_TYPE_CATEGORIES[categoryKey];
+                                    if (defaultCategory.emoji && !TYPE_CATEGORIES[categoryKey].emoji) {
+                                        TYPE_CATEGORIES[categoryKey].emoji = defaultCategory.emoji;
+                                        console.log('🔄 Using default emoji for category', categoryKey, ':', defaultCategory.emoji);
                                     }
                                 }
                             }
@@ -3968,17 +3984,33 @@ function updateUnsavedChangesBadge() {
                                 addedCustomCategories = true;
                                 console.log('✅ Added category from Google Sheets to TYPE_CATEGORIES:', categoryKey, 'with emoji:', TYPE_CATEGORIES[categoryKey].emoji || '(none)');
                             } else if (TYPE_CATEGORIES[categoryKey]) {
-                                // Category already exists - ensure it has the latest emoji from localStorage/admin
+                                // Category already exists - ALWAYS sync emoji/name from localStorage/admin
+                                // Google Sheets only stores the category key, not the emoji
                                 if (categoriesFromStorage && categoriesFromStorage[categoryKey]) {
                                     const storageCategory = categoriesFromStorage[categoryKey];
-                                    // Update emoji and name if they've changed in admin
-                                    if (storageCategory.emoji && storageCategory.emoji !== TYPE_CATEGORIES[categoryKey].emoji) {
+                                    // Always update emoji from admin if it exists (even if currently empty)
+                                    if (storageCategory.emoji) {
                                         TYPE_CATEGORIES[categoryKey].emoji = storageCategory.emoji;
-                                        console.log('🔄 Updated emoji for category', categoryKey, 'from admin:', storageCategory.emoji);
+                                        console.log('🔄 Synced emoji for category', categoryKey, 'from admin:', storageCategory.emoji);
                                     }
-                                    if (storageCategory.name && storageCategory.name !== TYPE_CATEGORIES[categoryKey].name) {
+                                    // Always update name from admin if it exists
+                                    if (storageCategory.name) {
                                         TYPE_CATEGORIES[categoryKey].name = storageCategory.name;
-                                        console.log('🔄 Updated name for category', categoryKey, 'from admin:', storageCategory.name);
+                                        console.log('🔄 Synced name for category', categoryKey, 'from admin:', storageCategory.name);
+                                    }
+                                    // Sync other properties too
+                                    if (storageCategory.description) {
+                                        TYPE_CATEGORIES[categoryKey].description = storageCategory.description;
+                                    }
+                                    if (storageCategory.icon) {
+                                        TYPE_CATEGORIES[categoryKey].icon = storageCategory.icon;
+                                    }
+                                } else if (DEFAULT_TYPE_CATEGORIES[categoryKey]) {
+                                    // Fallback to defaults if not in localStorage
+                                    const defaultCategory = DEFAULT_TYPE_CATEGORIES[categoryKey];
+                                    if (defaultCategory.emoji && !TYPE_CATEGORIES[categoryKey].emoji) {
+                                        TYPE_CATEGORIES[categoryKey].emoji = defaultCategory.emoji;
+                                        console.log('🔄 Using default emoji for category', categoryKey, ':', defaultCategory.emoji);
                                     }
                                 }
                             }
