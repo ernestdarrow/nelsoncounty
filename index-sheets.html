@@ -2372,6 +2372,14 @@ function sanitizeListing(listing) {
         listing.image3 = galleryImage;
     }
     
+    // Normalize dates if they exist
+    if (listing.publishedDate && typeof listing.publishedDate === 'string') {
+        listing.publishedDate = normalizeDate(listing.publishedDate);
+    }
+    if (listing.modifiedDate && typeof listing.modifiedDate === 'string') {
+        listing.modifiedDate = normalizeDate(listing.modifiedDate);
+    }
+    
     REMOVED_LISTING_FIELDS.forEach(function(field) {
         if (field in listing) {
             delete listing[field];
@@ -2411,6 +2419,31 @@ function sanitizeCustomHtml(html) {
 function normalizeFilterValue(value) {
     if (typeof value !== 'string') return '';
     const trimmed = value.trim();
+    return trimmed;
+}
+
+// Normalize date strings to YYYY-MM-DD format
+function normalizeDate(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') {
+        return dateStr;
+    }
+    const trimmed = dateStr.trim();
+    if (!trimmed) {
+        return '';
+    }
+    // If already in YYYY-MM-DD format, return as-is
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        return trimmed;
+    }
+    // Try to parse as Date object (handles Google Sheets date format)
+    const date = new Date(trimmed);
+    if (!isNaN(date.getTime())) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+    // If can't parse, return original (validation will catch it)
     return trimmed;
 }
 
@@ -3335,8 +3368,14 @@ function updateUnsavedChangesBadge() {
                 featured: featuredStr === 'TRUE' || featuredStr === 'true' || featuredStr === '1' || featuredStr === 'Yes' || featuredStr === 'yes',
                 slug: getField('slug'),
                 authorName: getField('authorName', ['Author Name', 'Author', 'author', 'contributor', 'contributor name']),
-                publishedDate: getField('publishedDate', ['Published Date', 'Created Date', 'createdDate', 'Date Created', 'publishDate', 'created on'], true),
-                modifiedDate: getField('modifiedDate', ['Modified Date', 'Updated Date', 'updatedDate', 'Date Updated', 'editedDate', 'Edited Date', 'last updated', 'last modified'], true),
+                publishedDate: (function() {
+                    const date = getField('publishedDate', ['Published Date', 'Created Date', 'createdDate', 'Date Created', 'publishDate', 'created on'], true);
+                    return date ? normalizeDate(date) : date;
+                })(),
+                modifiedDate: (function() {
+                    const date = getField('modifiedDate', ['Modified Date', 'Updated Date', 'updatedDate', 'Date Updated', 'editedDate', 'Edited Date', 'last updated', 'last modified'], true);
+                    return date ? normalizeDate(date) : date;
+                })(),
                 directionsLink: directionsLinkField || googleMapsUrlField || ''
             };
             
@@ -3948,7 +3987,9 @@ function updateUnsavedChangesBadge() {
                 
                 // Validate dates
                 if (listing.publishedDate && listing.publishedDate.trim() !== '') {
-                    if (!/^\d{4}-\d{2}-\d{2}$/.test(listing.publishedDate)) {
+                    // Normalize the date before validation
+                    const normalizedDate = normalizeDate(listing.publishedDate);
+                    if (!/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
                         errors.push({
                             type: 'invalid-date',
                             severity: 'warning',
@@ -3956,11 +3997,16 @@ function updateUnsavedChangesBadge() {
                             listing: listing,
                             index: index
                         });
+                    } else if (normalizedDate !== listing.publishedDate) {
+                        // Update the listing with normalized date
+                        listing.publishedDate = normalizedDate;
                     }
                 }
                 
                 if (listing.modifiedDate && listing.modifiedDate.trim() !== '') {
-                    if (!/^\d{4}-\d{2}-\d{2}$/.test(listing.modifiedDate)) {
+                    // Normalize the date before validation
+                    const normalizedDate = normalizeDate(listing.modifiedDate);
+                    if (!/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
                         errors.push({
                             type: 'invalid-date',
                             severity: 'warning',
@@ -3968,6 +4014,9 @@ function updateUnsavedChangesBadge() {
                             listing: listing,
                             index: index
                         });
+                    } else if (normalizedDate !== listing.modifiedDate) {
+                        // Update the listing with normalized date
+                        listing.modifiedDate = normalizedDate;
                     }
                 }
                 
