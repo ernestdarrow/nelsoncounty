@@ -2448,11 +2448,21 @@ function loadCategoriesFromStorage() {
         if (stored) {
             const parsed = JSON.parse(stored);
             if (parsed && typeof parsed === 'object') {
+                const categoryKeys = Object.keys(parsed);
+                console.log('✅ loadCategoriesFromStorage: Found', categoryKeys.length, 'categories in localStorage');
+                console.log('📋 Category keys:', categoryKeys);
+                console.log('📋 Category names:', categoryKeys.map(function(k) {
+                    return parsed[k].name || k;
+                }).join(', '));
                 return parsed;
+            } else {
+                console.warn('⚠️ loadCategoriesFromStorage: Stored value is not an object:', typeof parsed);
             }
+        } else {
+            console.log('⚠️ loadCategoriesFromStorage: No categories found in localStorage');
         }
     } catch (e) {
-        console.error('Error loading categories from storage:', e);
+        console.error('❌ Error loading categories from storage:', e);
     }
     return null;
 }
@@ -2460,10 +2470,21 @@ function loadCategoriesFromStorage() {
 // Save categories to localStorage (synced between admin and front page)
 function saveCategoriesToStorage(categories) {
     try {
+        const categoryKeys = Object.keys(categories);
+        const customKeys = categoryKeys.filter(function(key) {
+            return !DEFAULT_TYPE_CATEGORIES.hasOwnProperty(key);
+        });
+        console.log('💾 saveCategoriesToStorage: Saving', categoryKeys.length, 'categories to localStorage');
+        if (customKeys.length > 0) {
+            console.log('🔧 Custom categories being saved:', customKeys.map(function(k) {
+                return categories[k].name || k;
+            }).join(', '));
+        }
         localStorage.setItem('nelsonCounty_categories', JSON.stringify(categories));
+        console.log('✅ Categories saved successfully');
         return true;
     } catch (e) {
-        console.error('Error saving categories to storage:', e);
+        console.error('❌ Error saving categories to storage:', e);
         return false;
     }
 }
@@ -2660,6 +2681,16 @@ if (loadedCategories && Object.keys(loadedCategories).length > 0) {
         return TYPE_CATEGORIES[k].name;
     }).join(', '));
     
+    // Identify custom categories (not in DEFAULT_TYPE_CATEGORIES) to preserve them
+    const customCategoryKeys = Object.keys(TYPE_CATEGORIES).filter(function(key) {
+        return !DEFAULT_TYPE_CATEGORIES.hasOwnProperty(key);
+    });
+    if (customCategoryKeys.length > 0) {
+        console.log('🔧 Found custom categories to preserve:', customCategoryKeys.map(function(k) {
+            return TYPE_CATEGORIES[k].name;
+        }).join(', '));
+    }
+    
     // Ensure all default categories have icons (but don't overwrite custom categories)
     let needsUpdate = false;
     for (const categoryKey in DEFAULT_TYPE_CATEGORIES) {
@@ -2675,9 +2706,27 @@ if (loadedCategories && Object.keys(loadedCategories).length > 0) {
             needsUpdate = true;
         }
     }
+    
+    // Explicitly preserve custom categories (ones not in DEFAULT_TYPE_CATEGORIES)
+    // This ensures they're not lost during the merge
+    const preservedCustomCategories = {};
+    customCategoryKeys.forEach(function(key) {
+        preservedCustomCategories[key] = JSON.parse(JSON.stringify(loadedCategories[key]));
+    });
+    // Re-add custom categories to ensure they're preserved
+    for (const key in preservedCustomCategories) {
+        TYPE_CATEGORIES[key] = preservedCustomCategories[key];
+    }
+    
     // Save updated categories if we made changes (preserves custom categories)
-    if (needsUpdate) {
+    if (needsUpdate || customCategoryKeys.length > 0) {
         saveCategoriesToStorage(TYPE_CATEGORIES);
+        console.log('💾 Saved categories to localStorage. Total:', Object.keys(TYPE_CATEGORIES).length);
+        if (customCategoryKeys.length > 0) {
+            console.log('✅ Preserved custom categories:', customCategoryKeys.map(function(k) {
+                return TYPE_CATEGORIES[k].name;
+            }).join(', '));
+        }
     }
 } else {
     // No categories in localStorage, use defaults
