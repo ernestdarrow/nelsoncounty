@@ -1578,7 +1578,7 @@
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
                 <div>
                     <h3 style="margin: 0 0 5px 0; color: #34a853; display: flex; align-items: center; gap: 8px;">
-                        <span>📊</span> Google Sheets Integration
+                        Google Sheets Integration
                     </h3>
                     <p style="margin: 0; color: #666; font-size: 14px;">All changes sync to your Google Sheet. Make sure your Apps Script is configured to accept JSON POST requests.</p>
                 </div>
@@ -1608,19 +1608,39 @@
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <button onclick="reloadFromSheets()" 
                         style="background: #4285f4; color: white; border: none; padding: 10px 20px; border-radius: 18px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                    <span>🔄</span> Reload from Google Sheets
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                    Reload from Google Sheets
                 </button>
                 <button onclick="saveAllToSheets()"
                         style="background: #34a853; color: white; border: none; padding: 10px 20px; border-radius: 18px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                    <span>💾</span> Save All to Google Sheets
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Save All to Google Sheets
                 </button>
                 <button onclick="downloadCSV()"
                         style="background: #4E6B52; color: white; border: none; padding: 10px 20px; border-radius: 18px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                    <span>📥</span> Download CSV Backup
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download CSV Backup
                 </button>
                 <button onclick="showErrorConsole()"
                         style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 18px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                    <span>⚠️</span> Check for Errors
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    Check for Errors
                 </button>
                 <div id="sheetsActionStatus" style="margin-left: auto; font-weight: 600; color: #34a853;"></div>
             </div>
@@ -1638,11 +1658,19 @@
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <button onclick="validateListings()" 
                             style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 18px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                        <span>🔄</span> Re-validate
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        Re-validate
                     </button>
                     <button onclick="hideErrorConsole()" 
-                            style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 18px; cursor: pointer; font-weight: 600;">
-                        ✕
+                            style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 18px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
                     </button>
                 </div>
             </div>
