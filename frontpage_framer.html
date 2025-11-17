@@ -4436,8 +4436,12 @@ function getCategoriesByUsage(listings) {
             };
             categoryCounts[customKey] = customCategories[customKey].count;
             categoryTypesMap[customKey] = customCategories[customKey].types;
+            console.log('✅ Added custom category to TYPE_CATEGORIES:', customKey, 'with', customCategories[customKey].count, 'listings');
         }
     }
+    
+    console.log('📋 TYPE_CATEGORIES after adding custom categories:', Object.keys(TYPE_CATEGORIES).length, 'categories');
+    console.log('📋 Category keys:', Object.keys(TYPE_CATEGORIES));
     
     // Convert all categories to array
     const categoriesArray = Object.keys(TYPE_CATEGORIES).map(function(categoryKey) {
@@ -4464,10 +4468,21 @@ function getCategoriesByUsage(listings) {
 // Shows ALL categories from TYPE_CATEGORIES regardless of whether they have matching types
 function renderTypeFilterButtons(listings, containerSelector, maxVisible) {
     const container = document.querySelector(containerSelector);
-    if (!container) return;
+    if (!container) {
+        console.error('❌ Container not found:', containerSelector);
+        return;
+    }
+    
+    console.log('🎯 renderTypeFilterButtons called with', listings ? listings.length : 0, 'listings');
+    console.log('📋 TYPE_CATEGORIES before getCategoriesByUsage:', Object.keys(TYPE_CATEGORIES).length, 'categories');
+    console.log('📋 TYPE_CATEGORIES keys:', Object.keys(TYPE_CATEGORIES));
     
     // Get ALL categories (will show all regardless of usage)
     const categoriesByUsage = getCategoriesByUsage(listings || []);
+    
+    console.log('📋 TYPE_CATEGORIES after getCategoriesByUsage:', Object.keys(TYPE_CATEGORIES).length, 'categories');
+    console.log('📋 TYPE_CATEGORIES keys after:', Object.keys(TYPE_CATEGORIES));
+    console.log('📊 categoriesByUsage length:', categoriesByUsage.length);
     
     if (categoriesByUsage.length === 0) {
         console.log('⚠️ No categories defined in TYPE_CATEGORIES');
@@ -4475,7 +4490,7 @@ function renderTypeFilterButtons(listings, containerSelector, maxVisible) {
     }
     
     console.log('📊 All categories (showing all regardless of usage):', categoriesByUsage.map(function(c) {
-        return c.category.name + ' (' + c.count + ' listings)';
+        return c.key + ': ' + c.category.name + ' (' + c.count + ' listings)';
     }).join(', '));
     console.log('📋 TYPE_CATEGORIES keys:', Object.keys(TYPE_CATEGORIES));
     console.log('📋 TYPE_CATEGORIES count:', Object.keys(TYPE_CATEGORIES).length);
@@ -5140,6 +5155,66 @@ loadDataFromGoogleSheets()
         
         // Reload categories from localStorage to get latest changes from admin panel
         reloadCategoriesFromStorage();
+        
+        // Extract categories from Google Sheets data and ensure they're in TYPE_CATEGORIES
+        // This ensures custom categories from Google Sheets show up even if not in localStorage
+        const categoriesFromData = [...new Set(data.listings.map(l => l.category).filter(Boolean))];
+        console.log('📋 Categories found in Google Sheets data:', categoriesFromData);
+        
+        // Load categories from localStorage again to get latest emoji/name updates from admin
+        const categoriesFromStorage = loadCategoriesFromStorage();
+        
+        // Add any missing categories from Google Sheets to TYPE_CATEGORIES
+        // Use emoji/name from localStorage (admin) if available, otherwise use defaults
+        let addedCustomCategories = false;
+        categoriesFromData.forEach(function(categoryKey) {
+            if (categoryKey && categoryKey.trim() && !TYPE_CATEGORIES[categoryKey]) {
+                // Check if category exists in localStorage (from admin)
+                let categoryData = null;
+                if (categoriesFromStorage && categoriesFromStorage[categoryKey]) {
+                    categoryData = categoriesFromStorage[categoryKey];
+                    console.log('✅ Found category in localStorage (from admin):', categoryKey, 'with emoji:', categoryData.emoji);
+                } else if (DEFAULT_TYPE_CATEGORIES[categoryKey]) {
+                    categoryData = DEFAULT_TYPE_CATEGORIES[categoryKey];
+                    console.log('✅ Found category in DEFAULT_TYPE_CATEGORIES:', categoryKey, 'with emoji:', categoryData.emoji);
+                }
+                
+                // Use data from admin/localStorage if available, otherwise create minimal entry
+                TYPE_CATEGORIES[categoryKey] = categoryData ? {
+                    name: categoryData.name || categoryKey,
+                    emoji: categoryData.emoji || '',
+                    description: categoryData.description || 'Custom category from Google Sheets',
+                    types: categoryData.types || [],
+                    icon: categoryData.icon || ''
+                } : {
+                    name: categoryKey,
+                    emoji: '',
+                    description: 'Custom category from Google Sheets',
+                    types: []
+                };
+                addedCustomCategories = true;
+                console.log('✅ Added category from Google Sheets to TYPE_CATEGORIES:', categoryKey, 'with emoji:', TYPE_CATEGORIES[categoryKey].emoji || '(none)');
+            } else if (TYPE_CATEGORIES[categoryKey]) {
+                // Category already exists - ensure it has the latest emoji from localStorage/admin
+                if (categoriesFromStorage && categoriesFromStorage[categoryKey]) {
+                    const storageCategory = categoriesFromStorage[categoryKey];
+                    // Update emoji and name if they've changed in admin
+                    if (storageCategory.emoji && storageCategory.emoji !== TYPE_CATEGORIES[categoryKey].emoji) {
+                        TYPE_CATEGORIES[categoryKey].emoji = storageCategory.emoji;
+                        console.log('🔄 Updated emoji for category', categoryKey, 'from admin:', storageCategory.emoji);
+                    }
+                    if (storageCategory.name && storageCategory.name !== TYPE_CATEGORIES[categoryKey].name) {
+                        TYPE_CATEGORIES[categoryKey].name = storageCategory.name;
+                        console.log('🔄 Updated name for category', categoryKey, 'from admin:', storageCategory.name);
+                    }
+                }
+            }
+        });
+        
+        if (addedCustomCategories) {
+            console.log('📋 TYPE_CATEGORIES after adding Google Sheets categories:', Object.keys(TYPE_CATEGORIES).length, 'categories');
+            console.log('📋 Category keys:', Object.keys(TYPE_CATEGORIES));
+        }
         
         // Ensure filterOptions exist (if loaded from CSV, they're already there)
         if (!data.filterOptions && data.listings) {
