@@ -2649,14 +2649,18 @@ const DEFAULT_TYPE_CATEGORIES = {
 };
 
 // Initialize TYPE_CATEGORIES from localStorage or defaults
-let TYPE_CATEGORIES = loadCategoriesFromStorage() || DEFAULT_TYPE_CATEGORIES;
+let loadedCategories = loadCategoriesFromStorage();
+let TYPE_CATEGORIES;
 
-// Ensure we always have the default structure and icons
-if (!TYPE_CATEGORIES || Object.keys(TYPE_CATEGORIES).length === 0) {
-    TYPE_CATEGORIES = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES));
-    saveCategoriesToStorage(TYPE_CATEGORIES);
-} else {
-    // Ensure all categories have icons from defaults
+if (loadedCategories && Object.keys(loadedCategories).length > 0) {
+    // Start with loaded categories from localStorage (preserves custom categories)
+    TYPE_CATEGORIES = JSON.parse(JSON.stringify(loadedCategories));
+    console.log('✅ Loaded categories from localStorage. Total:', Object.keys(TYPE_CATEGORIES).length);
+    console.log('📋 Categories:', Object.keys(TYPE_CATEGORIES).map(function(k) {
+        return TYPE_CATEGORIES[k].name;
+    }).join(', '));
+    
+    // Ensure all default categories have icons (but don't overwrite custom categories)
     let needsUpdate = false;
     for (const categoryKey in DEFAULT_TYPE_CATEGORIES) {
         if (TYPE_CATEGORIES[categoryKey]) {
@@ -2666,15 +2670,20 @@ if (!TYPE_CATEGORIES || Object.keys(TYPE_CATEGORIES).length === 0) {
                 needsUpdate = true;
             }
         } else {
-            // If category is missing, add it from defaults
+            // If default category is missing, add it from defaults
             TYPE_CATEGORIES[categoryKey] = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES[categoryKey]));
             needsUpdate = true;
         }
     }
-    // Save updated categories if we made changes
+    // Save updated categories if we made changes (preserves custom categories)
     if (needsUpdate) {
         saveCategoriesToStorage(TYPE_CATEGORIES);
     }
+} else {
+    // No categories in localStorage, use defaults
+    console.log('⚠️ No categories in localStorage, using defaults');
+    TYPE_CATEGORIES = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES));
+    saveCategoriesToStorage(TYPE_CATEGORIES);
 }
 
 function normalizeCategoryInput(value) {

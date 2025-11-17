@@ -36,6 +36,8 @@
     
     <!-- Google Maps API - Replace with your own key if needed -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDysf1CQM7-kZd_mhDcBIhp92o7Tb6SmAQ&libraries=places&callback=initMap" async defer></script>
+    <!-- Marker Clusterer Library -->
+    <script src="https://unpkg.com/@googlemaps/js-marker-clusterer/dist/index.min.js"></script>
     
     <!-- Embedded CSS -->
     <style>
@@ -7262,10 +7264,21 @@ function updateMapMarkers(listings) {
                 // Check if MarkerClusterer library is available
                 if (typeof MarkerClusterer !== 'undefined') {
                     // Create marker clusterer with the @googlemaps/js-marker-clusterer library
-                    markerCluster = new MarkerClusterer({ 
-                        map: map, 
-                        markers: markersToAdd 
-                    });
+                    // Configure to show more detail at higher zoom levels
+                    var clusterOptions = {
+                        map: map,
+                        markers: markersToAdd
+                    };
+                    
+                    // If gridAlgorithm is available, use it for better zoom-based clustering
+                    if (typeof MarkerClusterer.gridAlgorithm !== 'undefined') {
+                        clusterOptions.algorithm = new MarkerClusterer.gridAlgorithm({
+                            gridSize: 60, // Smaller grid = more detail at same zoom
+                            maxZoom: 15 // Only cluster up to zoom 15, show individual markers after
+                        });
+                    }
+                    
+                    markerCluster = new MarkerClusterer(clusterOptions);
                 } else {
                     // Fallback: add markers directly to map if clusterer not available
                     markersToAdd.forEach(function(marker) {
@@ -7278,11 +7291,7 @@ function updateMapMarkers(listings) {
                     setTimeout(function() {
                         map.fitBounds(bounds);
                         
-                        // Limit max zoom
-                        var listener = google.maps.event.addListener(map, "idle", function() {
-                            if (map.getZoom() > 13) map.setZoom(13);
-                            google.maps.event.removeListener(listener);
-                        });
+                        // Allow higher zoom for more detail (removed max zoom limit)
                     }, 500);
                 }
             }
