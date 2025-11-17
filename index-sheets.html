@@ -3463,20 +3463,16 @@ function updateUnsavedChangesBadge() {
             const googleMapsUrlField = getField('Google Maps URL', ['Google Map URL', 'Google Maps Link', 'Maps URL', 'Map URL', 'Google Maps', 'googleMapsUrl', 'google_maps_url', 'map url', 'maps link']);
             const directionsLinkField = getField('directionsLink', ['Directions Link', 'Directions URL', 'Map Link', 'map directions', 'directions url']);
             
-            const categoryValue = getField('Category', ['category'], true); // preserveEmpty = true to keep empty strings
-            let categoryFinal = undefined;
-            if (categoryValue && categoryValue.trim() !== '') {
-                const normalizedCategoryValue = normalizeCategoryInput(categoryValue);
-                // Use normalized value if it exists and is not empty, otherwise use original value
-                categoryFinal = (normalizedCategoryValue && normalizedCategoryValue.trim() !== '') ? normalizedCategoryValue : categoryValue.trim();
-                console.log('📋 Category mapping:', categoryValue, '->', categoryFinal);
-            }
+            // Handle category EXACTLY like type - simple and direct
+            // Type: getField('Type', ['type']) - no normalization, no transformation
+            // Category: getField('Category', ['category']) - same approach
+            const categoryValue = getField('Category', ['category']);
             
             const listing = {
                 id: getField('ID', ['id', 'Id']),
                 name: getField('Title', ['Name', 'name', 'title']) || getField('name'),
-                type: getField('Type', ['type']),
-                category: categoryFinal, // Preserve category value from Google Sheets
+                type: getField('Type', ['type']), // Simple, direct - no normalization
+                category: categoryValue, // Simple, direct - same as type (no normalization)
                 area: getField('Area', ['area']),
                 description: getField('Description', ['description', 'Desc', 'desc']),
                 detailedDescription: detailedDescriptionValue,
@@ -3696,44 +3692,28 @@ function updateUnsavedChangesBadge() {
                         }
                         
                         const listings = result.listings.map(function(listing, index) {
-                            // CRITICAL: Preserve category field from Google Sheets BEFORE any processing
-                            // Store it separately to ensure it's not lost
+                            // Handle category EXACTLY like type - simple and direct
+                            // Type is handled as: listing.type (no normalization, no special logic)
+                            // Category should be handled the same way: listing.category
+                            
+                            // Store original category BEFORE any processing (just like type)
                             const originalCategory = listing.category;
-                            const categoryFromSheets = (originalCategory !== undefined && originalCategory !== null && originalCategory !== '') 
-                                ? String(originalCategory).trim() 
-                                : undefined;
                             
-                            console.log('🔍 Processing listing', index + ':', listing.name, '- Category from Sheets:', categoryFromSheets, '(original:', originalCategory, typeof originalCategory, ')');
-                            
-                            // Create a copy of the listing to preserve all fields
+                            // Create a copy of the listing (same as type handling)
                             const listingCopy = Object.assign({}, listing);
                             
                             // Sanitize the listing
                             const sanitized = sanitizeListing(listingCopy);
                             
-                            // ALWAYS restore category from Google Sheets if it was present
-                            // This ensures categories are never lost, even if sanitizeListing removes them
-                            if (categoryFromSheets) {
-                                sanitized.category = categoryFromSheets;
-                                console.log('✅ RESTORED category from Google Sheets:', sanitized.name, '->', sanitized.category);
+                            // Restore category EXACTLY as it was in Google Sheets (same as type)
+                            // Don't normalize, don't transform - just use what's in Sheets
+                            sanitized.category = originalCategory;
+                            
+                            // Log for debugging (but don't transform the value)
+                            if (originalCategory !== undefined && originalCategory !== null && originalCategory !== '') {
+                                console.log('✅ Category from Google Sheets (preserved as-is):', sanitized.name, '->', sanitized.category);
                             } else {
-                                // If no category in Sheets, check if sanitized has one (shouldn't happen, but check anyway)
-                                if (sanitized.category !== undefined && sanitized.category !== null && sanitized.category !== '') {
-                                    console.log('✅ Category preserved in sanitized:', sanitized.name, '->', sanitized.category);
-                                } else {
-                                    console.log('⚠️ No category in Google Sheets for:', sanitized.name);
-                                    // Explicitly set to undefined (not empty string) to indicate no category
-                                    sanitized.category = undefined;
-                                }
-                            }
-                            
-                            // Final verification - ensure category is set correctly
-                            console.log('🔍 Final listing category:', sanitized.name, '->', sanitized.category, '(type:', typeof sanitized.category, ')');
-                            
-                            // Double-check: if category was in original but missing now, restore it
-                            if (categoryFromSheets && (!sanitized.category || sanitized.category === '')) {
-                                console.warn('⚠️ WARNING: Category was lost during processing! Restoring:', categoryFromSheets);
-                                sanitized.category = categoryFromSheets;
+                                console.log('⚠️ No category in Google Sheets for:', sanitized.name);
                             }
                             
                             return sanitized;

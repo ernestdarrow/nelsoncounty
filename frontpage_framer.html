@@ -3949,16 +3949,17 @@ function mapCSVRowToListing(row, index) {
     const featuredStr = getField('Featured', ['featured']);
     const featured = featuredStr === 'TRUE' || featuredStr === 'true' || featuredStr === '1' || featuredStr === 'Yes' || featuredStr === 'yes';
     
-    // Read category field from Google Sheets - preserve it exactly as stored
+    // Handle category EXACTLY like type - simple and direct
+    // Type: getField('Type', ['type']) || '' - no normalization, no transformation
+    // Category: getField('Category', ['category']) || '' - same approach
     const categoryValue = getField('Category', ['category']);
-    const category = categoryValue ? categoryValue.trim() : '';
     
     return {
         id: getField('ID', ['id', 'Id']) || String(index + 1),
         name: getField('Title', ['Name', 'name', 'title']) || 'Unnamed',
         slug: getField('Slug', ['slug']) || '',
-        type: getField('Type', ['type']) || '',
-        category: category, // Preserve category from Google Sheets
+        type: getField('Type', ['type']) || '', // Simple, direct - no normalization
+        category: categoryValue || '', // Simple, direct - same as type (no normalization, no trim transformation)
         area: getField('Area', ['area']) || '',
         description: getField('Description', ['description', 'Desc', 'desc']) || '',
         detailedDescription: getField('Detailed Description', ['detailedDescription', 'detaileddescription', 'DetailedDescription', 'longdescription', 'longDescription', 'fulldescription', 'fullDescription']) || '',
