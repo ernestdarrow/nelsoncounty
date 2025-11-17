@@ -4174,8 +4174,9 @@ let TYPE_CATEGORIES = loadCategoriesFromStorage() || DEFAULT_TYPE_CATEGORIES;
 function reloadCategoriesFromStorage() {
     const loadedCategories = loadCategoriesFromStorage();
     if (loadedCategories && Object.keys(loadedCategories).length > 0) {
-        TYPE_CATEGORIES = loadedCategories;
-        // Ensure all categories have icons from defaults
+        // Start with loaded categories from localStorage (preserves new categories added in admin)
+        TYPE_CATEGORIES = JSON.parse(JSON.stringify(loadedCategories));
+        // Ensure all default categories have icons (but don't overwrite new categories)
         for (const categoryKey in DEFAULT_TYPE_CATEGORIES) {
             if (TYPE_CATEGORIES[categoryKey]) {
                 // If category exists but doesn't have an icon, set it from defaults
@@ -4183,13 +4184,20 @@ function reloadCategoriesFromStorage() {
                     TYPE_CATEGORIES[categoryKey].icon = DEFAULT_TYPE_CATEGORIES[categoryKey].icon;
                 }
             } else {
-                // If category is missing, add it from defaults
+                // If default category is missing, add it from defaults
                 TYPE_CATEGORIES[categoryKey] = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES[categoryKey]));
             }
         }
+        console.log('✅ Reloaded categories from localStorage. Total categories:', Object.keys(TYPE_CATEGORIES).length);
+        console.log('📋 Categories:', Object.keys(TYPE_CATEGORIES).map(function(k) {
+            return TYPE_CATEGORIES[k].name;
+        }).join(', '));
         return true;
+    } else {
+        // If no categories in localStorage, keep current TYPE_CATEGORIES (might have defaults)
+        console.log('⚠️ No categories found in localStorage, keeping current categories');
+        return false;
     }
-    return false;
 }
 
 // Ensure we always have the default structure and icons
@@ -5013,6 +5021,9 @@ loadDataFromGoogleSheets()
         }
         
         console.log('🎯 About to render', data.listings.length, 'listings');
+        console.log('📋 TYPE_CATEGORIES before rendering:', Object.keys(TYPE_CATEGORIES).map(function(k) {
+            return TYPE_CATEGORIES[k].name;
+        }).join(', '));
         
         // Render type filter buttons dynamically based on usage
         renderTypeFilterButtons(data.listings, '.type-quick-filters'); // Show all categories
