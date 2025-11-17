@@ -250,7 +250,7 @@
         }
         
         .tabs { max-width: 1600px; margin: 0 auto 0 auto; padding: 8px 20px; display: flex; gap: 0; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .tab-btn { background: transparent; border: none; color: rgba(33,37,41,0.7); padding: 12px 24px; cursor: pointer; font-size: 14px; font-weight: 600; border-radius: 20px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 2px; }
+        .tab-btn { background: transparent; border: none; color: rgba(33,37,41,0.7); padding: 12px 24px; cursor: pointer; font-size: 14px; font-weight: 600; border-radius: 18px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 2px; }
         .tab-btn:not(:last-child)::after { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 1px; height: 60%; background: #e0e0e0; }
         .tab-btn svg { stroke: rgba(33,37,41,0.7); transition: stroke 0.3s; }
         .tab-btn:hover { color: #ffffff; background: linear-gradient(135deg, #007AFF 0%, #0051D5 100%); }
@@ -260,7 +260,7 @@
         .tab-btn.active svg { stroke: #ffffff; }
         .tab-btn.active::after { display: none; }
         
-        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .btn { padding: 12px 24px; border: none; border-radius: 18px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
         .btn-success { background: #28a745; color: white; font-weight: 600; }
         .btn-success:hover { background: #218838; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3); }
         .btn-primary { background: #007AFF; color: white; font-weight: 600; }
@@ -363,11 +363,11 @@
             border-bottom-left-radius: 12px;
             border-bottom-right-radius: 12px;
         }
-        .btn-edit { background: #28a745; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; flex: 1; }
+        .btn-edit { background: #28a745; color: white; padding: 8px 16px; border: none; border-radius: 18px; font-size: 12px; font-weight: 600; cursor: pointer; flex: 1; }
         .btn-edit:hover { background: #218838; }
-        .btn-duplicate { background: #007AFF; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; flex: 1; }
+        .btn-duplicate { background: #007AFF; color: white; padding: 8px 16px; border: none; border-radius: 18px; font-size: 12px; font-weight: 600; cursor: pointer; flex: 1; }
         .btn-duplicate:hover { background: #0056b3; }
-        .btn-delete { background: #E3795C; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .btn-delete { background: #E3795C; color: white; padding: 8px 16px; border: none; border-radius: 18px; font-size: 12px; font-weight: 600; cursor: pointer; }
         .btn-delete:hover { background: #D65052; }
         
         .featured-badge { position: absolute; top: 10px; right: 10px; background: var(--badge-featured-bg); color: var(--badge-featured-color); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; z-index: 10; }
@@ -715,7 +715,7 @@
             width: 100%;
             padding: 10px 14px 10px 8px; 
             border: 1px solid var(--border-color); 
-            border-radius: 8px; 
+            border-radius: 18px; 
             background: var(--card-bg); 
             color: var(--text-secondary); 
             font-size: 13px; 
@@ -831,9 +831,9 @@
         .data-table .cell-amenities textarea { min-height: 50px; }
         .data-table .cell-featured { text-align: center; }
         .data-table .cell-actions { white-space: nowrap; }
-        .data-table .btn-table-save { background: #007AFF; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; margin-right: 5px; }
+        .data-table .btn-table-save { background: #007AFF; color: white; padding: 6px 12px; border: none; border-radius: 18px; font-size: 12px; cursor: pointer; margin-right: 5px; }
         .data-table .btn-table-save:hover { background: #0051D5; }
-        .data-table .btn-table-delete { background: #E3795C; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; }
+        .data-table .btn-table-delete { background: #E3795C; color: white; padding: 6px 12px; border: none; border-radius: 18px; font-size: 12px; cursor: pointer; }
         .data-table .btn-table-delete:hover { background: #D65052; }
         
         
@@ -1607,19 +1607,19 @@
             
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <button onclick="reloadFromSheets()" 
-                        style="background: #4285f4; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                        style="background: #4285f4; color: white; border: none; padding: 10px 20px; border-radius: 18px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                     <span>🔄</span> Reload from Google Sheets
                 </button>
                 <button onclick="saveAllToSheets()"
-                        style="background: #34a853; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                        style="background: #34a853; color: white; border: none; padding: 10px 20px; border-radius: 18px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                     <span>💾</span> Save All to Google Sheets
                 </button>
                 <button onclick="downloadCSV()"
-                        style="background: #4E6B52; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                        style="background: #4E6B52; color: white; border: none; padding: 10px 20px; border-radius: 18px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                     <span>📥</span> Download CSV Backup
                 </button>
                 <button onclick="showErrorConsole()"
-                        style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                        style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 18px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                     <span>⚠️</span> Check for Errors
                 </button>
                 <div id="sheetsActionStatus" style="margin-left: auto; font-weight: 600; color: #34a853;"></div>
@@ -1637,11 +1637,11 @@
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <button onclick="validateListings()" 
-                            style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                            style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 18px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                         <span>🔄</span> Re-validate
                     </button>
                     <button onclick="hideErrorConsole()" 
-                            style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                            style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 18px; cursor: pointer; font-weight: 600;">
                         ✕
                     </button>
                 </div>
@@ -1969,7 +1969,7 @@
                         </div>
                         <div style="position: relative; margin-top: 8px;">
                             <textarea id="listingImage1Desc" placeholder="Image description (optional)" rows="2" style="width: 100%; padding: 6px 70px 6px 6px; font-family: inherit; font-size: 13px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
-                            <button type="button" class="btn-generate-desc" data-image="listingImage1" data-desc="listingImage1Desc" title="Generate AI Description" aria-label="Generate AI Description" style="position: absolute; top: 6px; right: 6px; font-size: 11px; background: #007AFF; color: white; border: none; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; line-height: 1;">
+                            <button type="button" class="btn-generate-desc" data-image="listingImage1" data-desc="listingImage1Desc" title="Generate AI Description" aria-label="Generate AI Description" style="position: absolute; top: 6px; right: 6px; font-size: 11px; background: #007AFF; color: white; border: none; border-radius: 18px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; line-height: 1;">
                                 <span aria-hidden="true" style="display: inline-flex; align-items: center;">
                                     <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M6.5 1l.7 1.6 1.8.26-1.3 1.28.32 1.86L6.5 4.97l-1.52.99.32-1.86L4 2.86l1.8-.26L6.5 1z" fill="#FFE599"/>
@@ -1990,7 +1990,7 @@
                         </div>
                         <div style="position: relative; margin-top: 8px;">
                             <textarea id="listingImage2Desc" placeholder="Image description (optional)" rows="2" style="width: 100%; padding: 6px 70px 6px 6px; font-family: inherit; font-size: 13px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
-                            <button type="button" class="btn-generate-desc" data-image="listingImage2" data-desc="listingImage2Desc" title="Generate AI Description" aria-label="Generate AI Description" style="position: absolute; top: 6px; right: 6px; font-size: 11px; background: #007AFF; color: white; border: none; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; line-height: 1;">
+                            <button type="button" class="btn-generate-desc" data-image="listingImage2" data-desc="listingImage2Desc" title="Generate AI Description" aria-label="Generate AI Description" style="position: absolute; top: 6px; right: 6px; font-size: 11px; background: #007AFF; color: white; border: none; border-radius: 18px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; line-height: 1;">
                                 <span aria-hidden="true" style="display: inline-flex; align-items: center;">
                                     <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M6.5 1l.7 1.6 1.8.26-1.3 1.28.32 1.86L6.5 4.97l-1.52.99.32-1.86L4 2.86l1.8-.26L6.5 1z" fill="#FFE599"/>
@@ -2010,7 +2010,7 @@
                         </div>
                         <div style="position: relative; margin-top: 8px;">
                             <textarea id="listingImage3Desc" placeholder="Image description (optional)" rows="2" style="width: 100%; padding: 6px 70px 6px 6px; font-family: inherit; font-size: 13px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
-                            <button type="button" class="btn-generate-desc" data-image="listingImage3" data-desc="listingImage3Desc" title="Generate AI Description" aria-label="Generate AI Description" style="position: absolute; top: 6px; right: 6px; font-size: 11px; background: #007AFF; color: white; border: none; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; line-height: 1;">
+                            <button type="button" class="btn-generate-desc" data-image="listingImage3" data-desc="listingImage3Desc" title="Generate AI Description" aria-label="Generate AI Description" style="position: absolute; top: 6px; right: 6px; font-size: 11px; background: #007AFF; color: white; border: none; border-radius: 18px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; line-height: 1;">
                                 <span aria-hidden="true" style="display: inline-flex; align-items: center;">
                                     <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M6.5 1l.7 1.6 1.8.26-1.3 1.28.32 1.86L6.5 4.97l-1.52.99.32-1.86L4 2.86l1.8-.26L6.5 1z" fill="#FFE599"/>
@@ -3767,13 +3767,13 @@ function updateUnsavedChangesBadge() {
                         </p>
                     </div>
                     <div style="display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
-                        <button id="backupCancelBtn" style="padding: 10px 20px; border: 1px solid #dee2e6; background: white; color: #212529; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                        <button id="backupCancelBtn" style="padding: 10px 20px; border: 1px solid #dee2e6; background: white; color: #212529; border-radius: 18px; cursor: pointer; font-weight: 500;">
                             Cancel
                         </button>
-                        <button id="backupDownloadBtn" style="padding: 10px 20px; border: none; background: #4E6B52; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                        <button id="backupDownloadBtn" style="padding: 10px 20px; border: none; background: #4E6B52; color: white; border-radius: 18px; cursor: pointer; font-weight: 600;">
                             📥 Download CSV Backup First
                         </button>
-                        <button id="backupProceedBtn" style="padding: 10px 20px; border: none; background: #34a853; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                        <button id="backupProceedBtn" style="padding: 10px 20px; border: none; background: #34a853; color: white; border-radius: 18px; cursor: pointer; font-weight: 600;">
                             Proceed Without Backup
                         </button>
                     </div>
@@ -5960,7 +5960,7 @@ function updateUnsavedChangesBadge() {
             container.innerHTML = data.filterOptions.types.map(function(type, index) {
                 return '<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #f8f9fa; border-radius: 4px; margin-bottom: 8px;">' +
                     '<span>' + type + '</span>' +
-                    '<button onclick="removeType(' + index + ')" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Remove</button>' +
+                    '<button onclick="removeType(' + index + ')" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 18px; cursor: pointer; font-size: 12px;">Remove</button>' +
                     '</div>';
             }).join('');
         }
@@ -5972,7 +5972,7 @@ function updateUnsavedChangesBadge() {
             container.innerHTML = data.filterOptions.areas.map(function(area, index) {
                 return '<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #f8f9fa; border-radius: 4px; margin-bottom: 8px;">' +
                     '<span>' + area + '</span>' +
-                    '<button onclick="removeArea(' + index + ')" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Remove</button>' +
+                    '<button onclick="removeArea(' + index + ')" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 18px; cursor: pointer; font-size: 12px;">Remove</button>' +
                     '</div>';
             }).join('');
         }
@@ -5984,7 +5984,7 @@ function updateUnsavedChangesBadge() {
             container.innerHTML = data.filterOptions.amenities.map(function(amenity, index) {
                 return '<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #f8f9fa; border-radius: 4px;">' +
                     '<span>' + amenity + '</span>' +
-                    '<button onclick="removeAmenity(' + index + ')" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Remove</button>' +
+                    '<button onclick="removeAmenity(' + index + ')" style="background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 18px; cursor: pointer; font-size: 12px;">Remove</button>' +
                     '</div>';
             }).join('');
         }
@@ -6137,7 +6137,7 @@ function updateUnsavedChangesBadge() {
                     iconOptions +
                     '</select>' +
                     '</div>' +
-                    '<button class="remove-icon-mapping-btn" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">Remove</button>';
+                    '<button class="remove-icon-mapping-btn" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 18px; cursor: pointer; font-size: 14px;">Remove</button>';
                 
                 tempContainer.appendChild(item);
             });
@@ -6332,7 +6332,7 @@ function updateUnsavedChangesBadge() {
                 const typesHtml = category.types.map(function(type, typeIndex) {
                     return '<div style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #f8f9fa; border-radius: 4px; margin: 4px 0;">' +
                         '<span style="flex: 1;">' + type + '</span>' +
-                        '<button onclick="removeTypeFromCategory(\'' + categoryKey + '\', ' + typeIndex + ')" style="background: #dc3545; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">Remove</button>' +
+                        '<button onclick="removeTypeFromCategory(\'' + categoryKey + '\', ' + typeIndex + ')" style="background: #dc3545; color: white; border: none; padding: 4px 10px; border-radius: 18px; cursor: pointer; font-size: 12px;">Remove</button>' +
                         '</div>';
                 }).join('');
                 
@@ -6479,11 +6479,20 @@ function updateUnsavedChangesBadge() {
             }
             
             const currentValue = select.value;
-            select.innerHTML = '<option value="">Select Type</option>' +
+            // Build options list, preserving the current value if it's not in filterOptions.types
+            const typesSet = new Set(data.filterOptions.types);
+            let optionsHtml = '<option value="">Select Type</option>' +
                 data.filterOptions.types.map(function(type) {
-                    return '<option value="' + type + '">' + type + '</option>';
+                    return '<option value="' + escapeHtml(type) + '">' + escapeHtml(type) + '</option>';
                 }).join('');
-            select.value = currentValue;
+            
+            // If current value exists but isn't in the standard types, add it to preserve user input
+            if (currentValue && currentValue.trim() && !typesSet.has(currentValue)) {
+                optionsHtml += '<option value="' + escapeHtml(currentValue) + '">' + escapeHtml(currentValue) + '</option>';
+            }
+            
+            select.innerHTML = optionsHtml;
+            select.value = currentValue; // This will now work even for custom types
             
             // Update category dropdown when type changes
             updateCategoryDropdown();
