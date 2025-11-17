@@ -3250,7 +3250,7 @@ function updateUnsavedChangesBadge() {
                 });
             }
             
-            const getField = (fieldName, altNames = []) => {
+            const getField = (fieldName, altNames = [], preserveEmpty = false) => {
                 const names = [fieldName, ...altNames];
                 for (const name of names) {
                     const normalizedName = String(name).trim().toLowerCase();
@@ -3258,11 +3258,16 @@ function updateUnsavedChangesBadge() {
                     if (Object.prototype.hasOwnProperty.call(normalizedRow, normalizedName)) {
                         const value = normalizedRow[normalizedName];
                         if (value !== undefined && value !== null) {
-                            return String(value).trim();
+                            const trimmed = String(value).trim();
+                            // For date fields, return undefined if empty (to preserve existing dates)
+                            if (preserveEmpty && trimmed === '') {
+                                return undefined;
+                            }
+                            return trimmed;
                         }
                     }
                 }
-                return '';
+                return preserveEmpty ? undefined : '';
             };
             
             const parseList = (value) => {
@@ -3323,8 +3328,8 @@ function updateUnsavedChangesBadge() {
                 featured: featuredStr === 'TRUE' || featuredStr === 'true' || featuredStr === '1' || featuredStr === 'Yes' || featuredStr === 'yes',
                 slug: getField('slug'),
                 authorName: getField('authorName', ['Author Name', 'Author', 'author', 'contributor', 'contributor name']),
-                publishedDate: getField('publishedDate', ['Published Date', 'Created Date', 'createdDate', 'Date Created', 'publishDate', 'created on']),
-                modifiedDate: getField('modifiedDate', ['Modified Date', 'Updated Date', 'updatedDate', 'Date Updated', 'editedDate', 'Edited Date', 'last updated', 'last modified']),
+                publishedDate: getField('publishedDate', ['Published Date', 'Created Date', 'createdDate', 'Date Created', 'publishDate', 'created on'], true),
+                modifiedDate: getField('modifiedDate', ['Modified Date', 'Updated Date', 'updatedDate', 'Date Updated', 'editedDate', 'Edited Date', 'last updated', 'last modified'], true),
                 directionsLink: directionsLinkField || googleMapsUrlField || ''
             };
             
@@ -8016,7 +8021,31 @@ function updateUnsavedChangesBadge() {
                                 data = { listings: [], filterOptions: { types: [], areas: [], amenities: [] } };
                             }
                             
+                            // Create a map of existing listings by ID for date preservation
+                            const existingListingsMap = {};
+                            if (data.listings && Array.isArray(data.listings)) {
+                                data.listings.forEach(function(existing) {
+                                    if (existing && existing.id) {
+                                        existingListingsMap[existing.id] = existing;
+                                    }
+                                });
+                            }
+                            
                             data.listings = newListings.map(function(listing) {
+                                // Preserve existing dates if CSV doesn't have them
+                                if (listing.id && existingListingsMap[listing.id]) {
+                                    const existing = existingListingsMap[listing.id];
+                                    // Only preserve dates if CSV date is undefined (not provided)
+                                    if (listing.publishedDate === undefined && existing.publishedDate) {
+                                        listing.publishedDate = existing.publishedDate;
+                                    }
+                                    if (listing.modifiedDate === undefined && existing.modifiedDate) {
+                                        listing.modifiedDate = existing.modifiedDate;
+                                    }
+                                }
+                                // Convert undefined to empty string for consistency
+                                if (listing.publishedDate === undefined) listing.publishedDate = '';
+                                if (listing.modifiedDate === undefined) listing.modifiedDate = '';
                                 return sanitizeListing(listing);
                             });
                             data.filterOptions = sanitizedFilterOptions;

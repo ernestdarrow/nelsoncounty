@@ -390,8 +390,14 @@ function saveListing(sheet, listing) {
       }
     }
 
+    // Get existing row data if updating (for date preservation)
+    let existingRow = null;
+    if (rowIndex > 0) {
+      existingRow = values[rowIndex - 1];
+    }
+    
     const rowData = [];
-    headers.forEach(header => {
+    headers.forEach((header, colIndex) => {
       const headerLower = String(header).toLowerCase().trim();
       if (headerLower === 'id') {
         rowData.push(listing.id || '');
@@ -435,6 +441,26 @@ function saveListing(sheet, listing) {
         rowData.push(Array.isArray(listing.amenities) ? listing.amenities.join(', ') : (listing.amenities || ''));
       } else if (headerLower === 'featured') {
         rowData.push(listing.featured ? 'TRUE' : 'FALSE');
+      } else if (['publisheddate', 'published date', 'publish date', 'created date'].includes(headerLower)) {
+        // Preserve existing date if incoming value is empty
+        const incomingValue = listing.publishedDate || listing.publisheddate || '';
+        if (incomingValue && incomingValue.trim() !== '') {
+          rowData.push(incomingValue);
+        } else if (existingRow && colIndex < existingRow.length && existingRow[colIndex]) {
+          rowData.push(existingRow[colIndex]); // Preserve existing date
+        } else {
+          rowData.push('');
+        }
+      } else if (['modifieddate', 'modified date', 'updated date', 'last updated'].includes(headerLower)) {
+        // Preserve existing date if incoming value is empty
+        const incomingValue = listing.modifiedDate || listing.modifieddate || '';
+        if (incomingValue && incomingValue.trim() !== '') {
+          rowData.push(incomingValue);
+        } else if (existingRow && colIndex < existingRow.length && existingRow[colIndex]) {
+          rowData.push(existingRow[colIndex]); // Preserve existing date
+        } else {
+          rowData.push('');
+        }
       } else {
         rowData.push(listing[header] || '');
       }
