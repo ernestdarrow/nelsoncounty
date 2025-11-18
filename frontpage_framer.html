@@ -4678,6 +4678,8 @@ function attachCategoryFilterButtonHandler(btn, categoryKey, category) {
             // Clear all selections and activate only "All Types"
             currentTypeFilter = [];
             currentCategoryFilter = null;
+            // Remove category from URL
+            updateUrlWithCategory(null);
             // Remove active state from all category buttons
             document.querySelectorAll('.type-filter-btn').forEach(function(b) {
                 b.classList.remove('active');
@@ -4692,6 +4694,8 @@ function attachCategoryFilterButtonHandler(btn, categoryKey, category) {
                 console.log('🔄 Clearing category filter:', filterCategory);
                 currentTypeFilter = [];
                 currentCategoryFilter = null;
+                // Remove category from URL
+                updateUrlWithCategory(null);
                 // Remove active state from all category buttons
                 document.querySelectorAll('.type-filter-btn').forEach(function(b) {
                     b.classList.remove('active');
@@ -4714,6 +4718,9 @@ function attachCategoryFilterButtonHandler(btn, categoryKey, category) {
                 // Set filter to only this category's types (for legacy support)
                 currentTypeFilter = categoryTypes.slice(); // Copy the array
                 
+                // Update URL to include category parameter
+                updateUrlWithCategory(filterCategory);
+                
                 // Remove active state from all category buttons (including "All Types")
                 document.querySelectorAll('.type-filter-btn').forEach(function(b) {
                     b.classList.remove('active');
@@ -4726,6 +4733,27 @@ function attachCategoryFilterButtonHandler(btn, categoryKey, category) {
         
         filterPreview();
     });
+}
+
+// Update URL with category parameter (or remove it)
+function updateUrlWithCategory(categoryKey) {
+    try {
+        const url = new URL(window.location.href);
+        
+        if (categoryKey) {
+            // Add or update category parameter
+            url.searchParams.set('category', categoryKey);
+        } else {
+            // Remove category parameter
+            url.searchParams.delete('category');
+        }
+        
+        // Update URL without reloading page
+        window.history.pushState({ category: categoryKey }, '', url.toString());
+    } catch (e) {
+        // Fallback for older browsers or if URL constructor fails
+        console.warn('⚠️ Could not update URL:', e);
+    }
 }
 
 // Extract URL parameters from referrer (works cross-origin for iframe embeds)
@@ -4943,6 +4971,33 @@ function handleUrlParameters() {
         }
         if (mobileSearchInput) {
             mobileSearchInput.value = decodeURIComponent(searchParam);
+        }
+    }
+    
+    // Handle category filter parameter (e.g., ?category=community)
+    var categoryParam = getUrlParameter('category');
+    if (categoryParam) {
+        const categoryValue = decodeURIComponent(categoryParam).toLowerCase();
+        // Check if this category exists in TYPE_CATEGORIES
+        if (TYPE_CATEGORIES[categoryValue]) {
+            currentCategoryFilter = categoryValue;
+            // Get all types that belong to this category
+            const selectedCategory = TYPE_CATEGORIES[categoryValue];
+            const categoryTypes = selectedCategory ? (selectedCategory.types || []) : [];
+            currentTypeFilter = categoryTypes.slice(); // Copy the array
+            
+            // Activate the category button
+            document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.dataset.category === categoryValue) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            hasFilters = true;
+            console.log('🎯 Setting category filter from URL:', categoryValue);
+        } else {
+            console.warn('⚠️ Category not found:', categoryValue);
         }
     }
     
