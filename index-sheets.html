@@ -3813,6 +3813,21 @@ function updateUnsavedChangesBadge() {
                             }
                         });
                         
+                        // CRITICAL: Preserve ALL categories from localStorage, not just ones found in listings
+                        // This ensures custom categories added in admin are never lost
+                        if (categoriesFromStorage) {
+                            Object.keys(categoriesFromStorage).forEach(function(categoryKey) {
+                                if (!TYPE_CATEGORIES[categoryKey]) {
+                                    // This is a custom category from admin that's not in Google Sheets yet
+                                    TYPE_CATEGORIES[categoryKey] = JSON.parse(JSON.stringify(categoriesFromStorage[categoryKey]));
+                                    console.log('✅ Preserved custom category from localStorage:', categoryKey, 'with emoji:', TYPE_CATEGORIES[categoryKey].emoji || '(none)');
+                                }
+                            });
+                        }
+                        
+                        // Save updated TYPE_CATEGORIES to localStorage to ensure persistence
+                        saveCategoriesToStorage(TYPE_CATEGORIES);
+                        
                         if (addedCustomCategories) {
                             console.log('📋 TYPE_CATEGORIES after adding Google Sheets categories:', Object.keys(TYPE_CATEGORIES).length, 'categories');
                             console.log('📋 Category keys:', Object.keys(TYPE_CATEGORIES));
@@ -4015,6 +4030,21 @@ function updateUnsavedChangesBadge() {
                                 }
                             }
                         });
+                        
+                        // CRITICAL: Preserve ALL categories from localStorage, not just ones found in listings
+                        // This ensures custom categories added in admin are never lost
+                        if (categoriesFromStorage) {
+                            Object.keys(categoriesFromStorage).forEach(function(categoryKey) {
+                                if (!TYPE_CATEGORIES[categoryKey]) {
+                                    // This is a custom category from admin that's not in Google Sheets yet
+                                    TYPE_CATEGORIES[categoryKey] = JSON.parse(JSON.stringify(categoriesFromStorage[categoryKey]));
+                                    console.log('✅ Preserved custom category from localStorage:', categoryKey, 'with emoji:', TYPE_CATEGORIES[categoryKey].emoji || '(none)');
+                                }
+                            });
+                        }
+                        
+                        // Save updated TYPE_CATEGORIES to localStorage to ensure persistence
+                        saveCategoriesToStorage(TYPE_CATEGORIES);
                         
                         if (addedCustomCategories) {
                             console.log('📋 TYPE_CATEGORIES after adding Google Sheets categories:', Object.keys(TYPE_CATEGORIES).length, 'categories');
