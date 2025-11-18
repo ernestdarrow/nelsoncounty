@@ -6635,63 +6635,12 @@ function updateUnsavedChangesBadge() {
                 return '<div id="categoryItem_' + escapedKey + '" style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #f8f9fa; border-radius: 4px; margin-bottom: 8px;">' +
                     '<span>' + (category.emoji || '⭐') + ' <strong style="color: #6c757d; font-size: 11px; margin-right: 8px;">[' + escapeHtml(categoryKey) + ']</strong>' + escapeHtml(toSentenceCase(categoryKey)) + '</span>' +
                     '<div style="display: flex; gap: 8px;">' +
-                    '<button onclick="editCategory(\'' + escapedKey + '\')" style="background: #007bff; color: white; border: none; padding: 4px 12px; border-radius: 18px; cursor: pointer; font-size: 12px;">Edit</button>' +
-                    '<button onclick="renameCategoryKey(\'' + escapedKey + '\')" style="background: #6c757d; color: white; border: none; padding: 4px 12px; border-radius: 18px; cursor: pointer; font-size: 12px;">Rename Key</button>' +
+                    '<button onclick="renameCategoryKey(\'' + escapedKey + '\')" style="background: #007bff; color: white; border: none; padding: 4px 12px; border-radius: 18px; cursor: pointer; font-size: 12px;">Edit</button>' +
                     '<button onclick="removeCategory(\'' + escapedKey + '\')" style="background: #ffcccc; color: #000; border: none; padding: 4px 12px; border-radius: 18px; cursor: pointer; font-size: 12px;">Remove</button>' +
                     '</div>' +
                     '</div>';
             }).join('');
         }
-        
-        window.editCategory = function editCategory(categoryKey) {
-            const category = TYPE_CATEGORIES[categoryKey];
-            if (!category) return;
-            
-            const itemDiv = document.getElementById('categoryItem_' + categoryKey.replace(/'/g, "\\'"));
-            if (!itemDiv) return;
-            
-            // Check if already in edit mode - if so, save and collapse
-            if (itemDiv.dataset.editing === 'true') {
-                const escapedKey = categoryKey.replace(/'/g, "\\'");
-                const emojiInput = itemDiv.querySelector('#categoryEmoji_' + escapedKey);
-                const descInput = itemDiv.querySelector('#categoryDesc_' + escapedKey);
-                
-                if (emojiInput && descInput) {
-                    category.emoji = emojiInput.value.trim() || '⭐';
-                    category.description = descInput.value.trim();
-                    
-                    saveCategoriesToStorage(TYPE_CATEGORIES);
-                    updateCategory(categoryKey); // This will sync to Google Sheets
-                }
-                
-                // Re-render list view
-                renderCategoriesList();
-                return;
-            }
-            
-            // Build edit form HTML (simplified - just emoji, description)
-            const escapedKey = categoryKey.replace(/'/g, "\\'");
-            const editHtml = '<div style="width: 100%;">' +
-                '<div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">' +
-                '<input type="text" id="categoryEmoji_' + escapedKey + '" value="' + escapeHtml(category.emoji || '⭐') + '" style="width: 60px; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 24px; text-align: center;" placeholder="🎭" />' +
-                '<div style="flex: 1; padding: 8px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; color: #212529; font-weight: 500;">' + escapeHtml(toSentenceCase(categoryKey)) + '</div>' +
-                '</div>' +
-                '<div style="margin-bottom: 15px;">' +
-                '<textarea id="categoryDesc_' + escapedKey + '" style="width: 100%; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px; min-height: 60px;" placeholder="Category description">' + escapeHtml(category.description || '') + '</textarea>' +
-                '</div>' +
-                '<div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 15px;">' +
-                '<button onclick="editCategory(\'' + escapedKey + '\')" style="background: #28a745; color: white; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">Save</button>' +
-                '<button onclick="renderCategoriesList()" style="background: #6c757d; color: white; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">Cancel</button>' +
-                '</div>' +
-                '</div>';
-            
-            // Replace the item with edit form
-            itemDiv.innerHTML = editHtml;
-            itemDiv.style.background = '#fff';
-            itemDiv.style.border = '2px solid #007bff';
-            itemDiv.style.padding = '20px';
-            itemDiv.dataset.editing = 'true';
-        };
         
         window.renameCategoryKey = async function renameCategoryKey(oldKey) {
             const category = TYPE_CATEGORIES[oldKey];
@@ -6702,11 +6651,12 @@ function updateUnsavedChangesBadge() {
                 return listing.category === oldKey;
             }) : [];
             
-            // Prompt for new key
+            // Prompt for new key, emoji, and description
             const newKey = prompt(
-                '⚠️ Rename Category Key\n\n' +
+                '⚠️ Edit Category\n\n' +
                 'Current key: "' + oldKey + '"\n' +
-                'Current name: ' + (category.emoji || '') + ' ' + (category.name || oldKey) + '\n\n' +
+                'Current emoji: ' + (category.emoji || '⭐') + '\n' +
+                'Current description: ' + (category.description || '(none)') + '\n\n' +
                 (affectedListings.length > 0 ? 'This will update ' + affectedListings.length + ' listing(s).\n\n' : '') +
                 'Enter new category key (lowercase, no spaces, e.g., "tasting"):',
                 oldKey
@@ -6729,10 +6679,32 @@ function updateUnsavedChangesBadge() {
                 return;
             }
             
+            // Prompt for emoji
+            const newEmoji = prompt(
+                'Enter emoji for this category:',
+                category.emoji || '⭐'
+            );
+            
+            if (newEmoji === null) {
+                return; // User cancelled
+            }
+            
+            // Prompt for description
+            const newDescription = prompt(
+                'Enter description for this category:',
+                category.description || ''
+            );
+            
+            if (newDescription === null) {
+                return; // User cancelled
+            }
+            
             const confirmed = confirm(
                 '⚠️ Final Confirmation\n\n' +
-                'Rename category key:\n' +
-                '  "' + oldKey + '" → "' + trimmedNewKey + '"\n\n' +
+                'Edit category:\n' +
+                '  Key: "' + oldKey + '" → "' + trimmedNewKey + '"\n' +
+                '  Emoji: ' + (category.emoji || '⭐') + ' → ' + (newEmoji ? newEmoji.trim() : category.emoji || '⭐') + '\n' +
+                '  Description: ' + (category.description || '(none)') + ' → ' + (newDescription ? newDescription.trim() : category.description || '(none)') + '\n\n' +
                 (affectedListings.length > 0 ? 'This will update ' + affectedListings.length + ' listing(s) and sync to Google Sheets.\n\n' : '') +
                 'Click OK to proceed\n' +
                 'Click Cancel to abort'
@@ -6742,8 +6714,13 @@ function updateUnsavedChangesBadge() {
                 return;
             }
             
-            // Create new category with new key
-            TYPE_CATEGORIES[trimmedNewKey] = JSON.parse(JSON.stringify(category));
+            // Create new category with new key and updated values
+            TYPE_CATEGORIES[trimmedNewKey] = {
+                emoji: newEmoji ? newEmoji.trim() || '⭐' : category.emoji || '⭐',
+                description: newDescription ? newDescription.trim() : category.description || '',
+                icon: category.icon || '',
+                types: category.types || []
+            };
             
             // Update all affected listings
             if (affectedListings.length > 0) {
@@ -6770,40 +6747,80 @@ function updateUnsavedChangesBadge() {
             // Push changes to Google Sheets
             if (GOOGLE_APPS_SCRIPT_URL && !GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
                 try {
-                    updateSyncStatus(true, '💾 Syncing category key rename to Google Sheets...');
+                    updateSyncStatus(true, '💾 Syncing category edit to Google Sheets...');
                     
-                    const postData = JSON.stringify({
-                        action: 'replaceAllListings',
-                        listings: data.listings
+                    // Save categories first
+                    const categoriesData = JSON.stringify({
+                        action: 'saveCategories',
+                        categories: TYPE_CATEGORIES
                     });
                     
-                    try {
-                        await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                            method: 'POST',
-                            mode: 'cors',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: postData
+                    // Then save listings if there are affected ones
+                    if (affectedListings.length > 0) {
+                        const listingsData = JSON.stringify({
+                            action: 'replaceAllListings',
+                            listings: data.listings
                         });
-                        updateSyncStatus(true, '✅ Category key renamed and changes synced to Google Sheets');
-                        alert('✅ Category key renamed from "' + oldKey + '" to "' + trimmedNewKey + '"\n\n' +
-                              (affectedListings.length > 0 ? 'Updated ' + affectedListings.length + ' listing(s).\n\n' : '') +
-                              'Changes have been synced to Google Sheets.');
-                    } catch (e) {
-                        console.warn('⚠️ Could not sync category key rename to Google Sheets:', e);
-                        updateSyncStatus(false, '⚠️ Category key renamed locally (sync failed)');
-                        alert('⚠️ Category key renamed locally, but sync to Google Sheets failed.\n\n' +
-                              'Please click "Save All to Google Sheets" to sync changes.');
+                        
+                        try {
+                            // Save categories
+                            await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                                method: 'POST',
+                                mode: 'cors',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: categoriesData
+                            });
+                            
+                            // Save listings
+                            await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                                method: 'POST',
+                                mode: 'cors',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: listingsData
+                            });
+                            
+                            updateSyncStatus(true, '✅ Category edited and changes synced to Google Sheets');
+                            alert('✅ Category edited:\n' +
+                                  '  Key: "' + oldKey + '" → "' + trimmedNewKey + '"\n' +
+                                  (affectedListings.length > 0 ? '  Updated ' + affectedListings.length + ' listing(s).\n' : '') +
+                                  '\nChanges have been synced to Google Sheets.');
+                        } catch (e) {
+                            console.warn('⚠️ Could not sync category edit to Google Sheets:', e);
+                            updateSyncStatus(false, '⚠️ Category edited locally (sync failed)');
+                            alert('⚠️ Category edited locally, but sync to Google Sheets failed.\n\n' +
+                                  'Please click "Save All to Google Sheets" to sync changes.');
+                        }
+                    } else {
+                        // No affected listings, just save categories
+                        try {
+                            await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                                method: 'POST',
+                                mode: 'cors',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: categoriesData
+                            });
+                            updateSyncStatus(true, '✅ Category edited and synced to Google Sheets');
+                            alert('✅ Category edited:\n' +
+                                  '  Key: "' + oldKey + '" → "' + trimmedNewKey + '"\n' +
+                                  '\nChanges have been synced to Google Sheets.');
+                        } catch (e) {
+                            console.warn('⚠️ Could not sync category edit to Google Sheets:', e);
+                            updateSyncStatus(false, '⚠️ Category edited locally (sync failed)');
+                            alert('⚠️ Category edited locally, but sync to Google Sheets failed.\n\n' +
+                                  'Please click "Save All to Google Sheets" to sync changes.');
+                        }
                     }
                 } catch (error) {
-                    console.error('Error syncing category key rename to Google Sheets:', error);
-                    updateSyncStatus(false, '⚠️ Category key renamed locally (sync failed)');
-                    alert('⚠️ Category key renamed locally, but sync to Google Sheets failed.\n\n' +
+                    console.error('Error syncing category edit to Google Sheets:', error);
+                    updateSyncStatus(false, '⚠️ Category edited locally (sync failed)');
+                    alert('⚠️ Category edited locally, but sync to Google Sheets failed.\n\n' +
                           'Please click "Save All to Google Sheets" to sync changes.');
                 }
             } else {
-                alert('✅ Category key renamed from "' + oldKey + '" to "' + trimmedNewKey + '"\n\n' +
-                      (affectedListings.length > 0 ? 'Updated ' + affectedListings.length + ' listing(s).\n\n' : '') +
-                      '⚠️ Google Sheets not configured. Changes saved locally only.');
+                alert('✅ Category edited:\n' +
+                      '  Key: "' + oldKey + '" → "' + trimmedNewKey + '"\n' +
+                      (affectedListings.length > 0 ? '  Updated ' + affectedListings.length + ' listing(s).\n' : '') +
+                      '\n⚠️ Google Sheets not configured. Changes saved locally only.');
             }
         }
         
