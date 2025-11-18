@@ -4623,6 +4623,14 @@ function renderTypeFilterButtons(listings, containerSelector, maxVisible) {
 }
 
 // Create a category filter button element
+// Convert text to sentence case (first letter capitalized, rest lowercase)
+function toSentenceCase(text) {
+    if (!text || typeof text !== 'string') return text;
+    const trimmed = text.trim();
+    if (trimmed.length === 0) return text;
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+}
+
 function createCategoryFilterButton(categoryKey, category) {
     const btn = document.createElement('button');
     btn.className = 'type-filter-btn category-filter-btn';
@@ -4636,7 +4644,7 @@ function createCategoryFilterButton(categoryKey, category) {
     
     const nameSpan = document.createElement('span');
     nameSpan.className = 'category-name';
-    nameSpan.textContent = category.name;
+    nameSpan.textContent = toSentenceCase(category.name);
     
     btn.appendChild(emojiSpan);
     btn.appendChild(nameSpan);
@@ -5259,6 +5267,7 @@ loadDataFromGoogleSheets()
             console.log('📋 Categories found in listings data:', categoriesFromData);
         
             // Add any missing categories from listings data (in case Categories sheet is not up to date)
+            // IMPORTANT: Only add if category doesn't exist - don't overwrite categories loaded from Google Sheets
             // Use defaults if available, otherwise create minimal entry
             let addedCustomCategories = false;
             categoriesFromData.forEach(function(categoryKey) {
@@ -5266,6 +5275,7 @@ loadDataFromGoogleSheets()
                 
                 const normalizedKey = categoryKey.trim().toLowerCase();
                 
+                // Only add if category doesn't exist - preserve emojis from Google Sheets
                 if (!TYPE_CATEGORIES[normalizedKey]) {
                     // Check defaults first
                     let categoryData = null;
@@ -5289,6 +5299,9 @@ loadDataFromGoogleSheets()
                     };
                     addedCustomCategories = true;
                     console.log('✅ Added missing category from listings:', normalizedKey, 'with emoji:', TYPE_CATEGORIES[normalizedKey].emoji || '(none)', 'name:', TYPE_CATEGORIES[normalizedKey].name);
+                } else {
+                    // Category already exists - log its emoji to verify it's correct
+                    console.log('✅ Category already exists:', normalizedKey, 'emoji:', TYPE_CATEGORIES[normalizedKey].emoji || '(none)', 'name:', TYPE_CATEGORIES[normalizedKey].name);
                 }
             });
             
@@ -5340,19 +5353,25 @@ loadDataFromGoogleSheets()
             .then(function(categoriesFromSheets) {
                 console.log('📋 Categories loaded from Google Sheets:', Object.keys(categoriesFromSheets || {}).length, 'categories');
                 
-                // Replace TYPE_CATEGORIES with categories from Google Sheets
+                // Merge categories from Google Sheets into TYPE_CATEGORIES
+                // This preserves any categories already added from listings, but updates with Google Sheets data
                 if (categoriesFromSheets && Object.keys(categoriesFromSheets).length > 0) {
-                    TYPE_CATEGORIES = categoriesFromSheets;
-                    console.log('✅ Loaded categories from Google Sheets:', Object.keys(TYPE_CATEGORIES).map(function(k) {
-                        return k + ': ' + (TYPE_CATEGORIES[k].name || k) + ' ' + (TYPE_CATEGORIES[k].emoji || '');
-                    }).join(', '));
+                    // Merge: Google Sheets categories take priority (they have the latest emojis)
+                    for (const key in categoriesFromSheets) {
+                        TYPE_CATEGORIES[key] = categoriesFromSheets[key];
+                        console.log('✅ Loaded category from Google Sheets:', key, 'emoji:', categoriesFromSheets[key].emoji || '(none)', 'name:', categoriesFromSheets[key].name);
+                    }
+                    console.log('✅ Loaded', Object.keys(categoriesFromSheets).length, 'categories from Google Sheets');
                 } else {
                     // Fallback to defaults if no categories in Google Sheets
                     console.log('⚠️ No categories found in Google Sheets, using defaults');
-                    TYPE_CATEGORIES = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES));
+                    // Only set defaults if TYPE_CATEGORIES is empty
+                    if (!TYPE_CATEGORIES || Object.keys(TYPE_CATEGORIES).length === 0) {
+                        TYPE_CATEGORIES = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES));
+                    }
                 }
                 
-                // Process categories and re-render with updated categories
+                // Process categories and re-render with updated categories (this will add any missing ones)
                 processCategoriesAndRender();
             })
             .catch(function(error) {
