@@ -481,8 +481,19 @@ function saveCategories(categories) {
     // Create sheet if it doesn't exist
     if (!categoriesSheet) {
       categoriesSheet = ss.insertSheet(CATEGORIES_SHEET_NAME);
-      // Set headers
-      categoriesSheet.getRange(1, 1, 1, 6).setValues([['key', 'name', 'emoji', 'description', 'icon', 'types']]);
+    }
+    
+    // Always ensure headers are correct (in case sheet was created before or headers are missing)
+    const headers = ['key', 'name', 'emoji', 'description', 'icon', 'types'];
+    const existingHeaders = categoriesSheet.getRange(1, 1, 1, categoriesSheet.getLastColumn() || 6).getValues()[0];
+    const headersMatch = existingHeaders.length === headers.length && 
+                         existingHeaders.every(function(h, i) { 
+                           return String(h).toLowerCase().trim() === headers[i].toLowerCase(); 
+                         });
+    
+    if (!headersMatch || categoriesSheet.getLastRow() === 0) {
+      // Set/update headers
+      categoriesSheet.getRange(1, 1, 1, 6).setValues([headers]);
       categoriesSheet.getRange(1, 1, 1, 6).setFontWeight('bold');
     }
     
