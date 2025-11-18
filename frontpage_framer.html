@@ -5251,23 +5251,8 @@ loadDataFromGoogleSheets()
         console.log('📊 First listing name:', data.listings[0]?.name || 'N/A');
         console.log('📊 Last listing name:', data.listings[data.listings.length - 1]?.name || 'N/A');
         
-        // Load categories from Google Sheets (public source, same for everyone)
-        // This replaces localStorage which is browser-specific
-        return loadCategoriesFromGoogleSheets().then(function(categoriesFromSheets) {
-            console.log('📋 Categories loaded from Google Sheets:', Object.keys(categoriesFromSheets || {}).length, 'categories');
-            
-            // Replace TYPE_CATEGORIES with categories from Google Sheets
-            if (categoriesFromSheets && Object.keys(categoriesFromSheets).length > 0) {
-                TYPE_CATEGORIES = categoriesFromSheets;
-                console.log('✅ Loaded categories from Google Sheets:', Object.keys(TYPE_CATEGORIES).map(function(k) {
-                    return k + ': ' + (TYPE_CATEGORIES[k].name || k) + ' ' + (TYPE_CATEGORIES[k].emoji || '');
-                }).join(', '));
-            } else {
-                // Fallback to defaults if no categories in Google Sheets
-                console.log('⚠️ No categories found in Google Sheets, using defaults');
-                TYPE_CATEGORIES = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES));
-            }
-            
+        // Process categories and render (called after categories load or immediately with defaults)
+        function processCategoriesAndRender() {
             // Extract categories from Google Sheets data and ensure they're in TYPE_CATEGORIES
             // This ensures custom categories from Google Sheets show up even if not in Categories sheet yet
             const categoriesFromData = [...new Set(data.listings.map(l => l.category).filter(Boolean))];
@@ -5346,25 +5331,42 @@ loadDataFromGoogleSheets()
             
             // Extract parameters from referrer (for cross-origin iframe support)
             extractParamsFromReferrer();
-        }).catch(function(error) {
-            console.error('❌ Error loading categories from Google Sheets:', error);
-            // Fallback to defaults
-            TYPE_CATEGORIES = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES));
-            console.log('⚠️ Using default categories due to error');
-            
-            // Continue with rendering even if categories failed to load
-            if (!data.filterOptions && data.listings) {
-                data.filterOptions = extractFilterOptions(data.listings);
-            }
-            updateHeadFromData(data);
-            const grid = document.getElementById('previewGrid');
-            if (grid) {
-                grid.innerHTML = '';
-            }
-            renderTypeFilterButtons(data.listings, '.type-quick-filters');
-            renderPreview();
-            extractParamsFromReferrer();
-        });
+        }
+        
+        // Load categories from Google Sheets (public source, same for everyone)
+        // This replaces localStorage which is browser-specific
+        // Load categories in parallel, but don't let it block the main data loading
+        loadCategoriesFromGoogleSheets()
+            .then(function(categoriesFromSheets) {
+                console.log('📋 Categories loaded from Google Sheets:', Object.keys(categoriesFromSheets || {}).length, 'categories');
+                
+                // Replace TYPE_CATEGORIES with categories from Google Sheets
+                if (categoriesFromSheets && Object.keys(categoriesFromSheets).length > 0) {
+                    TYPE_CATEGORIES = categoriesFromSheets;
+                    console.log('✅ Loaded categories from Google Sheets:', Object.keys(TYPE_CATEGORIES).map(function(k) {
+                        return k + ': ' + (TYPE_CATEGORIES[k].name || k) + ' ' + (TYPE_CATEGORIES[k].emoji || '');
+                    }).join(', '));
+                } else {
+                    // Fallback to defaults if no categories in Google Sheets
+                    console.log('⚠️ No categories found in Google Sheets, using defaults');
+                    TYPE_CATEGORIES = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES));
+                }
+                
+                // Process categories and re-render with updated categories
+                processCategoriesAndRender();
+            })
+            .catch(function(error) {
+                console.error('❌ Error loading categories from Google Sheets:', error);
+                // Fallback to defaults
+                TYPE_CATEGORIES = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES));
+                console.log('⚠️ Using default categories due to error');
+                
+                // Process categories and render anyway
+                processCategoriesAndRender();
+            });
+        
+        // Start processing immediately with defaults (categories will update when they load)
+        processCategoriesAndRender();
         
         // Handle URL parameters after data is loaded and rendered
         // Use longer delay to allow postMessage response from parent
