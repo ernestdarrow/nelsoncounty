@@ -6059,6 +6059,7 @@ function updateUnsavedChangesBadge() {
             // Re-render the list to show the new duplicate
             renderListings();
             showUnsavedChangesBadge();
+            updateSyncStatus(true, '✅ "' + duplicate.name + '" duplicated locally');
             
             // Optionally open the duplicate for editing
             setTimeout(function() {
@@ -6165,13 +6166,16 @@ function updateUnsavedChangesBadge() {
                             const index = data.listings.findIndex(function(l) { return l.id === editingId; });
                             if (index >= 0) {
                                 data.listings[index] = listing;
+                    updateSyncStatus(true, '✅ "' + listing.name + '" updated locally');
                     alert('"' + listing.name + '" has been updated locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.');
                         } else {
                             data.listings.push(listing);
+                    updateSyncStatus(true, '✅ "' + listing.name + '" added locally');
                     alert('"' + listing.name + '" has been added locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.');
                 }
                     } else {
                         data.listings.push(listing);
+                updateSyncStatus(true, '✅ "' + listing.name + '" added locally');
                 alert('"' + listing.name + '" has been added locally!\n\n💾 Click "Save All to Google Sheets" to sync changes.');
             }
             
@@ -7319,6 +7323,8 @@ function updateUnsavedChangesBadge() {
         function saveFilterOptions() {
             // Save to localStorage
             localStorage.setItem('nelsonCounty_filterOptions', JSON.stringify(data.filterOptions));
+            // Show green banner for settings changes
+            updateSyncStatus(true, '✅ Settings updated');
         }
         
         // ===========================================
