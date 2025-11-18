@@ -6668,15 +6668,14 @@ function updateUnsavedChangesBadge() {
             
             const trimmedNewKey = newKey.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
             
-            if (trimmedNewKey === oldKey) {
-                alert('New key is the same as the old key. No changes made.');
-                return;
-            }
+            const keyChanged = trimmedNewKey !== oldKey;
             
-            // Check if new key already exists
-            if (TYPE_CATEGORIES[trimmedNewKey]) {
-                alert('A category with key "' + trimmedNewKey + '" already exists. Please choose a different key.');
-                return;
+            if (keyChanged) {
+                // Check if new key already exists
+                if (TYPE_CATEGORIES[trimmedNewKey]) {
+                    alert('A category with key "' + trimmedNewKey + '" already exists. Please choose a different key.');
+                    return;
+                }
             }
             
             // Prompt for emoji
@@ -6702,7 +6701,7 @@ function updateUnsavedChangesBadge() {
             const confirmed = confirm(
                 '⚠️ Final Confirmation\n\n' +
                 'Edit category:\n' +
-                '  Key: "' + oldKey + '" → "' + trimmedNewKey + '"\n' +
+                (keyChanged ? '  Key: "' + oldKey + '" → "' + trimmedNewKey + '"\n' : '  Key: "' + oldKey + '" (unchanged)\n') +
                 '  Emoji: ' + (category.emoji || '⭐') + ' → ' + (newEmoji ? newEmoji.trim() : category.emoji || '⭐') + '\n' +
                 '  Description: ' + (category.description || '(none)') + ' → ' + (newDescription ? newDescription.trim() : category.description || '(none)') + '\n\n' +
                 (affectedListings.length > 0 ? 'This will update ' + affectedListings.length + ' listing(s) and sync to Google Sheets.\n\n' : '') +
@@ -6714,23 +6713,29 @@ function updateUnsavedChangesBadge() {
                 return;
             }
             
-            // Create new category with new key and updated values
-            TYPE_CATEGORIES[trimmedNewKey] = {
-                emoji: newEmoji ? newEmoji.trim() || '⭐' : category.emoji || '⭐',
-                description: newDescription ? newDescription.trim() : category.description || '',
-                icon: category.icon || '',
-                types: category.types || []
-            };
-            
-            // Update all affected listings
-            if (affectedListings.length > 0) {
-                affectedListings.forEach(function(listing) {
-                    listing.category = trimmedNewKey;
-                });
+            if (keyChanged) {
+                // Create new category with new key and updated values
+                TYPE_CATEGORIES[trimmedNewKey] = {
+                    emoji: newEmoji ? newEmoji.trim() || '⭐' : category.emoji || '⭐',
+                    description: newDescription ? newDescription.trim() : category.description || '',
+                    icon: category.icon || '',
+                    types: category.types || []
+                };
+                
+                // Update all affected listings to use new key
+                if (affectedListings.length > 0) {
+                    affectedListings.forEach(function(listing) {
+                        listing.category = trimmedNewKey;
+                    });
+                }
+                
+                // Delete old category
+                delete TYPE_CATEGORIES[oldKey];
+            } else {
+                // Key didn't change, just update the category in place
+                category.emoji = newEmoji ? newEmoji.trim() || '⭐' : category.emoji || '⭐';
+                category.description = newDescription ? newDescription.trim() : category.description || '';
             }
-            
-            // Delete old category
-            delete TYPE_CATEGORIES[oldKey];
             
             // Save to localStorage
             saveCategoriesToStorage(TYPE_CATEGORIES);
@@ -6738,7 +6743,7 @@ function updateUnsavedChangesBadge() {
             renderCategories();
             updateCategoryDropdown();
             
-            // Refresh listings display
+            // Refresh listings display - always refresh to show updated category info
             if (data && data.listings) {
                 populateAdminFilters();
                 renderListings(data.listings);
@@ -6755,8 +6760,8 @@ function updateUnsavedChangesBadge() {
                         categories: TYPE_CATEGORIES
                     });
                     
-                    // Then save listings if there are affected ones
-                    if (affectedListings.length > 0) {
+                    // Always save listings if there are any (to ensure admin display is synced)
+                    if (data && data.listings && data.listings.length > 0) {
                         const listingsData = JSON.stringify({
                             action: 'replaceAllListings',
                             listings: data.listings
@@ -6771,7 +6776,7 @@ function updateUnsavedChangesBadge() {
                                 body: categoriesData
                             });
                             
-                            // Save listings
+                            // Save listings (to ensure all listings are synced with updated category info)
                             await fetch(GOOGLE_APPS_SCRIPT_URL, {
                                 method: 'POST',
                                 mode: 'cors',
@@ -6781,7 +6786,7 @@ function updateUnsavedChangesBadge() {
                             
                             updateSyncStatus(true, '✅ Category edited and changes synced to Google Sheets');
                             alert('✅ Category edited:\n' +
-                                  '  Key: "' + oldKey + '" → "' + trimmedNewKey + '"\n' +
+                                  (keyChanged ? '  Key: "' + oldKey + '" → "' + trimmedNewKey + '"\n' : '  Key: "' + oldKey + '" (unchanged)\n') +
                                   (affectedListings.length > 0 ? '  Updated ' + affectedListings.length + ' listing(s).\n' : '') +
                                   '\nChanges have been synced to Google Sheets.');
                         } catch (e) {
@@ -6791,7 +6796,7 @@ function updateUnsavedChangesBadge() {
                                   'Please click "Save All to Google Sheets" to sync changes.');
                         }
                     } else {
-                        // No affected listings, just save categories
+                        // No listings, just save categories
                         try {
                             await fetch(GOOGLE_APPS_SCRIPT_URL, {
                                 method: 'POST',
@@ -6801,7 +6806,7 @@ function updateUnsavedChangesBadge() {
                             });
                             updateSyncStatus(true, '✅ Category edited and synced to Google Sheets');
                             alert('✅ Category edited:\n' +
-                                  '  Key: "' + oldKey + '" → "' + trimmedNewKey + '"\n' +
+                                  (keyChanged ? '  Key: "' + oldKey + '" → "' + trimmedNewKey + '"\n' : '  Key: "' + oldKey + '" (unchanged)\n') +
                                   '\nChanges have been synced to Google Sheets.');
                         } catch (e) {
                             console.warn('⚠️ Could not sync category edit to Google Sheets:', e);
@@ -6818,7 +6823,7 @@ function updateUnsavedChangesBadge() {
                 }
             } else {
                 alert('✅ Category edited:\n' +
-                      '  Key: "' + oldKey + '" → "' + trimmedNewKey + '"\n' +
+                      (keyChanged ? '  Key: "' + oldKey + '" → "' + trimmedNewKey + '"\n' : '  Key: "' + oldKey + '" (unchanged)\n') +
                       (affectedListings.length > 0 ? '  Updated ' + affectedListings.length + ' listing(s).\n' : '') +
                       '\n⚠️ Google Sheets not configured. Changes saved locally only.');
             }
