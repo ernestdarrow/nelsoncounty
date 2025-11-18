@@ -5713,6 +5713,16 @@ function updateUnsavedChangesBadge() {
             updateAreaDropdown();
             updateCategoryDropdown();
             renderAmenitiesCheckboxes();
+            
+            // Set default category (first available category)
+            const categoryInput = document.getElementById('listingCategory');
+            if (categoryInput) {
+                const availableCategories = Object.keys(TYPE_CATEGORIES);
+                if (availableCategories.length > 0) {
+                    categoryInput.value = availableCategories[0];
+                }
+            }
+            
             document.getElementById('listingModal').classList.add('active');
             // Initialize image upload buttons after modal is shown
             setTimeout(function() {
@@ -5752,10 +5762,26 @@ function updateUnsavedChangesBadge() {
             const categoryInput = document.getElementById('listingCategory');
             if (categoryInput) {
                 // Use category from listing (from Google Sheets) - no auto-assignment
-                const categoryValue = listing.category || '';
+                let categoryValue = listing.category || '';
+                
+                // Ensure category is never empty
+                if (!categoryValue) {
+                    // Try to get category from type
+                    if (listing.type) {
+                        categoryValue = getCategoryForType(listing.type, listing);
+                    }
+                    // If still no category, use first available category as fallback
+                    if (!categoryValue) {
+                        const availableCategories = Object.keys(TYPE_CATEGORIES);
+                        if (availableCategories.length > 0) {
+                            categoryValue = availableCategories[0];
+                        }
+                    }
+                }
+                
                 // Set the value directly (same as type field)
                 categoryInput.value = categoryValue;
-                console.log('📋 Set category for', listing.name, 'to:', categoryValue, '(from Google Sheets, no auto-assignment)');
+                console.log('📋 Set category for', listing.name, 'to:', categoryValue, '(from Google Sheets or auto-assigned)');
             }
             const image1Input = document.getElementById('listingImage1');
             if (image1Input) {
@@ -6038,7 +6064,29 @@ function updateUnsavedChangesBadge() {
             // Get category - handle EXACTLY like type (simple, direct, no normalization)
             // Type: getValue('listingType') - no transformation
             // Category: getValue('listingCategory') - same approach
-            const categoryValue = getValue('listingCategory');
+            let categoryValue = getValue('listingCategory');
+            
+            // Ensure category is never empty - assign default if missing
+            if (!categoryValue || categoryValue.trim() === '') {
+                // Try to get category from type
+                const typeValue = getValue('listingType');
+                if (typeValue) {
+                    const tempListing = { type: typeValue, category: existingListing ? existingListing.category : undefined };
+                    categoryValue = getCategoryForType(typeValue, tempListing);
+                }
+                
+                // If still no category, use first available category as fallback
+                if (!categoryValue || categoryValue.trim() === '') {
+                    const availableCategories = Object.keys(TYPE_CATEGORIES);
+                    if (availableCategories.length > 0) {
+                        categoryValue = availableCategories[0];
+                        alert('⚠️ No category selected. Assigned to: ' + (TYPE_CATEGORIES[categoryValue].name || categoryValue));
+                    } else {
+                        alert('⚠️ Error: No categories available. Please create a category first.');
+                        return;
+                    }
+                }
+            }
             
             // Get fileIds from dataset attributes (stored during upload or loaded from listing data)
             const image1Field = document.getElementById('listingImage1');
@@ -6074,7 +6122,7 @@ function updateUnsavedChangesBadge() {
                 modifiedDate: getValue('listingModifiedDate'),
                 directionsLink: getValue('listingDirectionsLink'),
                 googleMapsUrl: getValue('listingDirectionsLink'),
-                category: categoryValue || '' // Simple, direct - same as type (empty string if not selected)
+                category: categoryValue // Always has a value (validated above)
             };
             
             const listing = sanitizeListing(Object.assign({}, existingListing || {}, listingUpdates));
@@ -6564,19 +6612,138 @@ function updateUnsavedChangesBadge() {
             input.value = '';
         }
         
-        function removeCategory(categoryKey) {
+        async function removeCategory(categoryKey) {
             const category = TYPE_CATEGORIES[categoryKey];
             if (!category) return;
             
-            const confirmed = confirm('Remove Category: "' + (category.name || categoryKey) + '"\n\n' +
-                                    'This will remove the category from filter options.\n\n' +
-                                    'Click OK to remove this category\n' +
-                                    'Click Cancel to keep it');
-            if (confirmed) {
+            // Check if any listings use this category
+            const affectedListings = data && data.listings ? data.listings.filter(function(listing) {
+                return listing.category === categoryKey;
+            }) : [];
+            
+            if (affectedListings.length > 0) {
+                // Show dialog asking for replacement category
+                const availableCategories = Object.keys(TYPE_CATEGORIES).filter(function(key) {
+                    return key !== categoryKey;
+                });
+                
+                if (availableCategories.length === 0) {
+                    alert('⚠️ Cannot delete this category!\n\n' +
+                          'This is the only category remaining. You must have at least one category.\n\n' +
+                          'Please create another category first before deleting this one.');
+                    return;
+                }
+                
+                // Build category selection options
+                let categoryOptions = 'Select a replacement category for ' + affectedListings.length + ' listing(s):\n\n';
+                availableCategories.forEach(function(key, index) {
+                    const cat = TYPE_CATEGORIES[key];
+                    categoryOptions += (index + 1) + '. ' + (cat.emoji || '') + ' ' + (cat.name || key) + '\n';
+                });
+                
+                const replacementKey = prompt(
+                    '⚠️ Delete Category: "' + (category.name || categoryKey) + '"\n\n' +
+                    'This category is used by ' + affectedListings.length + ' listing(s).\n\n' +
+                    categoryOptions + '\n' +
+                    'Enter the number (1-' + availableCategories.length + ') of the category to replace it with:',
+                    '1'
+                );
+                
+                if (!replacementKey) {
+                    return; // User cancelled
+                }
+                
+                const replacementIndex = parseInt(replacementKey) - 1;
+                if (isNaN(replacementIndex) || replacementIndex < 0 || replacementIndex >= availableCategories.length) {
+                    alert('Invalid selection. Category deletion cancelled.');
+                    return;
+                }
+                
+                const newCategoryKey = availableCategories[replacementIndex];
+                const newCategory = TYPE_CATEGORIES[newCategoryKey];
+                
+                const confirmed = confirm(
+                    '⚠️ Final Confirmation\n\n' +
+                    'Delete Category: "' + (category.name || categoryKey) + '"\n\n' +
+                    'Replace with: ' + (newCategory.emoji || '') + ' ' + (newCategory.name || newCategoryKey) + '\n\n' +
+                    'This will update ' + affectedListings.length + ' listing(s) and sync to Google Sheets.\n\n' +
+                    'Click OK to proceed\n' +
+                    'Click Cancel to abort'
+                );
+                
+                if (!confirmed) {
+                    return; // User cancelled
+                }
+                
+                // Update all affected listings
+                affectedListings.forEach(function(listing) {
+                    listing.category = newCategoryKey;
+                });
+                
+                // Delete the category
                 delete TYPE_CATEGORIES[categoryKey];
                 saveCategoriesToStorage(TYPE_CATEGORIES);
                 renderCategoriesList();
+                renderCategories();
                 updateCategoryDropdown();
+                
+                // Refresh listings display
+                if (data && data.listings) {
+                    populateAdminFilters();
+                    renderListings(data.listings);
+                }
+                
+                // Push changes to Google Sheets
+                if (GOOGLE_APPS_SCRIPT_URL && !GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
+                    try {
+                        updateSyncStatus(true, '💾 Syncing category deletion to Google Sheets...');
+                        
+                        const postData = JSON.stringify({
+                            action: 'replaceAllListings',
+                            listings: data.listings
+                        });
+                        
+                        try {
+                            await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                                method: 'POST',
+                                mode: 'cors',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: postData
+                            });
+                            updateSyncStatus(true, '✅ Category deleted and changes synced to Google Sheets');
+                            alert('✅ Category "' + (category.name || categoryKey) + '" deleted.\n\n' +
+                                  'Updated ' + affectedListings.length + ' listing(s) to use "' + (newCategory.name || newCategoryKey) + '"\n\n' +
+                                  'Changes have been synced to Google Sheets.');
+                        } catch (e) {
+                            console.warn('⚠️ Could not sync category deletion to Google Sheets:', e);
+                            updateSyncStatus(false, '⚠️ Category deleted locally (sync failed)');
+                            alert('⚠️ Category deleted locally, but sync to Google Sheets failed.\n\n' +
+                                  'Please click "Save All to Google Sheets" to sync changes.');
+                        }
+                    } catch (error) {
+                        console.error('Error syncing category deletion to Google Sheets:', error);
+                        updateSyncStatus(false, '⚠️ Category deleted locally (sync failed)');
+                        alert('⚠️ Category deleted locally, but sync to Google Sheets failed.\n\n' +
+                              'Please click "Save All to Google Sheets" to sync changes.');
+                    }
+                } else {
+                    alert('✅ Category "' + (category.name || categoryKey) + '" deleted.\n\n' +
+                          'Updated ' + affectedListings.length + ' listing(s) to use "' + (newCategory.name || newCategoryKey) + '"\n\n' +
+                          '⚠️ Google Sheets not configured. Changes saved locally only.');
+                }
+            } else {
+                // No listings use this category, safe to delete
+                const confirmed = confirm('Remove Category: "' + (category.name || categoryKey) + '"\n\n' +
+                                        'This category is not used by any listings.\n\n' +
+                                        'Click OK to remove this category\n' +
+                                        'Click Cancel to keep it');
+                if (confirmed) {
+                    delete TYPE_CATEGORIES[categoryKey];
+                    saveCategoriesToStorage(TYPE_CATEGORIES);
+                    renderCategoriesList();
+                    renderCategories();
+                    updateCategoryDropdown();
+                }
             }
         }
         
@@ -6842,7 +7009,7 @@ function updateUnsavedChangesBadge() {
                 
                 return '<div style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;">' +
                     '<div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">' +
-                    '<div style="width: 60px; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 24px; text-align: center; background: #f8f9fa;">' + category.emoji + '</div>' +
+                    '<input type="text" id="categoryEmoji_' + categoryKey + '" value="' + (category.emoji || '⭐') + '" style="width: 60px; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 24px; text-align: center;" onchange="updateCategory(\'' + categoryKey + '\')" placeholder="🎭" />' +
                     '<input type="text" id="categoryName_' + categoryKey + '" value="' + category.name + '" style="flex: 1; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;" onchange="updateCategory(\'' + categoryKey + '\')" placeholder="Category Name" />' +
                     '</div>' +
                     '<div style="margin-bottom: 15px;">' +
@@ -6860,12 +7027,19 @@ function updateUnsavedChangesBadge() {
             }).join('');
         }
         
-        window.updateCategory = function updateCategory(categoryKey) {
+        window.updateCategory = async function updateCategory(categoryKey) {
             const category = TYPE_CATEGORIES[categoryKey];
             if (!category) return;
             
-            category.name = document.getElementById('categoryName_' + categoryKey).value.trim();
-            category.description = document.getElementById('categoryDesc_' + categoryKey).value.trim();
+            const emojiInput = document.getElementById('categoryEmoji_' + categoryKey);
+            const nameInput = document.getElementById('categoryName_' + categoryKey);
+            const descInput = document.getElementById('categoryDesc_' + categoryKey);
+            
+            if (!emojiInput || !nameInput || !descInput) return;
+            
+            category.emoji = emojiInput.value.trim() || '⭐';
+            category.name = nameInput.value.trim();
+            category.description = descInput.value.trim();
             
             // Note: Icons are set in DEFAULT_TYPE_CATEGORIES and not editable
             // If icon is missing, preserve it from defaults or use category key as fallback
@@ -6880,6 +7054,46 @@ function updateUnsavedChangesBadge() {
             if (data && data.listings) {
                 populateAdminFilters();
                 renderListings(data.listings);
+            }
+            
+            // Automatically push changes to Google Sheets
+            if (GOOGLE_APPS_SCRIPT_URL && !GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
+                try {
+                    updateSyncStatus(true, '💾 Syncing category changes to Google Sheets...');
+                    
+                    // Update all listings that use this category
+                    const affectedListings = data.listings.filter(function(listing) {
+                        return listing.category === categoryKey;
+                    });
+                    
+                    if (affectedListings.length > 0) {
+                        // Update category info in affected listings (though category key stays the same)
+                        // The category definition change will be reflected when listings are loaded
+                        const postData = JSON.stringify({
+                            action: 'replaceAllListings',
+                            listings: data.listings
+                        });
+                        
+                        try {
+                            await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                                method: 'POST',
+                                mode: 'cors',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: postData
+                            });
+                            updateSyncStatus(true, '✅ Category changes synced to Google Sheets');
+                            console.log('✅ Category "' + category.name + '" updated and synced to Google Sheets');
+                        } catch (e) {
+                            console.warn('⚠️ Could not sync category changes to Google Sheets:', e);
+                            updateSyncStatus(false, '⚠️ Category saved locally (sync failed)');
+                        }
+                    } else {
+                        updateSyncStatus(true, '✅ Category updated (no listings affected)');
+                    }
+                } catch (error) {
+                    console.error('Error syncing category to Google Sheets:', error);
+                    updateSyncStatus(false, '⚠️ Category saved locally (sync failed)');
+                }
             }
         };
         
@@ -8415,8 +8629,26 @@ function updateUnsavedChangesBadge() {
                         // Convert comma-separated string to array
                         newValue = input.value.split(',').map(function(a) { return a.trim(); }).filter(function(a) { return a.length > 0; });
                     } else if (field === 'category') {
-                        // Handle category: empty string means no override (undefined), otherwise use the value
-                        newValue = input.value.trim() || undefined;
+                        // Handle category: ensure it's never empty
+                        newValue = input.value.trim();
+                        if (!newValue) {
+                            // Try to get category from type
+                            const typeValue = listing.type;
+                            if (typeValue) {
+                                newValue = getCategoryForType(typeValue, listing);
+                            }
+                            // If still no category, use first available category as fallback
+                            if (!newValue) {
+                                const availableCategories = Object.keys(TYPE_CATEGORIES);
+                                if (availableCategories.length > 0) {
+                                    newValue = availableCategories[0];
+                                    input.value = newValue; // Update the input field
+                                    alert('⚠️ Listing "' + listing.name + '" had no category. Assigned to: ' + (TYPE_CATEGORIES[newValue].name || newValue));
+                                }
+                            } else {
+                                input.value = newValue; // Update the input field
+                            }
+                        }
                     } else {
                         newValue = input.value;
                     }
@@ -8428,11 +8660,11 @@ function updateUnsavedChangesBadge() {
                             changeCount++;
                         }
                     } else if (field === 'category') {
-                        // Compare category properly (handle undefined vs empty string)
-                        const currentCategory = listing[field] || undefined;
-                        const newCategory = newValue || undefined;
+                        // Ensure category is never empty
+                        const currentCategory = listing[field] || '';
+                        const newCategory = newValue || '';
                         if (currentCategory !== newCategory) {
-                            listing[field] = newCategory;
+                            listing[field] = newCategory; // Always has a value (validated above)
                             changeCount++;
                         }
                     } else if (listing[field] !== newValue) {
