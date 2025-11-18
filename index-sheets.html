@@ -6870,6 +6870,32 @@ function updateUnsavedChangesBadge() {
             renderCategoriesList();
             updateCategoryDropdown();
             input.value = '';
+            
+            // Save to Google Sheets
+            if (GOOGLE_APPS_SCRIPT_URL && !GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
+                try {
+                    updateSyncStatus(true, '💾 Syncing new category to Google Sheets...');
+                    const postData = JSON.stringify({
+                        action: 'saveCategories',
+                        categories: TYPE_CATEGORIES
+                    });
+                    const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: postData
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        updateSyncStatus(true, '✅ Category added and synced to Google Sheets');
+                    } else {
+                        updateSyncStatus(false, '⚠️ Category added locally (sync failed)');
+                    }
+                } catch (e) {
+                    console.warn('⚠️ Could not sync new category to Google Sheets:', e);
+                    updateSyncStatus(false, '⚠️ Category added locally (sync failed)');
+                }
+            }
         }
         
         async function removeCategory(categoryKey) {
@@ -6958,18 +6984,33 @@ function updateUnsavedChangesBadge() {
                     try {
                         updateSyncStatus(true, '💾 Syncing category deletion to Google Sheets...');
                         
-                        const postData = JSON.stringify({
+                        // Save updated categories and listings
+                        const categoriesData = JSON.stringify({
+                            action: 'saveCategories',
+                            categories: TYPE_CATEGORIES
+                        });
+                        const listingsData = JSON.stringify({
                             action: 'replaceAllListings',
                             listings: data.listings
                         });
                         
                         try {
+                            // Save categories first
                             await fetch(GOOGLE_APPS_SCRIPT_URL, {
                                 method: 'POST',
                                 mode: 'cors',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: postData
+                                body: categoriesData
                             });
+                            
+                            // Then save listings
+                            await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                                method: 'POST',
+                                mode: 'cors',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: listingsData
+                            });
+                            
                             updateSyncStatus(true, '✅ Category deleted and changes synced to Google Sheets');
                             alert('✅ Category "' + (category.name || categoryKey) + '" deleted.\n\n' +
                                   'Updated ' + affectedListings.length + ' listing(s) to use "' + (newCategory.name || newCategoryKey) + '"\n\n' +
@@ -7003,6 +7044,32 @@ function updateUnsavedChangesBadge() {
                     renderCategoriesList();
                     renderCategories();
                     updateCategoryDropdown();
+                    
+                    // Save to Google Sheets
+                    if (GOOGLE_APPS_SCRIPT_URL && !GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
+                        try {
+                            updateSyncStatus(true, '💾 Syncing category deletion to Google Sheets...');
+                            const postData = JSON.stringify({
+                                action: 'saveCategories',
+                                categories: TYPE_CATEGORIES
+                            });
+                            const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                                method: 'POST',
+                                mode: 'cors',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: postData
+                            });
+                            const result = await response.json();
+                            if (result.success) {
+                                updateSyncStatus(true, '✅ Category deleted and synced to Google Sheets');
+                            } else {
+                                updateSyncStatus(false, '⚠️ Category deleted locally (sync failed)');
+                            }
+                        } catch (e) {
+                            console.warn('⚠️ Could not sync category deletion to Google Sheets:', e);
+                            updateSyncStatus(false, '⚠️ Category deleted locally (sync failed)');
+                        }
+                    }
                 }
             }
         }
@@ -7316,39 +7383,35 @@ function updateUnsavedChangesBadge() {
                 renderListings(data.listings);
             }
             
-            // Automatically push changes to Google Sheets
+            // Automatically push category definitions to Google Sheets
             if (GOOGLE_APPS_SCRIPT_URL && !GOOGLE_APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
                 try {
-                    updateSyncStatus(true, '💾 Syncing category changes to Google Sheets...');
+                    updateSyncStatus(true, '💾 Syncing category definitions to Google Sheets...');
                     
-                    // Update all listings that use this category
-                    const affectedListings = data.listings.filter(function(listing) {
-                        return listing.category === categoryKey;
+                    // Save all categories to Google Sheets Categories sheet
+                    const postData = JSON.stringify({
+                        action: 'saveCategories',
+                        categories: TYPE_CATEGORIES
                     });
                     
-                    if (affectedListings.length > 0) {
-                        // Update category info in affected listings (though category key stays the same)
-                        // The category definition change will be reflected when listings are loaded
-                        const postData = JSON.stringify({
-                            action: 'replaceAllListings',
-                            listings: data.listings
+                    try {
+                        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                            method: 'POST',
+                            mode: 'cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: postData
                         });
                         
-                        try {
-                            await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                                method: 'POST',
-                                mode: 'cors',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: postData
-                            });
-                            updateSyncStatus(true, '✅ Category changes synced to Google Sheets');
+                        const result = await response.json();
+                        if (result.success) {
+                            updateSyncStatus(true, '✅ Category definitions synced to Google Sheets');
                             console.log('✅ Category "' + category.name + '" updated and synced to Google Sheets');
-                        } catch (e) {
-                            console.warn('⚠️ Could not sync category changes to Google Sheets:', e);
-                            updateSyncStatus(false, '⚠️ Category saved locally (sync failed)');
+                        } else {
+                            throw new Error(result.error || 'Unknown error');
                         }
-                    } else {
-                        updateSyncStatus(true, '✅ Category updated (no listings affected)');
+                    } catch (e) {
+                        console.warn('⚠️ Could not sync category definitions to Google Sheets:', e);
+                        updateSyncStatus(false, '⚠️ Category saved locally (sync failed)');
                     }
                 } catch (error) {
                     console.error('Error syncing category to Google Sheets:', error);

@@ -8,6 +8,7 @@
  */
 
 const LISTINGS_SHEET_NAME = 'Nelson County';
+const CATEGORIES_SHEET_NAME = 'Categories';
 
 // -----------------------------------------------------------------------------
 // ImageKit helpers
@@ -166,9 +167,22 @@ function doGet(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
-    // Default: return listings data
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    // Default: return listings data with categories
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(LISTINGS_SHEET_NAME);
+    if (!sheet) {
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          success: false,
+          error: 'Sheet "' + LISTINGS_SHEET_NAME + '" not found'
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
     const result = getData(sheet);
+    // Add categories to the response
+    const categories = getCategories();
+    if (categories && categories.success) {
+      result.categories = categories.categories;
+    }
     return ContentService
       .createTextOutput(JSON.stringify(result))
       .setMimeType(ContentService.MimeType.JSON);
@@ -274,8 +288,11 @@ function doPost(e) {
     } else if (action === 'deleteListing') {
       if (!data.listingId) throw new Error('Missing "listingId" field for deleteListing action');
       result = deleteListing(sheet, data.listingId);
+    } else if (action === 'saveCategories') {
+      if (!data.categories) throw new Error('Missing "categories" field for saveCategories action');
+      result = saveCategories(data.categories);
     } else {
-      result = { success: false, error: 'Unknown action: ' + action + '. Expected: saveListing, replaceAllListings, or deleteListing' };
+      result = { success: false, error: 'Unknown action: ' + action + '. Expected: saveListing, replaceAllListings, deleteListing, or saveCategories' };
     }
 
     return ContentService
@@ -392,6 +409,109 @@ function getData(sheet) {
 
     return { success: true, listings: listings, headers: headers };
 
+  } catch (error) {
+    return { success: false, error: error.toString() };
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Categories sheet helpers
+// -----------------------------------------------------------------------------
+
+function getCategories() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let categoriesSheet = ss.getSheetByName(CATEGORIES_SHEET_NAME);
+    
+    // If sheet doesn't exist, return empty categories
+    if (!categoriesSheet) {
+      return { success: true, categories: {} };
+    }
+    
+    const values = categoriesSheet.getDataRange().getValues();
+    if (!values || values.length <= 1) {
+      return { success: true, categories: {} };
+    }
+    
+    const headers = values[0];
+    const rows = values.slice(1);
+    
+    // Find column indices
+    const keyIndex = headers.findIndex(h => String(h).toLowerCase().trim() === 'key');
+    const nameIndex = headers.findIndex(h => String(h).toLowerCase().trim() === 'name');
+    const emojiIndex = headers.findIndex(h => String(h).toLowerCase().trim() === 'emoji');
+    const descriptionIndex = headers.findIndex(h => String(h).toLowerCase().trim() === 'description');
+    const iconIndex = headers.findIndex(h => String(h).toLowerCase().trim() === 'icon');
+    const typesIndex = headers.findIndex(h => String(h).toLowerCase().trim() === 'types');
+    
+    const categories = {};
+    
+    rows.forEach(function(row) {
+      if (!row[keyIndex] || !row[keyIndex].toString().trim()) return;
+      
+      const key = String(row[keyIndex]).trim().toLowerCase();
+      const name = nameIndex >= 0 && row[nameIndex] ? String(row[nameIndex]).trim() : '';
+      const emoji = emojiIndex >= 0 && row[emojiIndex] ? String(row[emojiIndex]).trim() : '';
+      const description = descriptionIndex >= 0 && row[descriptionIndex] ? String(row[descriptionIndex]).trim() : '';
+      const icon = iconIndex >= 0 && row[iconIndex] ? String(row[iconIndex]).trim() : '';
+      const typesStr = typesIndex >= 0 && row[typesIndex] ? String(row[typesIndex]).trim() : '';
+      const types = typesStr ? typesStr.split(/[,;]/).map(t => t.trim()).filter(t => t) : [];
+      
+      categories[key] = {
+        name: name || key,
+        emoji: emoji || '⭐',
+        description: description || '',
+        icon: icon || '',
+        types: types
+      };
+    });
+    
+    return { success: true, categories: categories };
+    
+  } catch (error) {
+    return { success: false, error: error.toString() };
+  }
+}
+
+function saveCategories(categories) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let categoriesSheet = ss.getSheetByName(CATEGORIES_SHEET_NAME);
+    
+    // Create sheet if it doesn't exist
+    if (!categoriesSheet) {
+      categoriesSheet = ss.insertSheet(CATEGORIES_SHEET_NAME);
+      // Set headers
+      categoriesSheet.getRange(1, 1, 1, 6).setValues([['key', 'name', 'emoji', 'description', 'icon', 'types']]);
+      categoriesSheet.getRange(1, 1, 1, 6).setFontWeight('bold');
+    }
+    
+    // Clear existing data (except headers)
+    const lastRow = categoriesSheet.getLastRow();
+    if (lastRow > 1) {
+      categoriesSheet.deleteRows(2, lastRow - 1);
+    }
+    
+    // Write categories
+    const rows = [];
+    for (const key in categories) {
+      const cat = categories[key];
+      rows.push([
+        key,
+        cat.name || key,
+        cat.emoji || '⭐',
+        cat.description || '',
+        cat.icon || '',
+        Array.isArray(cat.types) ? cat.types.join(', ') : ''
+      ]);
+    }
+    
+    if (rows.length > 0) {
+      categoriesSheet.getRange(2, 1, rows.length, 6).setValues(rows);
+    }
+    
+    return { success: true, message: 'Categories saved successfully', count: rows.length };
+    
   } catch (error) {
     return { success: false, error: error.toString() };
   }
