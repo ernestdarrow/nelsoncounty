@@ -6581,14 +6581,58 @@ function updateUnsavedChangesBadge() {
             const container = document.getElementById('categoriesList');
             if (!container) return;
             
+            // Clean up duplicate/unused categories on render
+            // Check for case-sensitive duplicates (e.g., "community" vs "Community")
+            const categoryKeys = Object.keys(TYPE_CATEGORIES);
+            const lowerCaseKeys = {};
+            const duplicatesToRemove = [];
+            
+            categoryKeys.forEach(function(key) {
+                const lowerKey = key.toLowerCase();
+                if (!lowerCaseKeys[lowerKey]) {
+                    lowerCaseKeys[lowerKey] = key;
+                } else {
+                    // Found a duplicate - check which one has listings
+                    const existingKey = lowerCaseKeys[lowerKey];
+                    const existingListings = data && data.listings ? data.listings.filter(function(l) { return l.category === existingKey; }).length : 0;
+                    const newListings = data && data.listings ? data.listings.filter(function(l) { return l.category === key; }).length : 0;
+                    
+                    if (newListings === 0 && existingListings > 0) {
+                        // Remove the one with no listings
+                        duplicatesToRemove.push(key);
+                    } else if (existingListings === 0 && newListings > 0) {
+                        // Remove the existing one, keep the new one
+                        duplicatesToRemove.push(existingKey);
+                        lowerCaseKeys[lowerKey] = key;
+                    } else {
+                        // Both have same usage (likely 0), prefer lowercase
+                        if (key !== lowerKey && existingKey === lowerKey) {
+                            duplicatesToRemove.push(key);
+                        } else if (existingKey !== lowerKey && key === lowerKey) {
+                            duplicatesToRemove.push(existingKey);
+                            lowerCaseKeys[lowerKey] = key;
+                        }
+                    }
+                }
+            });
+            
+            // Remove duplicates
+            if (duplicatesToRemove.length > 0) {
+                console.log('🧹 Removing duplicate/unused category keys:', duplicatesToRemove);
+                duplicatesToRemove.forEach(function(key) {
+                    delete TYPE_CATEGORIES[key];
+                });
+                saveCategoriesToStorage(TYPE_CATEGORIES);
+            }
+            
             // Get all category keys and sort by name
-            const categoryKeys = Object.keys(TYPE_CATEGORIES).slice().sort(function(a, b) {
+            const finalCategoryKeys = Object.keys(TYPE_CATEGORIES).slice().sort(function(a, b) {
                 const nameA = (TYPE_CATEGORIES[a].name || '').toLowerCase();
                 const nameB = (TYPE_CATEGORIES[b].name || '').toLowerCase();
                 return nameA.localeCompare(nameB);
             });
             
-            container.innerHTML = categoryKeys.map(function(categoryKey) {
+            container.innerHTML = finalCategoryKeys.map(function(categoryKey) {
                 const category = TYPE_CATEGORIES[categoryKey];
                 const displayName = (category.emoji || '') + ' ' + (category.name || categoryKey);
                 const escapedKey = categoryKey.replace(/'/g, "\\'");
