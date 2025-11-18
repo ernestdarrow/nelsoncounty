@@ -4519,7 +4519,7 @@ function getCategoriesByUsage(listings) {
         if (b.count !== a.count) {
             return b.count - a.count; // Most used first
         }
-        return a.category.name.localeCompare(b.category.name); // Alphabetical for ties
+        return a.key.localeCompare(b.key); // Alphabetical for ties
     });
     
     return categoriesArray;
@@ -4551,7 +4551,7 @@ function renderTypeFilterButtons(listings, containerSelector, maxVisible) {
     }
     
     console.log('📊 All categories (showing all regardless of usage):', categoriesByUsage.map(function(c) {
-        return c.key + ': ' + c.category.name + ' (' + c.count + ' listings)';
+        return c.key + ': ' + toSentenceCase(c.key) + ' (' + c.count + ' listings)';
     }).join(', '));
     console.log('📋 TYPE_CATEGORIES keys:', Object.keys(TYPE_CATEGORIES));
     console.log('📋 TYPE_CATEGORIES count:', Object.keys(TYPE_CATEGORIES).length);
@@ -4644,7 +4644,7 @@ function createCategoryFilterButton(categoryKey, category) {
     
     const nameSpan = document.createElement('span');
     nameSpan.className = 'category-name';
-    nameSpan.textContent = toSentenceCase(category.name);
+    nameSpan.textContent = toSentenceCase(categoryKey);
     
     btn.appendChild(emojiSpan);
     btn.appendChild(nameSpan);

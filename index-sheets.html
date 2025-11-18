@@ -2466,7 +2466,7 @@ function loadCategoriesFromStorage() {
                 console.log('✅ loadCategoriesFromStorage: Found', categoryKeys.length, 'categories in localStorage');
                 console.log('📋 Category keys:', categoryKeys);
                 console.log('📋 Category names:', categoryKeys.map(function(k) {
-                    return parsed[k].name || k;
+                    return toSentenceCase(k);
                 }).join(', '));
                 return parsed;
             } else {
@@ -2509,7 +2509,7 @@ function saveCategoriesToStorage(categories) {
         console.log('💾 saveCategoriesToStorage: Saving', categoryKeys.length, 'categories to localStorage');
         if (customKeys.length > 0) {
             console.log('🔧 Custom categories being saved:', customKeys.map(function(k) {
-                return categories[k].name || k;
+                return toSentenceCase(k);
             }).join(', '));
         }
         
@@ -2807,7 +2807,7 @@ function normalizeCategoryInput(value) {
     for (const categoryKey in TYPE_CATEGORIES) {
         const category = TYPE_CATEGORIES[categoryKey];
         if (!category) continue;
-        if (category.name && category.name.toLowerCase() === lower) {
+        if (categoryKey.toLowerCase() === lower) {
             return categoryKey;
         }
         if (category.emoji && category.emoji === trimmed) {
@@ -2928,7 +2928,7 @@ function checkUnassignedTypes() {
     console.log('✅ Types with categories assigned:');
     for (const categoryKey in categoryAssignments) {
         const category = TYPE_CATEGORIES[categoryKey];
-        const categoryName = category ? category.name : categoryKey;
+        const categoryName = toSentenceCase(categoryKey);
         console.log(`  ${categoryName} (${categoryKey}):`);
         categoryAssignments[categoryKey].forEach(function(item) {
             console.log(`    - ${item.type} (${item.count} listing${item.count !== 1 ? 's' : ''})`);
@@ -4996,9 +4996,8 @@ function updateUnsavedChangesBadge() {
                 
                 // Get category name for display
                 const categoryKey = getCategoryForType(listing.type, listing);
-                const categoryName = categoryKey && TYPE_CATEGORIES && TYPE_CATEGORIES[categoryKey] ? TYPE_CATEGORIES[categoryKey].name : '';
-                const categoryHTML = categoryName ? 
-                    '<div style="font-size: 11px; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.5px; margin-bottom: 4px;">' + toSentenceCase(categoryName) + '</div>' : '';
+                const categoryHTML = categoryKey ? 
+                    '<div style="font-size: 11px; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.5px; margin-bottom: 4px;">' + toSentenceCase(categoryKey) + '</div>' : '';
                 
                 cardContent.innerHTML = 
                     categoryHTML +
@@ -5520,7 +5519,7 @@ function updateUnsavedChangesBadge() {
                 if (b.count !== a.count) {
                     return b.count - a.count; // Most used first
                 }
-                return a.category.name.localeCompare(b.category.name); // Alphabetical for ties
+                return a.key.localeCompare(b.key); // Alphabetical for ties
             });
             
             return categoriesArray;
@@ -5541,7 +5540,7 @@ function updateUnsavedChangesBadge() {
             }
             
             console.log('📊 Admin: All categories (showing all regardless of usage):', categoriesByUsage.map(function(c) {
-                return c.category.name + ' (' + c.count + ' listings)';
+                return toSentenceCase(c.key) + ' (' + c.count + ' listings)';
             }).join(', '));
             
             // Show ALL categories - if maxVisible is not specified or is less than total, show all
@@ -5581,7 +5580,7 @@ function updateUnsavedChangesBadge() {
                 
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'category-name';
-                nameSpan.textContent = categoryInfo.category.name;
+                nameSpan.textContent = toSentenceCase(categoryInfo.key);
                 
                 btn.appendChild(emojiSpan);
                 btn.appendChild(nameSpan);
@@ -6627,17 +6626,14 @@ function updateUnsavedChangesBadge() {
             
             // Get all category keys and sort by name
             const finalCategoryKeys = Object.keys(TYPE_CATEGORIES).slice().sort(function(a, b) {
-                const nameA = (TYPE_CATEGORIES[a].name || '').toLowerCase();
-                const nameB = (TYPE_CATEGORIES[b].name || '').toLowerCase();
-                return nameA.localeCompare(nameB);
+                return a.toLowerCase().localeCompare(b.toLowerCase());
             });
             
             container.innerHTML = finalCategoryKeys.map(function(categoryKey) {
                 const category = TYPE_CATEGORIES[categoryKey];
-                const displayName = (category.emoji || '') + ' ' + toSentenceCase(category.name || categoryKey);
                 const escapedKey = categoryKey.replace(/'/g, "\\'");
                 return '<div id="categoryItem_' + escapedKey + '" style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #f8f9fa; border-radius: 4px; margin-bottom: 8px;">' +
-                    '<span><strong style="color: #6c757d; font-size: 11px; margin-right: 8px;">[' + escapeHtml(categoryKey) + ']</strong>' + escapeHtml(displayName) + '</span>' +
+                    '<span>' + (category.emoji || '⭐') + ' <strong style="color: #6c757d; font-size: 11px; margin-right: 8px;">[' + escapeHtml(categoryKey) + ']</strong>' + escapeHtml(toSentenceCase(categoryKey)) + '</span>' +
                     '<div style="display: flex; gap: 8px;">' +
                     '<button onclick="editCategoryInline(\'' + escapedKey + '\')" style="background: #007bff; color: white; border: none; padding: 4px 12px; border-radius: 18px; cursor: pointer; font-size: 12px;">Edit</button>' +
                     '<button onclick="renameCategoryKey(\'' + escapedKey + '\')" style="background: #6c757d; color: white; border: none; padding: 4px 12px; border-radius: 18px; cursor: pointer; font-size: 12px;">Rename Key</button>' +
@@ -6659,12 +6655,10 @@ function updateUnsavedChangesBadge() {
                 // Save and collapse
                 const escapedKey = categoryKey.replace(/'/g, "\\'");
                 const emojiInput = itemDiv.querySelector('#categoryEmoji_' + escapedKey);
-                const nameInput = itemDiv.querySelector('#categoryName_' + escapedKey);
                 const descInput = itemDiv.querySelector('#categoryDesc_' + escapedKey);
                 
-                if (emojiInput && nameInput && descInput) {
+                if (emojiInput && descInput) {
                     category.emoji = emojiInput.value.trim() || '⭐';
-                    category.name = nameInput.value.trim();
                     category.description = descInput.value.trim();
                     
                     saveCategoriesToStorage(TYPE_CATEGORIES);
@@ -6676,12 +6670,16 @@ function updateUnsavedChangesBadge() {
                 return;
             }
             
-            // Build edit form HTML (simplified - just emoji, name, description)
+            // Build edit form HTML (simplified - just emoji, description)
             const escapedKey = categoryKey.replace(/'/g, "\\'");
             const editHtml = '<div style="width: 100%;">' +
+                '<div style="margin-bottom: 10px;">' +
+                '<label style="display: block; margin-bottom: 5px; font-weight: 600; color: #212529; font-size: 12px;">Category Key (used in Google Sheets):</label>' +
+                '<div style="padding: 8px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-family: monospace; color: #6c757d;">' + escapeHtml(categoryKey) + '</div>' +
+                '</div>' +
                 '<div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">' +
                 '<input type="text" id="categoryEmoji_' + escapedKey + '" value="' + escapeHtml(category.emoji || '⭐') + '" style="width: 60px; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 24px; text-align: center;" placeholder="🎭" />' +
-                '<input type="text" id="categoryName_' + escapedKey + '" value="' + escapeHtml(category.name) + '" style="flex: 1; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;" placeholder="Category Name" />' +
+                '<div style="flex: 1; padding: 8px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; color: #212529;">' + escapeHtml(toSentenceCase(categoryKey)) + '</div>' +
                 '</div>' +
                 '<div style="margin-bottom: 15px;">' +
                 '<textarea id="categoryDesc_' + escapedKey + '" style="width: 100%; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px; min-height: 60px;" placeholder="Category description">' + escapeHtml(category.description || '') + '</textarea>' +
@@ -7326,9 +7324,13 @@ function updateUnsavedChangesBadge() {
                 const category = TYPE_CATEGORIES[categoryKey];
                 
                 return '<div style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin-bottom: 15px;">' +
+                    '<div style="margin-bottom: 10px;">' +
+                    '<label style="display: block; margin-bottom: 5px; font-weight: 600; color: #212529; font-size: 12px;">Category Key (used in Google Sheets):</label>' +
+                    '<div style="padding: 8px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-family: monospace; color: #6c757d;">' + escapeHtml(categoryKey) + '</div>' +
+                    '</div>' +
                     '<div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">' +
                     '<input type="text" id="categoryEmoji_' + categoryKey + '" value="' + (category.emoji || '⭐') + '" style="width: 60px; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 24px; text-align: center;" onchange="updateCategory(\'' + categoryKey + '\')" placeholder="🎭" />' +
-                    '<input type="text" id="categoryName_' + categoryKey + '" value="' + category.name + '" style="flex: 1; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;" onchange="updateCategory(\'' + categoryKey + '\')" placeholder="Category Name" />' +
+                    '<div style="flex: 1; padding: 8px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; color: #212529;">' + escapeHtml(toSentenceCase(categoryKey)) + '</div>' +
                     '</div>' +
                     '<div style="margin-bottom: 15px;">' +
                     '<textarea id="categoryDesc_' + categoryKey + '" style="width: 100%; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px; min-height: 60px;" onchange="updateCategory(\'' + categoryKey + '\')" placeholder="Category description">' + (category.description || '') + '</textarea>' +
@@ -7342,13 +7344,11 @@ function updateUnsavedChangesBadge() {
             if (!category) return;
             
             const emojiInput = document.getElementById('categoryEmoji_' + categoryKey);
-            const nameInput = document.getElementById('categoryName_' + categoryKey);
             const descInput = document.getElementById('categoryDesc_' + categoryKey);
             
-            if (!emojiInput || !nameInput || !descInput) return;
+            if (!emojiInput || !descInput) return;
             
             category.emoji = emojiInput.value.trim() || '⭐';
-            category.name = nameInput.value.trim();
             category.description = descInput.value.trim();
             
             // Note: Icons are set in DEFAULT_TYPE_CATEGORIES and not editable
@@ -7462,7 +7462,7 @@ function updateUnsavedChangesBadge() {
             let optionsHtml = '<option value="">Select Category</option>' +
                 categoryKeys.map(function(categoryKey) {
                     const category = TYPE_CATEGORIES[categoryKey];
-                    return '<option value="' + escapeHtml(categoryKey) + '">' + escapeHtml(category.emoji || '') + ' ' + escapeHtml(toSentenceCase(category.name)) + '</option>';
+                    return '<option value="' + escapeHtml(categoryKey) + '">' + escapeHtml(category.emoji || '') + ' ' + escapeHtml(toSentenceCase(categoryKey)) + '</option>';
                 }).join('');
             
             // If current value exists but isn't in TYPE_CATEGORIES, add it to preserve custom categories from Google Sheets
