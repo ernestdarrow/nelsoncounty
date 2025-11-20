@@ -8036,11 +8036,59 @@ function updateMapMarkers(listings) {
                     if (markers.length > 0) {
                         setTimeout(function() {
                             try {
-                                map.fitBounds(bounds);
+                                // Add padding to bounds to prevent excessive zoom when few listings are visible
+                                // More padding = less zoom = wider view
+                                var padding = 100; // pixels of padding on all sides
+                                
+                                // If there are very few listings, add much more padding to keep wider view
+                                if (markers.length === 1) {
+                                    padding = 400; // Maximum padding for single listing - keep very wide view
+                                } else if (markers.length === 2) {
+                                    padding = 300; // Large padding for two listings
+                                } else if (markers.length <= 3) {
+                                    padding = 250; // More padding for very few listings
+                                } else if (markers.length <= 10) {
+                                    padding = 150; // Medium padding for small number of listings
+                                }
+                                
+                                map.fitBounds(bounds, {
+                                    top: padding,
+                                    right: padding,
+                                    bottom: padding,
+                                    left: padding
+                                });
+                                
+                                // Also set a maximum zoom level to prevent zooming in too much
+                                // Wait for fitBounds to complete, then check zoom
+                                setTimeout(function() {
+                                    var currentZoom = map.getZoom();
+                                    
+                                    // Set maximum zoom based on number of listings
+                                    if (markers.length === 1) {
+                                        // Single listing: maximum zoom of 11 to show surrounding area
+                                        if (currentZoom > 11) {
+                                            map.setZoom(11);
+                                        }
+                                    } else if (markers.length === 2) {
+                                        // Two listings: maximum zoom of 12
+                                        if (currentZoom > 12) {
+                                            map.setZoom(12);
+                                        }
+                                    } else if (markers.length <= 5) {
+                                        // Few listings: maximum zoom of 13
+                                        if (currentZoom > 13) {
+                                            map.setZoom(13);
+                                        }
+                                    } else {
+                                        // Many listings: maximum zoom of 14
+                                        if (currentZoom > 14) {
+                                            map.setZoom(14);
+                                        }
+                                    }
+                                }, 100);
                             } catch (e) {
                                 console.warn('Error fitting map bounds:', e);
                             }
-                            // Allow higher zoom for more detail (removed max zoom limit)
                         }, 500);
                     }
                 } catch (e) {
