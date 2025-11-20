@@ -3390,7 +3390,7 @@
                             <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
-                            <input type="text" id="previewSearchInput" placeholder="Find your adventure" onkeyup="filterPreview()">
+                            <input type="text" id="previewSearchInput" placeholder="Find your adventure">
                         </div>
                     </div>
 
@@ -3402,7 +3402,7 @@
                                 <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
-                                <input type="text" id="previewSearchInputMobile" placeholder="Find your adventure" onkeyup="filterPreview()">
+                                <input type="text" id="previewSearchInputMobile" placeholder="Find your adventure">
                             </div>
                         </div>
                         <div class="mobile-filter-group">
@@ -3829,6 +3829,17 @@ let currentFeaturedOnly = false;
 let receivedUrlParams = {};
 let lastProcessedParamsHash = null; // Track last processed parameters hash to prevent loops
 let isProcessingParams = false; // Guard to prevent concurrent processing
+
+// Pagination variables for infinite scroll
+let currentPage = 1;
+const ITEMS_PER_PAGE = 50; // Load 50 cards at a time
+let isLoadingMore = false;
+let hasMoreItems = true;
+let allFilteredListings = []; // Store all filtered listings for pagination
+
+// Search debouncing
+let searchDebounceTimeout = null;
+const SEARCH_DEBOUNCE_DELAY = 200; // 200ms delay
 
 // Helper function to parse CSV text into array of objects
 function parseCSV(csvText) {
@@ -5572,6 +5583,11 @@ loadDataFromGoogleSheets()
         // Start processing immediately with defaults (categories will update when they load)
         processCategoriesAndRender();
         
+        // Set up debounced search input handlers
+        setTimeout(function() {
+            setupSearchInputs();
+        }, 100); // Small delay to ensure inputs exist
+        
         // Handle URL parameters after data is loaded and rendered
         // Use a delay to allow postMessage response from parent
         // Extract referrer params first, then handle URL parameters
@@ -5616,6 +5632,9 @@ loadDataFromGoogleSheets()
         
         renderPreview(); // Sorting is now handled inside renderPreview
         
+        // Set up debounced search input handlers (fallback path)
+        setupSearchInputs();
+        
         // Initialize receivedUrlParams from iframe's own URL first (preserve these)
         try {
             const iframeUrl = new URL(window.location.href);
@@ -5639,6 +5658,53 @@ loadDataFromGoogleSheets()
             handleUrlParameters();
         }, 800); // Single delay - long enough for postMessage but not too long
     });
+
+// Set up debounced search input handlers
+function setupSearchInputs() {
+    const searchInput = document.getElementById('previewSearchInput');
+    const mobileSearchInput = document.getElementById('previewSearchInputMobile');
+    
+    // Skip if already set up
+    if (searchInput && searchInput.dataset.debounceSetup === 'true') {
+        return;
+    }
+    if (mobileSearchInput && mobileSearchInput.dataset.debounceSetup === 'true') {
+        return;
+    }
+    
+    function handleSearchInput() {
+        // Clear existing timeout
+        if (searchDebounceTimeout) {
+            clearTimeout(searchDebounceTimeout);
+        }
+        
+        // Sync mobile and desktop search inputs
+        if (searchInput && mobileSearchInput) {
+            if (document.activeElement === searchInput) {
+                mobileSearchInput.value = searchInput.value;
+            } else if (document.activeElement === mobileSearchInput) {
+                searchInput.value = mobileSearchInput.value;
+            }
+        }
+        
+        // Debounce the filter call
+        searchDebounceTimeout = setTimeout(function() {
+            filterPreview();
+        }, SEARCH_DEBOUNCE_DELAY);
+    }
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', handleSearchInput);
+        searchInput.addEventListener('keyup', handleSearchInput);
+        searchInput.dataset.debounceSetup = 'true';
+    }
+    
+    if (mobileSearchInput) {
+        mobileSearchInput.addEventListener('input', handleSearchInput);
+        mobileSearchInput.addEventListener('keyup', handleSearchInput);
+        mobileSearchInput.dataset.debounceSetup = 'true';
+    }
+}
 
 // Function to escape HTML special characters
 function escapeHtml(text) {
@@ -6170,6 +6236,12 @@ function filterPreview() {
         return matchesSearch && matchesType && matchesArea && matchesAmenity && matchesFeatured;
     });
     
+    // Store all filtered listings for pagination
+    allFilteredListings = filtered;
+    // Reset pagination when filters change
+    currentPage = 1;
+    hasMoreItems = filtered.length > ITEMS_PER_PAGE;
+    
     // Debug logging for filtering
     if (currentCategoryFilter) {
         // Category filter mode
@@ -6202,7 +6274,7 @@ function filterPreview() {
         sortDropdown.value = 'name-asc';
     }
     
-    renderPreview(filtered);
+    renderPreview(); // renderPreview will use allFilteredListings and pagination
     
     // Send scroll-to-top message to parent (Framer component)
     // Use postMessage directly without checking window.parent/top to avoid CORS errors
@@ -6533,7 +6605,7 @@ function reportContentHeight() {
 let isRendering = false;
 let renderTimeout = null;
 
-function renderPreview(filteredListings) {
+function renderPreview(filteredListings, appendMode) {
     if (!data) {
         console.error('❌ renderPreview called but data is null/undefined');
         return;
@@ -6545,8 +6617,8 @@ function renderPreview(filteredListings) {
     }
     
     renderTimeout = setTimeout(function() {
-        // Prevent concurrent renders
-        if (isRendering) {
+        // Prevent concurrent renders (unless appending)
+        if (isRendering && !appendMode) {
             console.log('⚠️ Render already in progress, skipping duplicate call...');
             return;
         }
@@ -6554,12 +6626,19 @@ function renderPreview(filteredListings) {
         isRendering = true;
         
         try {
-            const listings = filteredListings || data.listings;
-            console.log('🎨 renderPreview called with', listings ? listings.length : 0, 'listings');
-            console.log('🎨 Data source check:', {
-                'data.listings.length': data.listings ? data.listings.length : 0,
-                'filteredListings': filteredListings ? filteredListings.length : 'none',
-                'using filteredListings': !!filteredListings
+            // Use allFilteredListings if available (from filterPreview), otherwise use passed filteredListings or all data
+            const listingsToRender = allFilteredListings.length > 0 ? allFilteredListings : (filteredListings || data.listings);
+            
+            // Calculate pagination
+            const startIndex = appendMode ? (currentPage - 1) * ITEMS_PER_PAGE : 0;
+            const endIndex = appendMode ? currentPage * ITEMS_PER_PAGE : ITEMS_PER_PAGE;
+            const listings = listingsToRender.slice(startIndex, endIndex);
+            
+            console.log('🎨 renderPreview called:', {
+                'total listings': listingsToRender.length,
+                'showing': listings.length,
+                'page': currentPage,
+                'appendMode': appendMode || false
             });
             
             const grid = document.getElementById('previewGrid');
@@ -6569,21 +6648,26 @@ function renderPreview(filteredListings) {
                 return;
             }
             
-            // Clear grid with fade-out for smooth transition
-            const existingCards = grid.querySelectorAll('.flip-card');
-            if (existingCards.length > 0) {
-                grid.classList.remove('grid-loaded');
-                existingCards.forEach(function(card) {
-                    card.style.opacity = '0';
-                    card.style.transform = 'translateY(-20px)';
-                });
-                // Wait for fade-out, then clear
-                setTimeout(function() {
+            // Clear grid only if not appending (new filter/search)
+            if (!appendMode) {
+                const existingCards = grid.querySelectorAll('.flip-card');
+                if (existingCards.length > 0) {
+                    grid.classList.remove('grid-loaded');
+                    existingCards.forEach(function(card) {
+                        card.style.opacity = '0';
+                        card.style.transform = 'translateY(-20px)';
+                    });
+                    // Wait for fade-out, then clear
+                    setTimeout(function() {
+                        grid.innerHTML = '';
+                        grid.classList.add('grid-loaded');
+                    }, 300);
+                } else {
                     grid.innerHTML = '';
                     grid.classList.add('grid-loaded');
-                }, 300);
+                }
             } else {
-                grid.innerHTML = '';
+                // Append mode - just ensure grid is visible
                 grid.classList.add('grid-loaded');
             }
     
@@ -6762,12 +6846,15 @@ function renderPreview(filteredListings) {
         countEl.textContent = 'Showing ' + sortedListings.length + ' listing' + (sortedListings.length !== 1 ? 's' : '');
     }
     
-    // Update map markers (use original listings for map, not sorted)
-    updateMapMarkers(listings);
+    // Update map markers (use all filtered listings for map, not just current page)
+    updateMapMarkers(listingsToRender);
     
     // Render cards (using sorted listings)
-    console.log('🎨 About to render', sortedListings.length, 'cards');
-    sortedListings.forEach(function(listing, index) {
+    // Adjust index for pagination offset
+    const indexOffset = appendMode ? (currentPage - 1) * ITEMS_PER_PAGE : 0;
+    console.log('🎨 About to render', sortedListings.length, 'cards', appendMode ? '(appending)' : '(new)');
+    sortedListings.forEach(function(listing, localIndex) {
+        const index = localIndex + indexOffset; // Use global index for animation stagger
         if (index < 3 || index >= sortedListings.length - 3) {
             console.log(`🎨 Rendering card ${index + 1}/${sortedListings.length}:`, listing.name);
         }
@@ -7308,7 +7395,7 @@ function renderPreview(filteredListings) {
         }, 100);
     });
     
-            // Set up Intersection Observer for smooth scroll animations
+            // Set up Intersection Observer for smooth scroll animations and infinite scroll
             if (typeof IntersectionObserver !== 'undefined') {
                 const observerOptions = {
                     root: null,
@@ -7330,7 +7417,40 @@ function renderPreview(filteredListings) {
                 allCards.forEach(function(card) {
                     cardObserver.observe(card);
                 });
+                
+                // Infinite scroll: detect when user scrolls near bottom
+                if (!appendMode && hasMoreItems && !isLoadingMore) {
+                    // Remove existing sentinel if any
+                    const existingSentinel = document.getElementById('infinite-scroll-sentinel');
+                    if (existingSentinel) {
+                        existingSentinel.remove();
+                    }
+                    
+                    // Create a sentinel element at the bottom to detect when user scrolls to it
+                    const sentinel = document.createElement('div');
+                    sentinel.id = 'infinite-scroll-sentinel';
+                    sentinel.style.cssText = 'height: 100px; width: 100%;';
+                    grid.appendChild(sentinel);
+                    
+                    const scrollObserver = new IntersectionObserver(function(entries) {
+                        entries.forEach(function(entry) {
+                            if (entry.isIntersecting && hasMoreItems && !isLoadingMore) {
+                                isLoadingMore = true;
+                                currentPage++;
+                                console.log('📜 Loading more items, page:', currentPage);
+                                renderPreview(null, true); // Append mode
+                            }
+                        });
+                    }, { root: null, rootMargin: '200px', threshold: 0.1 });
+                    
+                    scrollObserver.observe(sentinel);
+                }
             }
+            
+            // Update hasMoreItems flag
+            const totalRendered = (currentPage * ITEMS_PER_PAGE);
+            hasMoreItems = listingsToRender.length > totalRendered;
+            isLoadingMore = false;
     
             // Report content height to parent (for Framer embed)
             // Wait for images and layout to settle
