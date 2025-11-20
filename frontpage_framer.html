@@ -6258,9 +6258,13 @@ function filterPreview() {
     }
     
     // Show/hide clear button based on whether any filters are active
+    // Normalize selectedArea and selectedAmenity - treat empty string as no filter
+    const normalizedArea = selectedArea ? selectedArea.trim() : '';
+    const normalizedAmenity = selectedAmenity ? selectedAmenity.trim() : '';
+    const hasActiveFilters = searchTerm || currentCategoryFilter || currentTypeFilter.length > 0 || normalizedArea || normalizedAmenity || currentFeaturedOnly;
+    
     const clearBtn = document.getElementById('clearFiltersBtn');
     const mobileClearBtn = document.getElementById('mobileClearFiltersBtn');
-    const hasActiveFilters = searchTerm || currentCategoryFilter || currentTypeFilter.length > 0 || selectedArea || selectedAmenity || currentFeaturedOnly;
     if (clearBtn) {
         clearBtn.style.display = hasActiveFilters ? 'block' : 'none';
     }
@@ -6321,14 +6325,38 @@ function clearPreviewFilters() {
     const mobileAreaFilter = document.getElementById('mobileAreaFilter');
     const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
     
+    // Clear all search inputs
     if (searchInput) searchInput.value = '';
     if (mobileSearchInput) mobileSearchInput.value = '';
-    if (typeFilter) typeFilter.value = '';
-    if (areaFilter) areaFilter.value = '';
-    if (amenityFilter) amenityFilter.value = '';
-    if (mobileTypeFilter) mobileTypeFilter.value = '';
-    if (mobileAreaFilter) mobileAreaFilter.value = '';
-    if (mobileAmenityFilter) mobileAmenityFilter.value = '';
+    
+    // Reset dropdowns to first option (usually "All" or empty)
+    // Use selectedIndex = 0 to ensure first option is selected, then set value to empty
+    if (typeFilter && typeFilter.options.length > 0) {
+        typeFilter.selectedIndex = 0;
+        typeFilter.value = typeFilter.options[0].value || '';
+    }
+    if (areaFilter && areaFilter.options.length > 0) {
+        areaFilter.selectedIndex = 0;
+        areaFilter.value = areaFilter.options[0].value || '';
+    }
+    if (amenityFilter && amenityFilter.options.length > 0) {
+        amenityFilter.selectedIndex = 0;
+        amenityFilter.value = amenityFilter.options[0].value || '';
+    }
+    if (mobileTypeFilter && mobileTypeFilter.options.length > 0) {
+        mobileTypeFilter.selectedIndex = 0;
+        mobileTypeFilter.value = mobileTypeFilter.options[0].value || '';
+    }
+    if (mobileAreaFilter && mobileAreaFilter.options.length > 0) {
+        mobileAreaFilter.selectedIndex = 0;
+        mobileAreaFilter.value = mobileAreaFilter.options[0].value || '';
+    }
+    if (mobileAmenityFilter && mobileAmenityFilter.options.length > 0) {
+        mobileAmenityFilter.selectedIndex = 0;
+        mobileAmenityFilter.value = mobileAmenityFilter.options[0].value || '';
+    }
+    
+    // Clear filter state variables
     currentTypeFilter = [];
     currentCategoryFilter = null;
     currentFeaturedOnly = false;
@@ -6392,13 +6420,7 @@ function clearPreviewFilters() {
         }
     });
     
-    // Hide clear button after clearing
-    if (clearBtn) clearBtn.style.display = 'none';
-    const mobileClearBtn = document.getElementById('mobileClearFiltersBtn');
-    if (mobileClearBtn) mobileClearBtn.style.display = 'none';
-    
     // Ensure sort dropdown is set to default (name-asc) if not already set
-    // renderPreview will handle sorting automatically
     const sortDropdown = document.getElementById('sortDropdown');
     if (sortDropdown && !sortDropdown.value) {
         sortDropdown.value = 'name-asc';
@@ -6406,7 +6428,16 @@ function clearPreviewFilters() {
     
     if (data) {
         // Call filterPreview to reset allFilteredListings and render (shows all listings)
+        // This will also update the clear button visibility based on hasActiveFilters
         filterPreview();
+        
+        // Force hide clear buttons after filterPreview runs (since all filters are cleared)
+        // Do this after a small delay to ensure filterPreview has finished
+        setTimeout(function() {
+            if (clearBtn) clearBtn.style.display = 'none';
+            const mobileClearBtn = document.getElementById('mobileClearFiltersBtn');
+            if (mobileClearBtn) mobileClearBtn.style.display = 'none';
+        }, 50);
         
         // Send scroll-to-top message to parent (Framer component)
         // Use postMessage directly without checking window.parent/top to avoid CORS errors
