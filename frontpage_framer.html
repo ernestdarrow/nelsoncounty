@@ -6233,9 +6233,23 @@ function filterByListingName(listingName) {
 let heightReportTimeout = null;
 let lastReportedHeight = 0;
 let isReportingHeight = false;
+let isInIframe = false;
+
+// Check if we're in an iframe on load
+try {
+    isInIframe = window.self !== window.top;
+} catch (e) {
+    // Cross-origin iframe - assume we are in one
+    isInIframe = true;
+}
 
 // Function to report content height to parent window (for Framer embed)
 function reportContentHeight() {
+    // Don't report height if not in iframe (no parent to report to)
+    if (!isInIframe) {
+        return;
+    }
+    
     // Prevent infinite loops - don't report if already reporting
     if (isReportingHeight) {
         return;
@@ -6246,7 +6260,7 @@ function reportContentHeight() {
         clearTimeout(heightReportTimeout);
     }
     
-    // Debounce height reporting
+    // Debounce height reporting (longer delay in iframe to prevent loops)
     heightReportTimeout = setTimeout(function() {
         isReportingHeight = true;
         
@@ -6359,27 +6373,47 @@ function reportContentHeight() {
     }, 150);
 }
 
+// Guard to prevent render loops
+let isRendering = false;
+let renderTimeout = null;
+
 function renderPreview(filteredListings) {
     if (!data) {
         console.error('❌ renderPreview called but data is null/undefined');
         return;
     }
     
-    const listings = filteredListings || data.listings;
-    console.log('🎨 renderPreview called with', listings ? listings.length : 0, 'listings');
-    console.log('🎨 Data source check:', {
-        'data.listings.length': data.listings ? data.listings.length : 0,
-        'filteredListings': filteredListings ? filteredListings.length : 'none',
-        'using filteredListings': !!filteredListings
-    });
-    
-    const grid = document.getElementById('previewGrid');
-    if (!grid) {
-        console.error('❌ previewGrid element not found');
-        return;
+    // Debounce rapid render calls (especially important in iframe)
+    if (renderTimeout) {
+        clearTimeout(renderTimeout);
     }
     
-    grid.innerHTML = '';
+    renderTimeout = setTimeout(function() {
+        // Prevent concurrent renders
+        if (isRendering) {
+            console.log('⚠️ Render already in progress, skipping duplicate call...');
+            return;
+        }
+        
+        isRendering = true;
+        
+        try {
+            const listings = filteredListings || data.listings;
+            console.log('🎨 renderPreview called with', listings ? listings.length : 0, 'listings');
+            console.log('🎨 Data source check:', {
+                'data.listings.length': data.listings ? data.listings.length : 0,
+                'filteredListings': filteredListings ? filteredListings.length : 'none',
+                'using filteredListings': !!filteredListings
+            });
+            
+            const grid = document.getElementById('previewGrid');
+            if (!grid) {
+                console.error('❌ previewGrid element not found');
+                isRendering = false;
+                return;
+            }
+            
+            grid.innerHTML = '';
     
     // Populate filters on first render
     // Helper function to ensure an option exists in a dropdown
@@ -7094,15 +7128,17 @@ function renderPreview(filteredListings) {
         }, 100);
     });
     
-    // Report content height to parent (for Framer embed)
-    // Wait for images and layout to settle
-    setTimeout(function() {
-        reportContentHeight();
-        // Report again after images load
-        setTimeout(function() {
-            reportContentHeight();
-        }, 500);
-    }, 200);
+            // Report content height to parent (for Framer embed)
+            // Wait for images and layout to settle
+            setTimeout(function() {
+                reportContentHeight();
+                // Report again after images load (only once, not multiple times)
+                setTimeout(function() {
+                    reportContentHeight();
+                    // Reset render flag after height is reported
+                    isRendering = false;
+                }, 500);
+            }, 200);
     
     // Adjust title sizes based on actual card width
     function adjustTitleSizes() {
@@ -7315,7 +7351,12 @@ function renderPreview(filteredListings) {
             lastWindowHeight = window.innerHeight - 1;
             window.titleSizeResizeHandler();
         };
+        }
+    } catch (e) {
+        console.error('Error in renderPreview:', e);
+        isRendering = false;
     }
+    }, isInIframe ? 100 : 0); // Longer debounce in iframe to prevent loops
 }
 
 // Recalculate image widths for all cards with multiple images
@@ -7923,12 +7964,11 @@ function toggleSidebar() {
     }, 200);
 }
 
-// Detect if we're in an iframe (Framer embed)
-// Check if in iframe without accessing window.top (avoids CORS errors)
-// Try-catch to safely check if we're in an iframe
-let isInIframe = false;
+// Detect if we're in an iframe (Framer embed) - already declared above, just update if needed
 try {
-    isInIframe = window.self !== window.top;
+    if (!isInIframe) {
+        isInIframe = window.self !== window.top;
+    }
 } catch (e) {
     // Cross-origin - assume we're in an iframe if we can't check
     isInIframe = true;
