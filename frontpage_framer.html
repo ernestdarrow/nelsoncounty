@@ -6028,15 +6028,15 @@ function sortListings() {
     
     cards.sort(function(a, b) {
         // Get listing data from the cards
-        const aName = a.querySelector('.flip-card-front h3').textContent.toLowerCase();
-        const bName = b.querySelector('.flip-card-front h3').textContent.toLowerCase();
-        const aArea = (a.querySelector('.flip-card-front .badge-area')?.textContent || '').toLowerCase();
-        const bArea = (b.querySelector('.flip-card-front .badge-area')?.textContent || '').toLowerCase();
-        const aType = (a.querySelector('.flip-card-front .badge-type')?.textContent || '').toLowerCase();
-        const bType = (b.querySelector('.flip-card-front .badge-type')?.textContent || '').toLowerCase();
+        const aName = a.querySelector('.flip-card-front h3').textContent.trim().toLowerCase();
+        const bName = b.querySelector('.flip-card-front h3').textContent.trim().toLowerCase();
+        const aArea = (a.querySelector('.flip-card-front .badge-area')?.textContent || '').trim().toLowerCase();
+        const bArea = (b.querySelector('.flip-card-front .badge-area')?.textContent || '').trim().toLowerCase();
+        const aType = (a.querySelector('.flip-card-front .badge-type')?.textContent || '').trim().toLowerCase();
+        const bType = (b.querySelector('.flip-card-front .badge-type')?.textContent || '').trim().toLowerCase();
         // Get category from data attribute
-        const aCategory = (a.dataset.category || '').toLowerCase();
-        const bCategory = (b.dataset.category || '').toLowerCase();
+        const aCategory = (a.dataset.category || '').trim().toLowerCase();
+        const bCategory = (b.dataset.category || '').trim().toLowerCase();
         
         switch(sort) {
             case 'default':
@@ -6965,12 +6965,12 @@ function renderPreview(filteredListings, appendMode) {
     
     // Sort the listings array based on current sort value
     const sortedListings = listings.slice().sort(function(a, b) {
-        const aName = (a.name || '').toLowerCase();
-        const bName = (b.name || '').toLowerCase();
-        const aArea = (a.area || '').toLowerCase();
-        const bArea = (b.area || '').toLowerCase();
-        const aType = (a.type || '').toLowerCase();
-        const bType = (b.type || '').toLowerCase();
+        const aName = (a.name || '').trim().toLowerCase();
+        const bName = (b.name || '').trim().toLowerCase();
+        const aArea = (a.area || '').trim().toLowerCase();
+        const bArea = (b.area || '').trim().toLowerCase();
+        const aType = (a.type || '').trim().toLowerCase();
+        const bType = (b.type || '').trim().toLowerCase();
         
         switch(sortValue) {
             case 'default':
