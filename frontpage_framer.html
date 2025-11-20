@@ -3445,7 +3445,7 @@
                     <div class="preview-results" style="display: flex; justify-content: space-between; align-items: center;">
                         <span id="previewResultsCount">Showing 15 listings</span>
                         <select id="sortDropdown" onchange="sortListings()" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                            <option value="default" selected style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Area → Category → Name</option>
+                            <option value="default" selected style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Area → Type → Name</option>
                             <option value="name-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Name (A-Z)</option>
                             <option value="name-desc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Name (Z-A)</option>
                             <option value="area-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Area (A-Z)</option>
@@ -6040,11 +6040,11 @@ function sortListings() {
         
         switch(sort) {
             case 'default':
-                // Default sort: Area → Category → Name (all A-Z)
+                // Default sort: Area → Type → Name (all A-Z)
                 const areaCompare = aArea.localeCompare(bArea);
                 if (areaCompare !== 0) return areaCompare;
-                const categoryCompare = aCategory.localeCompare(bCategory);
-                if (categoryCompare !== 0) return categoryCompare;
+                const typeCompare = aType.localeCompare(bType);
+                if (typeCompare !== 0) return typeCompare;
                 return aName.localeCompare(bName);
             case 'name-asc':
                 return aName.localeCompare(bName);
@@ -6055,11 +6055,11 @@ function sortListings() {
             case 'type-asc':
                 return aType.localeCompare(bType);
             default:
-                // Fallback to default sort: Area → Category → Name
+                // Fallback to default sort: Area → Type → Name
                 const areaCompareDefault = aArea.localeCompare(bArea);
                 if (areaCompareDefault !== 0) return areaCompareDefault;
-                const categoryCompareDefault = aCategory.localeCompare(bCategory);
-                if (categoryCompareDefault !== 0) return categoryCompareDefault;
+                const typeCompareDefault = aType.localeCompare(bType);
+                if (typeCompareDefault !== 0) return typeCompareDefault;
                 return aName.localeCompare(bName);
         }
     });
@@ -6953,9 +6953,9 @@ function renderPreview(filteredListings, appendMode) {
         }
     }
     
-    // Sort listings before rendering (default: Area → Category → Name, all A-Z)
+    // Sort listings before rendering (default: Area → Type → Name, all A-Z)
     const sortDropdown = document.getElementById('sortDropdown');
-    let sortValue = 'default'; // Default to Area → Category → Name
+    let sortValue = 'default'; // Default to Area → Type → Name
     if (sortDropdown && sortDropdown.value) {
         sortValue = sortDropdown.value;
     } else if (sortDropdown) {
@@ -6969,18 +6969,16 @@ function renderPreview(filteredListings, appendMode) {
         const bName = (b.name || '').toLowerCase();
         const aArea = (a.area || '').toLowerCase();
         const bArea = (b.area || '').toLowerCase();
-        const aCategory = (a.category || '').toLowerCase();
-        const bCategory = (b.category || '').toLowerCase();
         const aType = (a.type || '').toLowerCase();
         const bType = (b.type || '').toLowerCase();
         
         switch(sortValue) {
             case 'default':
-                // Default sort: Area → Category → Name (all A-Z)
+                // Default sort: Area → Type → Name (all A-Z)
                 const areaCompare = aArea.localeCompare(bArea);
                 if (areaCompare !== 0) return areaCompare;
-                const categoryCompare = aCategory.localeCompare(bCategory);
-                if (categoryCompare !== 0) return categoryCompare;
+                const typeCompare = aType.localeCompare(bType);
+                if (typeCompare !== 0) return typeCompare;
                 return aName.localeCompare(bName);
             case 'name-asc':
                 return aName.localeCompare(bName);
@@ -6991,11 +6989,11 @@ function renderPreview(filteredListings, appendMode) {
             case 'type-asc':
                 return aType.localeCompare(bType);
             default:
-                // Fallback to default sort: Area → Category → Name
+                // Fallback to default sort: Area → Type → Name
                 const areaCompareDefault = aArea.localeCompare(bArea);
                 if (areaCompareDefault !== 0) return areaCompareDefault;
-                const categoryCompareDefault = aCategory.localeCompare(bCategory);
-                if (categoryCompareDefault !== 0) return categoryCompareDefault;
+                const typeCompareDefault = aType.localeCompare(bType);
+                if (typeCompareDefault !== 0) return typeCompareDefault;
                 return aName.localeCompare(bName);
         }
     });

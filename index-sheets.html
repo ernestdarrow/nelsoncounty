@@ -1732,7 +1732,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                         <div id="listingsCount" style="font-size: 14px; color: var(--text-secondary); font-weight: 500;"></div>
                         <select id="adminSortDropdown" onchange="sortAdminListings()" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 18px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                            <option value="default" selected style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Area → Category → Name</option>
+                            <option value="default" selected style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Area → Type → Name</option>
                             <option value="name-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Name (A-Z)</option>
                             <option value="name-desc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Name (Z-A)</option>
                             <option value="area-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Area (A-Z)</option>
@@ -4293,7 +4293,7 @@ function updateUnsavedChangesBadge() {
             }
         }
         
-        // Store current sort value (default: Area → Category → Name)
+        // Store current sort value (default: Area → Type → Name)
         let currentAdminSort = 'default';
         
         // Error Console Functions
@@ -4738,11 +4738,11 @@ function updateUnsavedChangesBadge() {
                 
                 switch(currentAdminSort) {
                     case 'default':
-                        // Default sort: Area → Category → Name (all A-Z)
+                        // Default sort: Area → Type → Name (all A-Z)
                         const areaCompare = aArea.localeCompare(bArea);
                         if (areaCompare !== 0) return areaCompare;
-                        const categoryCompare = aCategory.localeCompare(bCategory);
-                        if (categoryCompare !== 0) return categoryCompare;
+                        const typeCompare = aType.localeCompare(bType);
+                        if (typeCompare !== 0) return typeCompare;
                         return aName.localeCompare(bName);
                     case 'name-asc':
                         return aName.localeCompare(bName);
@@ -4753,11 +4753,11 @@ function updateUnsavedChangesBadge() {
                     case 'type-asc':
                         return aType.localeCompare(bType);
                     default:
-                        // Fallback to default sort: Area → Category → Name
+                        // Fallback to default sort: Area → Type → Name
                         const areaCompareDefault = aArea.localeCompare(bArea);
                         if (areaCompareDefault !== 0) return areaCompareDefault;
-                        const categoryCompareDefault = aCategory.localeCompare(bCategory);
-                        if (categoryCompareDefault !== 0) return categoryCompareDefault;
+                        const typeCompareDefault = aType.localeCompare(bType);
+                        if (typeCompareDefault !== 0) return typeCompareDefault;
                         return aName.localeCompare(bName);
                 }
             });
@@ -8637,7 +8637,7 @@ function updateUnsavedChangesBadge() {
             renderPreview();
         }
         
-        // Table sort and filter state (default: Area → Category → Name)
+        // Table sort and filter state (default: Area → Type → Name)
         let tableSortField = 'default';
         let tableSortDirection = 'asc';
         let tableFilters = {};
@@ -8695,19 +8695,19 @@ function updateUnsavedChangesBadge() {
             
             // Apply sorting
             const sortedListings = filteredListings.slice().sort(function(a, b) {
-                // Default sort: Area → Category → Name (all A-Z)
+                // Default sort: Area → Type → Name (all A-Z)
                 if (tableSortField === 'default') {
                     const aArea = ((a.area || '').toString()).toLowerCase();
                     const bArea = ((b.area || '').toString()).toLowerCase();
-                    const aCategory = ((a.category || '').toString()).toLowerCase();
-                    const bCategory = ((b.category || '').toString()).toLowerCase();
+                    const aType = ((a.type || '').toString()).toLowerCase();
+                    const bType = ((b.type || '').toString()).toLowerCase();
                     const aName = ((a.name || '').toString()).toLowerCase();
                     const bName = ((b.name || '').toString()).toLowerCase();
                     
                     const areaCompare = aArea.localeCompare(bArea);
                     if (areaCompare !== 0) return tableSortDirection === 'asc' ? areaCompare : -areaCompare;
-                    const categoryCompare = aCategory.localeCompare(bCategory);
-                    if (categoryCompare !== 0) return tableSortDirection === 'asc' ? categoryCompare : -categoryCompare;
+                    const typeCompare = aType.localeCompare(bType);
+                    if (typeCompare !== 0) return tableSortDirection === 'asc' ? typeCompare : -typeCompare;
                     const nameCompare = aName.localeCompare(bName);
                     return tableSortDirection === 'asc' ? nameCompare : -nameCompare;
                 }
