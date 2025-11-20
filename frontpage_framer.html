@@ -6920,16 +6920,11 @@ function renderPreview(filteredListings, appendMode) {
         }
     });
     
-    // Update results count (show total filtered listings, not just current page)
+    // Update results count (show total filtered listings)
     const countEl = document.getElementById('previewResultsCount');
     if (countEl) {
         const totalCount = listingsToRender.length;
-        const showingCount = sortedListings.length;
-        if (totalCount > ITEMS_PER_PAGE) {
-            countEl.textContent = 'Showing ' + showingCount + ' of ' + totalCount + ' listing' + (totalCount !== 1 ? 's' : '');
-        } else {
-            countEl.textContent = 'Showing ' + totalCount + ' listing' + (totalCount !== 1 ? 's' : '');
-        }
+        countEl.textContent = totalCount + ' listing' + (totalCount !== 1 ? 's' : '');
     }
     
     // Update map markers (use all filtered listings for map, not just current page)
