@@ -6397,16 +6397,20 @@ function clearPreviewFilters() {
         }
     });
     
-    // Navigate to base URL to clear all filters (simplest and most reliable approach)
-    // This will reload the page with no query parameters
+    // Clear filters locally first (without navigation) to show all listings immediately
+    if (data) {
+        filterPreview(); // This will show all listings since all filters are cleared
+    }
+    
+    // Hide clear button
+    if (clearBtn) clearBtn.style.display = 'none';
+    const mobileClearBtn = document.getElementById('mobileClearFiltersBtn');
+    if (mobileClearBtn) mobileClearBtn.style.display = 'none';
+    
+    // Now try to clear the parent window URL (for Framer)
+    // This prevents the filter from being re-applied on next page load
     try {
-        // Get the base path (without query parameters)
-        const url = new URL(window.location.href);
-        const basePath = url.pathname + (url.hash || '');
-        
-        console.log('🧹 Clearing filters - navigating to:', basePath);
-        
-        // Try to navigate parent window (Framer page) first, fallback to iframe
+        // Try to navigate parent window (Framer page) first
         try {
             if (window.parent && window.parent !== window) {
                 // Update parent window URL (for Framer) - use full URL
@@ -6433,36 +6437,30 @@ function clearPreviewFilters() {
                 }
                 
                 // Send postMessage to parent to clear URL
+                // Don't navigate iframe - filters are already cleared locally
                 window.parent.postMessage({
                     type: 'setUrlParams',
                     clearAll: true,
                     navigateTo: parentPath
                 }, '*');
                 
-                // Wait a bit for parent to process, then navigate iframe
-                // This ensures parent URL is cleared before iframe reloads
-                setTimeout(function() {
-                    const fullBaseUrl = url.origin + basePath;
-                    console.log('🧹 Navigating iframe to:', fullBaseUrl);
-                    window.location.href = fullBaseUrl;
-                }, 200);
+                console.log('📨 Sent clearAll message to parent - filters cleared locally, parent URL will be cleared');
+                // Don't navigate iframe - filters are already cleared, just wait for parent to clear URL
                 return;
             } catch (e2) {
                 console.warn('⚠️ Could not send postMessage:', e2);
-                // Fallback: just navigate iframe
-                const fullBaseUrl = url.origin + basePath;
-                window.location.href = fullBaseUrl;
             }
         }
         
-        // Navigate iframe to base path (use full URL to be safe)
+        // If not in iframe, navigate to base path
+        const url = new URL(window.location.href);
+        const basePath = url.pathname + (url.hash || '');
         const fullBaseUrl = url.origin + basePath;
-        console.log('🧹 Navigating iframe to:', fullBaseUrl);
+        console.log('🧹 Navigating to:', fullBaseUrl);
         window.location.href = fullBaseUrl;
     } catch (e) {
         console.warn('⚠️ Error navigating:', e);
-        // Fallback: reload current page without query params
-        window.location.href = window.location.pathname;
+        // Filters are already cleared locally, so at least the UI is updated
     }
 }
 
