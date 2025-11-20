@@ -63,6 +63,8 @@ export default function URLParamsHelper() {
             return
         }
         
+        let lastSentParams = ''
+        
         const sendParams = () => {
             const iframe = document.getElementById('adventure-directory-iframe') as HTMLIFrameElement
             if (iframe?.contentWindow && window.location) {
@@ -72,6 +74,16 @@ export default function URLParamsHelper() {
                 searchParams.forEach((value, key) => {
                     params[key] = value
                 })
+                
+                // Create hash of current params
+                const paramsHash = JSON.stringify(params) + window.location.search
+                
+                // Only send if parameters actually changed
+                if (lastSentParams === paramsHash) {
+                    return // Skip if same as last sent
+                }
+                
+                lastSentParams = paramsHash
                 
                 // Send via multiple methods for reliability
                 iframe.contentWindow.postMessage({
@@ -97,10 +109,11 @@ export default function URLParamsHelper() {
         
         window.addEventListener('popstate', handlePopState)
         
-        // Also check periodically (fallback for Framer's navigation)
+        // Check periodically but less frequently (every 2 seconds instead of 1)
+        // Only send if URL actually changed
         const interval = setInterval(() => {
             sendParams()
-        }, 1000)
+        }, 2000)
         
         return () => {
             window.removeEventListener('popstate', handlePopState)

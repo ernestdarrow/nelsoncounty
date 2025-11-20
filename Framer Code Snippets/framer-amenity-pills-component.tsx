@@ -23,7 +23,10 @@ const defaultStyles = {
     borderRadius: '20px',
     fontSize: '13px',
     fontWeight: '500',
-    gap: '8px'
+    gap: '8px',
+    borderWidth: '0px',
+    borderColor: '#d1d5db',
+    borderStyle: 'solid'
 }
 
 type Props = {
@@ -35,6 +38,9 @@ type Props = {
     fontSize?: string
     fontWeight?: string
     gap?: string
+    borderWidth?: string
+    borderColor?: string
+    borderStyle?: string
 }
 
 export default function AmenityPills(props: Props) {
@@ -46,7 +52,10 @@ export default function AmenityPills(props: Props) {
         borderRadius = defaultStyles.borderRadius,
         fontSize = defaultStyles.fontSize,
         fontWeight = defaultStyles.fontWeight,
-        gap = defaultStyles.gap
+        gap = defaultStyles.gap,
+        borderWidth = defaultStyles.borderWidth,
+        borderColor = defaultStyles.borderColor,
+        borderStyle = defaultStyles.borderStyle
     } = props
 
     // Split text by commas and/or newlines, then filter out empty strings
@@ -115,7 +124,10 @@ export default function AmenityPills(props: Props) {
                         margin: 0,
                         transition: 'all 0.2s ease',
                         cursor: 'pointer',
-                        userSelect: 'none'
+                        userSelect: 'none',
+                        borderWidth: borderWidth,
+                        borderColor: borderColor,
+                        borderStyle: borderStyle
                     }}
                     onMouseEnter={(e) => {
                         e.currentTarget.style.opacity = '0.85'
@@ -183,6 +195,24 @@ addPropertyControls(AmenityPills, {
         title: "Gap Between Pills",
         defaultValue: defaultStyles.gap,
         placeholder: "8px"
+    },
+    borderWidth: {
+        type: ControlType.String,
+        title: "Border Width",
+        defaultValue: defaultStyles.borderWidth,
+        placeholder: "0px, 1px, 2px, etc."
+    },
+    borderColor: {
+        type: ControlType.Color,
+        title: "Border Color",
+        defaultValue: defaultStyles.borderColor
+    },
+    borderStyle: {
+        type: ControlType.Enum,
+        title: "Border Style",
+        options: ["solid", "dashed", "dotted", "double", "none"],
+        optionTitles: ["Solid", "Dashed", "Dotted", "Double", "None"],
+        defaultValue: "solid"
     }
 })
 

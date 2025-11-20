@@ -3803,6 +3803,8 @@ let currentCategoryFilter = null; // Track which category is currently active (n
 let currentFeaturedOnly = false;
 // Store URL parameters received via postMessage (for cross-origin iframe support)
 let receivedUrlParams = {};
+let lastProcessedParamsHash = null; // Track last processed parameters hash to prevent loops
+let isProcessingParams = false; // Guard to prevent concurrent processing
 
 // Helper function to parse CSV text into array of objects
 function parseCSV(csvText) {
@@ -4928,6 +4930,21 @@ function findListingByIdentifier(idOrSlug) {
 
 // Handle URL parameters to filter to specific listing or apply filters
 function handleUrlParameters() {
+    // Prevent concurrent processing
+    if (isProcessingParams) {
+        console.log('⚠️ Already processing URL parameters, skipping duplicate call...');
+        return;
+    }
+    
+    // Create a hash of current parameters to check if they've changed
+    const paramsHash = JSON.stringify(receivedUrlParams);
+    if (lastProcessedParamsHash === paramsHash) {
+        // Parameters haven't changed, skip processing
+        return;
+    }
+    
+    isProcessingParams = true;
+    lastProcessedParamsHash = paramsHash;
     if (!data) return;
     
     var listing = null;
@@ -7983,49 +8000,71 @@ window.addEventListener('message', function(event) {
     
     // Handle filter parameters sent from parent (for cross-origin iframe support)
     if (event.data && event.data.type === 'setFilters') {
-        console.log('📨 Received filter parameters via postMessage:', event.data.params);
-        // Store received parameters
-        receivedUrlParams = event.data.params || {};
-        // Apply filters if data is loaded
-        if (data) {
-            handleUrlParameters();
+        const newParams = event.data.params || {};
+        const newParamsHash = JSON.stringify(newParams);
+        
+        // Only process if parameters actually changed
+        if (lastProcessedParamsHash !== newParamsHash) {
+            console.log('📨 Received filter parameters via postMessage:', newParams);
+            // Store received parameters
+            receivedUrlParams = newParams;
+            // Apply filters if data is loaded
+            if (data) {
+                handleUrlParameters();
+            }
         }
     }
     
     // Handle URL parameters sent as query string from parent
     if (event.data && event.data.type === 'setUrlParams' && event.data.search) {
-        console.log('📨 Received URL search string via postMessage:', event.data.search);
         // Parse the search string and store as parameters
         var params = {};
         var searchParams = new URLSearchParams(event.data.search);
         for (var pair of searchParams.entries()) {
             params[pair[0]] = pair[1];
         }
-        receivedUrlParams = params;
-        // Apply filters if data is loaded
-        if (data) {
-            handleUrlParameters();
+        const newParamsHash = JSON.stringify(params);
+        
+        // Only process if parameters actually changed
+        if (lastProcessedParamsHash !== newParamsHash) {
+            console.log('📨 Received URL search string via postMessage:', event.data.search);
+            receivedUrlParams = params;
+            // Apply filters if data is loaded
+            if (data) {
+                handleUrlParameters();
+            }
         }
     }
     
     // Handle response to getUrlParams request
     if (event.data && event.data.type === 'urlParamsResponse' && event.data.params) {
-        console.log('📨 Received URL parameters response from parent:', event.data.params);
-        receivedUrlParams = event.data.params;
-        // Apply filters if data is loaded
-        if (data) {
-            handleUrlParameters();
+        const newParams = event.data.params;
+        const newParamsHash = JSON.stringify(newParams);
+        
+        // Only process if parameters actually changed
+        if (lastProcessedParamsHash !== newParamsHash) {
+            console.log('📨 Received URL parameters response from parent:', newParams);
+            receivedUrlParams = newParams;
+            // Apply filters if data is loaded
+            if (data) {
+                handleUrlParameters();
+            }
         }
     }
     
     // Handle direct category setting (simpler API for Framer links)
     if (event.data && event.data.type === 'setCategory' && event.data.category !== undefined) {
-        console.log('📨 Received category via postMessage:', event.data.category);
-        // Store as URL parameter
-        receivedUrlParams = { category: event.data.category };
-        // Apply filters if data is loaded
-        if (data) {
-            handleUrlParameters();
+        const newParams = { category: event.data.category };
+        const newParamsHash = JSON.stringify(newParams);
+        
+        // Only process if parameters actually changed
+        if (lastProcessedParamsHash !== newParamsHash) {
+            console.log('📨 Received category via postMessage:', event.data.category);
+            receivedUrlParams = newParams;
+            // Apply filters if data is loaded
+            if (data) {
+                handleUrlParameters();
+            }
         }
         // Also update URL if possible
         try {
