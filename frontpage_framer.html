@@ -3367,7 +3367,7 @@
                                 </select>
                                 </div>
 
-                                <a id="clearFiltersBtn" class="btn btn-clear" href="?" style="display: none; text-decoration: none; color: inherit;">Clear Filters</a>
+                                <button id="clearFiltersBtn" class="btn btn-clear" onclick="clearPreviewFilters()" style="display: none;">Clear Filters</button>
                             </div>
                         </div>
                     </div>
@@ -3420,12 +3420,12 @@
                                 <option value="">Amenities</option>
                             </select>
                         </div>
-                        <a id="mobileClearFiltersBtn" class="mobile-clear-btn" href="?" target="_parent" style="display: none; text-decoration: none; color: inherit;">
+                        <button id="mobileClearFiltersBtn" class="mobile-clear-btn" onclick="clearPreviewFilters()" style="display: none;">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                             </svg>
                             <span>Clear</span>
-                        </a>
+                        </button>
                     </div>
 
                     <!-- Map Container -->
@@ -4811,11 +4811,8 @@ function extractParamsFromReferrer() {
                 console.log('🔗 Extracted parameters from referrer:', params);
                 receivedUrlParams = params;
                 return true;
-            } else {
-                console.log('⚠️ Referrer has ? but no parameters found');
             }
-        } else {
-            console.log('⚠️ Referrer does not contain query parameters:', referrer);
+            // If referrer has ? but no params, that's fine (just a clean URL) - don't log warning
         }
     } catch (e) {
         // Referrer might not be a valid URL or not available
@@ -6447,42 +6444,46 @@ function clearPreviewFilters() {
         sortDropdown.value = 'name-asc';
     }
     
-    if (data) {
-        // Call filterPreview to reset allFilteredListings and render (shows all listings)
-        // This will also update the clear button visibility based on hasActiveFilters
-        filterPreview();
+    // Navigate to base URL to clear all filters (simplest and most reliable approach)
+    try {
+        // Get the base path (without query parameters)
+        const url = new URL(window.location.href);
+        const basePath = url.pathname + (url.hash || '');
         
-        // Force hide clear buttons after filterPreview runs (since all filters are cleared)
-        // Do this after a small delay to ensure filterPreview has finished
-        setTimeout(function() {
-            if (clearBtn) clearBtn.style.display = 'none';
-            const mobileClearBtn = document.getElementById('mobileClearFiltersBtn');
-            if (mobileClearBtn) mobileClearBtn.style.display = 'none';
-        }, 50);
+        console.log('🧹 Clearing filters - navigating to:', basePath);
         
-        // Send scroll-to-top message to parent (Framer component)
-        // Use postMessage directly without checking window.parent/top to avoid CORS errors
-        setTimeout(function() {
+        // Try to navigate parent window (Framer page) first, fallback to iframe
+        try {
+            if (window.parent && window.parent !== window) {
+                // Update parent window URL (for Framer) - use full URL
+                const parentUrl = new URL(window.parent.location.href);
+                const parentBaseUrl = parentUrl.origin + parentUrl.pathname + (parentUrl.hash || '');
+                console.log('🧹 Navigating parent window to:', parentBaseUrl);
+                window.parent.location.href = parentBaseUrl;
+                return; // Exit early - navigation will reload page
+            }
+        } catch (e) {
+            // Cross-origin - can't access parent, send postMessage to clear parent URL
+            console.log('📨 Cross-origin detected - sending postMessage to clear parent URL');
             try {
-                window.parent.postMessage({ type: 'scrollToTop', source: 'adventure-directory' }, '*');
-            } catch (e) {
-                // Silently fail - cross-origin restriction
+                window.parent.postMessage({
+                    type: 'setUrlParams',
+                    clearAll: true,
+                    navigateTo: window.parent.location.pathname + (window.parent.location.hash || '')
+                }, '*');
+            } catch (e2) {
+                console.warn('⚠️ Could not send postMessage:', e2);
             }
-            try {
-                window.top.postMessage({ type: 'scrollToTop', source: 'adventure-directory' }, '*');
-            } catch (e) {
-                // Silently fail - cross-origin restriction
-            }
-        }, 100);
+        }
         
-        // Report height after clearing filters
-        setTimeout(function() {
-            reportContentHeight();
-            // Re-apply sticky positioning after render
-            if (typeof handleStickyInIframe === 'function') {
-                handleStickyInIframe();
-            }
-        }, 150);
+        // Navigate iframe to base path (use full URL to be safe)
+        const fullBaseUrl = url.origin + basePath;
+        console.log('🧹 Navigating iframe to:', fullBaseUrl);
+        window.location.href = fullBaseUrl;
+    } catch (e) {
+        console.warn('⚠️ Error navigating:', e);
+        // Fallback: reload current page without query params
+        window.location.href = window.location.pathname;
     }
 }
 

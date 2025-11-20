@@ -72,14 +72,13 @@ export default function URLParamsHelper() {
                 event.data.type === 'setUrlParams' && 
                 event.data.clearAll === true
             ) {
-                // Iframe requested to clear URL - update parent URL to remove query params
-                if (window.location.search) {
-                    const cleanUrl = window.location.origin + window.location.pathname + (window.location.hash || '')
-                    window.history.replaceState({}, '', cleanUrl)
-                    console.log('🧹 Cleared parent URL parameters:', cleanUrl)
-                    // Reset lastSentParams so next sendParams will send empty params
-                    lastSentParams = ''
-                }
+                // Iframe requested to clear URL - navigate to base URL
+                const navigateTo = event.data.navigateTo || (window.location.pathname + (window.location.hash || ''))
+                const cleanUrl = window.location.origin + navigateTo
+                console.log('🧹 Navigating parent to clean URL:', cleanUrl)
+                window.location.href = cleanUrl
+                // Reset lastSentParams so next sendParams will send empty params
+                lastSentParams = ''
             }
         }
         
