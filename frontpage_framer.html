@@ -5441,7 +5441,32 @@ loadDataFromGoogleSheets()
             // Render type filter buttons dynamically based on usage
             renderTypeFilterButtons(data.listings, '.type-quick-filters'); // Show all categories
             
-            renderPreview(); // Sorting is now handled inside renderPreview
+            // Check if there are active filters before rendering
+            // If filters are active, use filterPreview() to preserve them
+            // Otherwise, use renderPreview() to show all listings
+            const searchTerm = document.getElementById('previewSearch') ? document.getElementById('previewSearch').value.trim() : '';
+            const areaFilter = document.getElementById('previewAreaFilter');
+            const mobileAreaFilter = document.getElementById('mobileAreaFilter');
+            const selectedArea = ((areaFilter ? areaFilter.value : '') || (mobileAreaFilter ? mobileAreaFilter.value : '')).trim();
+            const amenityFilter = document.getElementById('previewAmenityFilter');
+            const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
+            const selectedAmenity = ((amenityFilter ? amenityFilter.value : '') || (mobileAmenityFilter ? mobileAmenityFilter.value : '')).trim();
+            const hasActiveFilters = searchTerm || currentCategoryFilter || currentTypeFilter.length > 0 || selectedArea || selectedAmenity || currentFeaturedOnly;
+            
+            if (hasActiveFilters) {
+                // Preserve active filters by using filterPreview() instead of renderPreview()
+                console.log('🔍 Active filters detected, preserving filter state:', {
+                    category: currentCategoryFilter,
+                    type: currentTypeFilter,
+                    area: selectedArea,
+                    amenity: selectedAmenity,
+                    featured: currentFeaturedOnly,
+                    search: searchTerm
+                });
+                filterPreview(); // This will apply filters and render
+            } else {
+                renderPreview(); // Sorting is now handled inside renderPreview
+            }
             
             // Extract parameters from referrer (for cross-origin iframe support)
             extractParamsFromReferrer();
