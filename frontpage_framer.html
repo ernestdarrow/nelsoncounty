@@ -6333,6 +6333,58 @@ function clearPreviewFilters() {
     currentCategoryFilter = null;
     currentFeaturedOnly = false;
     
+    // Clear received URL parameters to prevent them from being re-applied
+    receivedUrlParams = {};
+    lastProcessedParamsHash = null;
+    
+    // Reset pagination
+    currentPage = 1;
+    allFilteredListings = []; // Will be set to all listings in filterPreview
+    
+    // Update URL to remove all filter parameters
+    try {
+        const url = new URL(window.location.href);
+        // Remove all filter-related parameters
+        url.searchParams.delete('category');
+        url.searchParams.delete('type');
+        url.searchParams.delete('area');
+        url.searchParams.delete('amenity');
+        url.searchParams.delete('featured');
+        url.searchParams.delete('search');
+        url.searchParams.delete('listing');
+        
+        // Update URL without reloading page
+        window.history.pushState({}, '', url.toString());
+        
+        // Also try to update parent window URL if in iframe (for Framer)
+        try {
+            if (window.parent && window.parent !== window) {
+                const parentUrl = new URL(window.parent.location.href);
+                parentUrl.searchParams.delete('category');
+                parentUrl.searchParams.delete('type');
+                parentUrl.searchParams.delete('area');
+                parentUrl.searchParams.delete('amenity');
+                parentUrl.searchParams.delete('featured');
+                parentUrl.searchParams.delete('search');
+                parentUrl.searchParams.delete('listing');
+                window.parent.history.pushState({}, '', parentUrl.toString());
+            }
+        } catch (e) {
+            // Cross-origin - can't update parent URL directly, send postMessage instead
+            try {
+                window.parent.postMessage({
+                    type: 'setUrlParams',
+                    search: '',
+                    params: {}
+                }, '*');
+            } catch (e2) {
+                // Silently fail
+            }
+        }
+    } catch (e) {
+        console.warn('⚠️ Could not update URL:', e);
+    }
+    
     // Reset type filter buttons - activate "All Types" button
     document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
         btn.classList.remove('active');
@@ -6354,7 +6406,8 @@ function clearPreviewFilters() {
     }
     
     if (data) {
-        renderPreview(data.listings);
+        // Call filterPreview to reset allFilteredListings and render (shows all listings)
+        filterPreview();
         
         // Send scroll-to-top message to parent (Framer component)
         // Use postMessage directly without checking window.parent/top to avoid CORS errors
