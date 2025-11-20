@@ -64,6 +64,30 @@ export default function AmenityPills(props: Props) {
         )
     }
 
+    // Handle click on amenity pill
+    const handleAmenityClick = (amenity: string) => {
+        // Build filter URL
+        const filterUrl = `/find-your-adventure?amenity=${encodeURIComponent(amenity)}`
+        
+        // Update iframe if it exists (if on same page)
+        const iframe = document.getElementById('adventure-directory-iframe') as HTMLIFrameElement
+        if (iframe?.contentWindow) {
+            iframe.contentWindow.postMessage({
+                type: 'setUrlParams',
+                search: `?amenity=${encodeURIComponent(amenity)}`,
+                params: { amenity: amenity }
+            }, '*')
+            
+            iframe.contentWindow.postMessage({
+                type: 'setFilters',
+                params: { amenity: amenity }
+            }, '*')
+        }
+        
+        // Navigate to filtered view
+        window.location.href = filterUrl
+    }
+
     // Render as pills
     return (
         <div
@@ -77,6 +101,7 @@ export default function AmenityPills(props: Props) {
             {parts.map((part, index) => (
                 <span
                     key={index}
+                    onClick={() => handleAmenityClick(part)}
                     style={{
                         display: 'inline-block',
                         backgroundColor: backgroundColor,
@@ -89,14 +114,18 @@ export default function AmenityPills(props: Props) {
                         whiteSpace: 'nowrap',
                         margin: 0,
                         transition: 'all 0.2s ease',
+                        cursor: 'pointer',
+                        userSelect: 'none'
                     }}
                     onMouseEnter={(e) => {
                         e.currentTarget.style.opacity = '0.85'
                         e.currentTarget.style.transform = 'translateY(-1px)'
+                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)'
                     }}
                     onMouseLeave={(e) => {
                         e.currentTarget.style.opacity = '1'
                         e.currentTarget.style.transform = 'translateY(0)'
+                        e.currentTarget.style.boxShadow = 'none'
                     }}
                 >
                     {part}

@@ -6,7 +6,7 @@ import { useEffect } from "react"
 export default function URLParamsHelper() {
     useEffect(() => {
         const handleMessage = (event: MessageEvent) => {
-            if (event.data && event.data.type === 'getUrlParams' && event.data.source === 'adventure-directory') {
+            if (event.data && event.data.type === 'getUrlParams' && event.data.source === 'find-your-adventure') {
                 const params: Record<string, string> = {}
                 const searchParams = new URLSearchParams(window.location.search)
                 

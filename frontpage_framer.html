@@ -4315,8 +4315,10 @@ try {
     // Silently fail
 }
 
-// Poll every 2 seconds for category updates
-setInterval(checkForCategoryUpdates, 2000);
+// Poll every 2 seconds for category updates (only if not in iframe to prevent loops)
+if (window.self === window.top) {
+    setInterval(checkForCategoryUpdates, 2000);
+}
 
 // Keyword mappings for automatic category assignment based on type content
 // Used when exact type match is not found in category types array
@@ -6227,87 +6229,114 @@ function filterByListingName(listingName) {
 }
 
 // Main render function
+// Debounce and guard for reportContentHeight to prevent infinite loops
+let heightReportTimeout = null;
+let lastReportedHeight = 0;
+let isReportingHeight = false;
+
 // Function to report content height to parent window (for Framer embed)
 function reportContentHeight() {
-    try {
-        // Measure from top of document to bottom of last visible element
-        const previewGrid = document.getElementById('previewGrid');
-        const previewHeader = document.querySelector('.preview-header');
-        const previewMain = document.querySelector('.preview-main');
+    // Prevent infinite loops - don't report if already reporting
+    if (isReportingHeight) {
+        return;
+    }
+    
+    // Clear any pending height reports
+    if (heightReportTimeout) {
+        clearTimeout(heightReportTimeout);
+    }
+    
+    // Debounce height reporting
+    heightReportTimeout = setTimeout(function() {
+        isReportingHeight = true;
         
-        let height = 0;
-        
-        if (previewGrid) {
-            // Get all visible cards in the grid (not display:none)
-            const cards = Array.from(previewGrid.querySelectorAll('.flip-card')).filter(function(card) {
-                const style = window.getComputedStyle(card);
-                return style.display !== 'none' && style.visibility !== 'hidden';
-            });
+        try {
+            // Measure from top of document to bottom of last visible element
+            const previewGrid = document.getElementById('previewGrid');
+            const previewHeader = document.querySelector('.preview-header');
+            const previewMain = document.querySelector('.preview-main');
             
-            if (cards.length > 0) {
-                // Get the bottom of the last visible card
-                const lastCard = cards[cards.length - 1];
-                const lastCardRect = lastCard.getBoundingClientRect();
+            let height = 0;
+            
+            if (previewGrid) {
+                // Get all visible cards in the grid (not display:none)
+                const cards = Array.from(previewGrid.querySelectorAll('.flip-card')).filter(function(card) {
+                    const style = window.getComputedStyle(card);
+                    return style.display !== 'none' && style.visibility !== 'hidden';
+                });
                 
-                // Get the top of the document
-                const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
-                
-                // Calculate height from top of document to bottom of last card
-                height = lastCardRect.bottom + scrollTop;
-                
-                // Add header height if it exists and is above the grid
-                if (previewHeader) {
-                    const headerRect = previewHeader.getBoundingClientRect();
-                    if (headerRect.top < previewGrid.getBoundingClientRect().top) {
-                        // Header is above grid, already included in calculation
-                    } else {
-                        // Header might be separate, add it
+                if (cards.length > 0) {
+                    // Get the bottom of the last visible card
+                    const lastCard = cards[cards.length - 1];
+                    const lastCardRect = lastCard.getBoundingClientRect();
+                    
+                    // Get the top of the document
+                    const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+                    
+                    // Calculate height from top of document to bottom of last card
+                    height = lastCardRect.bottom + scrollTop;
+                    
+                    // Add header height if it exists and is above the grid
+                    if (previewHeader) {
+                        const headerRect = previewHeader.getBoundingClientRect();
+                        if (headerRect.top < previewGrid.getBoundingClientRect().top) {
+                            // Header is above grid, already included in calculation
+                        } else {
+                            // Header might be separate, add it
+                            height = Math.max(height, headerRect.bottom + scrollTop);
+                        }
+                    }
+                } else {
+                    // No cards visible - measure grid container itself
+                    const gridRect = previewGrid.getBoundingClientRect();
+                    const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+                    height = gridRect.bottom + scrollTop;
+                    
+                    if (previewHeader) {
+                        const headerRect = previewHeader.getBoundingClientRect();
                         height = Math.max(height, headerRect.bottom + scrollTop);
                     }
                 }
-            } else {
-                // No cards visible - measure grid container itself
-                const gridRect = previewGrid.getBoundingClientRect();
+            } else if (previewMain) {
+                // Fallback: measure main container
+                const mainRect = previewMain.getBoundingClientRect();
                 const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
-                height = gridRect.bottom + scrollTop;
-                
-                if (previewHeader) {
-                    const headerRect = previewHeader.getBoundingClientRect();
-                    height = Math.max(height, headerRect.bottom + scrollTop);
-                }
+                height = mainRect.bottom + scrollTop;
+            } else {
+                // Ultimate fallback - use body/document height
+                const body = document.body;
+                const html = document.documentElement;
+                height = Math.max(
+                    body.scrollHeight,
+                    body.offsetHeight,
+                    html.scrollHeight,
+                    html.offsetHeight
+                );
             }
-        } else if (previewMain) {
-            // Fallback: measure main container
-            const mainRect = previewMain.getBoundingClientRect();
-            const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
-            height = mainRect.bottom + scrollTop;
-        } else {
-            // Ultimate fallback - use body/document height
-            const body = document.body;
-            const html = document.documentElement;
-            height = Math.max(
-                body.scrollHeight,
-                body.offsetHeight,
-                html.scrollHeight,
-                html.offsetHeight
-            );
-        }
-        
-        // Add a buffer (30px) for safety
-        const heightWithBuffer = Math.ceil(height) + 30;
-        
-        console.log('📏 Reporting height:', heightWithBuffer, 'px', '(visible cards:', document.querySelectorAll('.flip-card:not([style*="display: none"])').length, ')');
-        
-        // Send height to parent window via postMessage
-        // Don't check window.parent/top properties - just call postMessage directly to avoid CORS errors
-        const message = {
-            type: 'resize',
-            height: heightWithBuffer,
-            source: 'find-your-adventure'
-        };
-        
-        try {
-            window.parent.postMessage(message, '*');
+            
+            // Add a buffer (30px) for safety
+            const heightWithBuffer = Math.ceil(height) + 30;
+            
+            // Only report if height actually changed (prevent unnecessary updates)
+            if (Math.abs(heightWithBuffer - lastReportedHeight) < 5) {
+                isReportingHeight = false;
+                return;
+            }
+            
+            lastReportedHeight = heightWithBuffer;
+            
+            console.log('📏 Reporting height:', heightWithBuffer, 'px', '(visible cards:', document.querySelectorAll('.flip-card:not([style*="display: none"])').length, ')');
+            
+            // Send height to parent window via postMessage
+            // Don't check window.parent/top properties - just call postMessage directly to avoid CORS errors
+            const message = {
+                type: 'resize',
+                height: heightWithBuffer,
+                source: 'find-your-adventure'
+            };
+            
+            try {
+                window.parent.postMessage(message, '*');
         } catch (e) {
             // Cross-origin restriction - silently fail
         }
@@ -7612,18 +7641,37 @@ function initMap() {
     }
 }
 
+// Guard to prevent multiple simultaneous map updates
+let isUpdatingMapMarkers = false;
+
 function updateMapMarkers(listings) {
     if (!map) return;
     
+    // Prevent multiple simultaneous updates
+    if (isUpdatingMapMarkers) {
+        console.log('⚠️ Map markers update already in progress, skipping...');
+        return;
+    }
+    
+    isUpdatingMapMarkers = true;
+    
     // Clear existing clusterer if it exists
     if (markerCluster) {
-        markerCluster.clearMarkers();
+        try {
+            markerCluster.clearMarkers();
+        } catch (e) {
+            console.warn('Error clearing marker cluster:', e);
+        }
         markerCluster = null;
     }
     
     // Clear existing markers
     markers.forEach(function(marker) {
-        marker.setMap(null);
+        try {
+            marker.setMap(null);
+        } catch (e) {
+            console.warn('Error removing marker:', e);
+        }
     });
     markers = [];
     
@@ -7699,38 +7747,50 @@ function updateMapMarkers(listings) {
             geocodeCount++;
             // When all geocoding is done, create the clusterer
             if (geocodeCount === totalListings) {
-                // Check if MarkerClusterer library is available
-                if (typeof MarkerClusterer !== 'undefined') {
-                    // Create marker clusterer with the @googlemaps/js-marker-clusterer library
-                    // Configure to show more detail at higher zoom levels
-                    var clusterOptions = {
-                        map: map,
-                        markers: markersToAdd
-                    };
-                    
-                    // If gridAlgorithm is available, use it for better zoom-based clustering
-                    if (typeof MarkerClusterer.gridAlgorithm !== 'undefined') {
-                        clusterOptions.algorithm = new MarkerClusterer.gridAlgorithm({
-                            gridSize: 60, // Smaller grid = more detail at same zoom
-                            maxZoom: 15 // Only cluster up to zoom 15, show individual markers after
+                try {
+                    // Check if MarkerClusterer library is available
+                    if (typeof MarkerClusterer !== 'undefined') {
+                        // Create marker clusterer with the @googlemaps/js-marker-clusterer library
+                        // Configure to show more detail at higher zoom levels
+                        var clusterOptions = {
+                            map: map,
+                            markers: markersToAdd
+                        };
+                        
+                        // If gridAlgorithm is available, use it for better zoom-based clustering
+                        if (typeof MarkerClusterer.gridAlgorithm !== 'undefined') {
+                            clusterOptions.algorithm = new MarkerClusterer.gridAlgorithm({
+                                gridSize: 60, // Smaller grid = more detail at same zoom
+                                maxZoom: 15 // Only cluster up to zoom 15, show individual markers after
+                            });
+                        }
+                        
+                        markerCluster = new MarkerClusterer(clusterOptions);
+                    } else {
+                        // Fallback: add markers directly to map if clusterer not available
+                        markersToAdd.forEach(function(marker) {
+                            marker.setMap(map);
                         });
                     }
                     
-                    markerCluster = new MarkerClusterer(clusterOptions);
-                } else {
-                    // Fallback: add markers directly to map if clusterer not available
-                    markersToAdd.forEach(function(marker) {
-                        marker.setMap(map);
-                    });
-                }
-                
-                // Fit bounds with animation if there are markers
-                if (markers.length > 0) {
+                    // Fit bounds with animation if there are markers
+                    if (markers.length > 0) {
+                        setTimeout(function() {
+                            try {
+                                map.fitBounds(bounds);
+                            } catch (e) {
+                                console.warn('Error fitting map bounds:', e);
+                            }
+                            // Allow higher zoom for more detail (removed max zoom limit)
+                        }, 500);
+                    }
+                } catch (e) {
+                    console.error('Error creating marker cluster:', e);
+                } finally {
+                    // Reset flag after a delay to allow next update
                     setTimeout(function() {
-                        map.fitBounds(bounds);
-                        
-                        // Allow higher zoom for more detail (removed max zoom limit)
-                    }, 500);
+                        isUpdatingMapMarkers = false;
+                    }, 1000);
                 }
             }
         });
