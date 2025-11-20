@@ -5441,6 +5441,28 @@ loadDataFromGoogleSheets()
             // Render type filter buttons dynamically based on usage
             renderTypeFilterButtons(data.listings, '.type-quick-filters'); // Show all categories
             
+            // Restore active state on filter buttons after re-rendering
+            // This preserves the active highlight when buttons are recreated after categories load
+            if (currentCategoryFilter) {
+                document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
+                    btn.classList.remove('active');
+                    if (btn.dataset.category === currentCategoryFilter) {
+                        btn.classList.add('active');
+                    }
+                });
+            } else if (currentTypeFilter.length > 0) {
+                // If type filter is active, activate the appropriate buttons
+                document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
+                    btn.classList.remove('active');
+                    if (btn.dataset.type && currentTypeFilter.includes(btn.dataset.type)) {
+                        btn.classList.add('active');
+                    } else if (!btn.dataset.type && !btn.dataset.category && currentTypeFilter.length > 0) {
+                        // "All Types" button should be active if type filter is set
+                        btn.classList.add('active');
+                    }
+                });
+            }
+            
             // Check if there are active filters before rendering
             // If filters are active, use filterPreview() to preserve them
             // Otherwise, use renderPreview() to show all listings
