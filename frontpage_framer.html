@@ -3445,7 +3445,8 @@
                     <div class="preview-results" style="display: flex; justify-content: space-between; align-items: center;">
                         <span id="previewResultsCount">Showing 15 listings</span>
                         <select id="sortDropdown" onchange="sortListings()" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                            <option value="name-asc" selected style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Name (A-Z)</option>
+                            <option value="default" selected style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Area → Category → Name</option>
+                            <option value="name-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Name (A-Z)</option>
                             <option value="name-desc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Name (Z-A)</option>
                             <option value="area-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Area (A-Z)</option>
                             <option value="type-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Type (A-Z)</option>
@@ -6009,11 +6010,11 @@ function sortListings() {
     const sortDropdown = document.getElementById('sortDropdown');
     if (!sortDropdown) return; // Exit if dropdown doesn't exist
     
-    // Get sort value, defaulting to name-asc if empty or invalid
+    // Get sort value, defaulting to default if empty or invalid
     let sortValue = sortDropdown.value;
     if (!sortValue || sortValue === '') {
-        sortValue = 'name-asc';
-        sortDropdown.value = 'name-asc'; // Set it explicitly
+        sortValue = 'default';
+        sortDropdown.value = 'default'; // Set it explicitly
     }
     
     const grid = document.getElementById('previewGrid');
@@ -6022,19 +6023,29 @@ function sortListings() {
     const cards = Array.from(grid.querySelectorAll('.flip-card'));
     if (cards.length === 0) return; // Exit if no cards to sort
     
-    // Use the sort value (defaults to name-asc)
-    const sort = sortValue || 'name-asc';
+    // Use the sort value (defaults to default)
+    const sort = sortValue || 'default';
     
     cards.sort(function(a, b) {
         // Get listing data from the cards
-        const aName = a.querySelector('.flip-card-front h3').textContent;
-        const bName = b.querySelector('.flip-card-front h3').textContent;
-        const aArea = a.querySelector('.flip-card-front .badge-area')?.textContent || '';
-        const bArea = b.querySelector('.flip-card-front .badge-area')?.textContent || '';
-        const aType = a.querySelector('.flip-card-front .badge-type')?.textContent || '';
-        const bType = b.querySelector('.flip-card-front .badge-type')?.textContent || '';
+        const aName = a.querySelector('.flip-card-front h3').textContent.toLowerCase();
+        const bName = b.querySelector('.flip-card-front h3').textContent.toLowerCase();
+        const aArea = (a.querySelector('.flip-card-front .badge-area')?.textContent || '').toLowerCase();
+        const bArea = (b.querySelector('.flip-card-front .badge-area')?.textContent || '').toLowerCase();
+        const aType = (a.querySelector('.flip-card-front .badge-type')?.textContent || '').toLowerCase();
+        const bType = (b.querySelector('.flip-card-front .badge-type')?.textContent || '').toLowerCase();
+        // Get category from data attribute
+        const aCategory = (a.dataset.category || '').toLowerCase();
+        const bCategory = (b.dataset.category || '').toLowerCase();
         
         switch(sort) {
+            case 'default':
+                // Default sort: Area → Category → Name (all A-Z)
+                const areaCompare = aArea.localeCompare(bArea);
+                if (areaCompare !== 0) return areaCompare;
+                const categoryCompare = aCategory.localeCompare(bCategory);
+                if (categoryCompare !== 0) return categoryCompare;
+                return aName.localeCompare(bName);
             case 'name-asc':
                 return aName.localeCompare(bName);
             case 'name-desc':
@@ -6044,7 +6055,12 @@ function sortListings() {
             case 'type-asc':
                 return aType.localeCompare(bType);
             default:
-                return aName.localeCompare(bName); // Default to name-asc
+                // Fallback to default sort: Area → Category → Name
+                const areaCompareDefault = aArea.localeCompare(bArea);
+                if (areaCompareDefault !== 0) return areaCompareDefault;
+                const categoryCompareDefault = aCategory.localeCompare(bCategory);
+                if (categoryCompareDefault !== 0) return categoryCompareDefault;
+                return aName.localeCompare(bName);
         }
     });
     
@@ -6286,10 +6302,10 @@ function filterPreview() {
         mobileClearBtn.style.display = hasActiveFilters ? 'block' : 'none';
     }
     
-    // Ensure sort dropdown is set to default (name-asc) if not already set
+    // Ensure sort dropdown is set to default if not already set
     const sortDropdown = document.getElementById('sortDropdown');
     if (sortDropdown && !sortDropdown.value) {
-        sortDropdown.value = 'name-asc';
+        sortDropdown.value = 'default';
     }
     
     renderPreview(); // renderPreview will use allFilteredListings and pagination
@@ -6542,11 +6558,11 @@ function filterByListingName(listingName) {
     if (clearBtn) clearBtn.style.display = 'block';
     if (mobileClearBtn) mobileClearBtn.style.display = 'block';
     
-    // Ensure sort dropdown is set to default (name-asc) if not already set
+    // Ensure sort dropdown is set to default if not already set
     // renderPreview will handle sorting automatically
     const sortDropdown = document.getElementById('sortDropdown');
     if (sortDropdown && !sortDropdown.value) {
-        sortDropdown.value = 'name-asc';
+        sortDropdown.value = 'default';
     }
     
     renderPreview(filtered); // Sorting is now handled inside renderPreview
@@ -6937,14 +6953,14 @@ function renderPreview(filteredListings, appendMode) {
         }
     }
     
-    // Sort listings before rendering (always default to name-asc)
+    // Sort listings before rendering (default: Area → Category → Name, all A-Z)
     const sortDropdown = document.getElementById('sortDropdown');
-    let sortValue = 'name-asc'; // Default to name-asc
+    let sortValue = 'default'; // Default to Area → Category → Name
     if (sortDropdown && sortDropdown.value) {
         sortValue = sortDropdown.value;
     } else if (sortDropdown) {
-        // If dropdown exists but no value, set it to name-asc
-        sortDropdown.value = 'name-asc';
+        // If dropdown exists but no value, set it to default
+        sortDropdown.value = 'default';
     }
     
     // Sort the listings array based on current sort value
@@ -6953,10 +6969,19 @@ function renderPreview(filteredListings, appendMode) {
         const bName = (b.name || '').toLowerCase();
         const aArea = (a.area || '').toLowerCase();
         const bArea = (b.area || '').toLowerCase();
+        const aCategory = (a.category || '').toLowerCase();
+        const bCategory = (b.category || '').toLowerCase();
         const aType = (a.type || '').toLowerCase();
         const bType = (b.type || '').toLowerCase();
         
         switch(sortValue) {
+            case 'default':
+                // Default sort: Area → Category → Name (all A-Z)
+                const areaCompare = aArea.localeCompare(bArea);
+                if (areaCompare !== 0) return areaCompare;
+                const categoryCompare = aCategory.localeCompare(bCategory);
+                if (categoryCompare !== 0) return categoryCompare;
+                return aName.localeCompare(bName);
             case 'name-asc':
                 return aName.localeCompare(bName);
             case 'name-desc':
@@ -6966,7 +6991,12 @@ function renderPreview(filteredListings, appendMode) {
             case 'type-asc':
                 return aType.localeCompare(bType);
             default:
-                return aName.localeCompare(bName); // Default to name-asc
+                // Fallback to default sort: Area → Category → Name
+                const areaCompareDefault = aArea.localeCompare(bArea);
+                if (areaCompareDefault !== 0) return areaCompareDefault;
+                const categoryCompareDefault = aCategory.localeCompare(bCategory);
+                if (categoryCompareDefault !== 0) return categoryCompareDefault;
+                return aName.localeCompare(bName);
         }
     });
     
@@ -7000,6 +7030,9 @@ function renderPreview(filteredListings, appendMode) {
         const card = document.createElement('div');
         card.className = 'flip-card';
         card.setAttribute('data-listing-id', listing.id);
+        if (listing.category) {
+            card.setAttribute('data-category', listing.category);
+        }
         card.style.display = 'block';
         
         // Create inner wrapper for flip animation
