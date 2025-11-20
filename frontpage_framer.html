@@ -3370,7 +3370,7 @@
                             <div class="filter-section">
                                 <div class="type-quick-filters" id="typeQuickFilters">
                                     <button class="type-filter-btn category-filter-btn active" data-type="">
-                                        <span class="category-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg></span>
+                                        <span class="category-icon"><img src="icons/all-types.svg" alt="All Types" style="width: 24px; height: 24px; display: block;" /></span>
                                         <span class="category-name">All Types</span>
                                     </button>
                                     <!-- Type filter buttons will be dynamically generated here based on data usage -->
@@ -4704,19 +4704,49 @@ function toSentenceCase(text) {
     return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 }
 
-// Get SVG icon for category - using existing icon set with colors
-function getCategorySVGIcon(categoryKey) {
-    const icons = {
-        'outdoor': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.76,6.63a1.09,1.09,0,0,1,2,0l2.8,5.53v0L15,8.9a1,1,0,0,1,1.8,0L21,18H3Z" stroke="#10b981"/></svg>',
-        'taste': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1" stroke="#f59e0b"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" stroke="#f59e0b"/><line x1="6" x2="6" y1="1" y2="4" stroke="#f59e0b"/><line x1="10" x2="10" y1="1" y2="4" stroke="#f59e0b"/><line x1="14" x2="14" y1="1" y2="4" stroke="#f59e0b"/></svg>',
-        'stay': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="#3b82f6"/><polyline points="9 22 9 12 15 12 15 22" stroke="#3b82f6"/></svg>',
-        'culture': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 20v-9H2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2z" stroke="#8b5cf6"/><path d="M18 11V4H6v7" stroke="#8b5cf6"/><path d="m9 9 1.5-1.5" stroke="#8b5cf6"/><path d="m15 9-1.5-1.5" stroke="#8b5cf6"/></svg>',
-        'experience': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 12C15 13.6569 13.6569 15 12 15C10.3431 15 9 13.6569 9 12C9 10.3431 10.3431 9 12 9C13.6569 9 15 10.3431 15 12Z" stroke="#ef4444"/><path d="M12 5V3" stroke="#ef4444"/><path d="M17 7L19 5" stroke="#ef4444"/><path d="M19 12H21" stroke="#ef4444"/><path d="M17 17L19 19" stroke="#ef4444"/><path d="M12 19V21" stroke="#ef4444"/><path d="M7 17L5 19" stroke="#ef4444"/><path d="M5 12H3" stroke="#ef4444"/><path d="M5 5L7 7" stroke="#ef4444"/></svg>',
-        'community': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#06b6d4"/><circle cx="9" cy="7" r="4" stroke="#06b6d4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="#06b6d4"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="#06b6d4"/></svg>'
-    };
-    
+// SVG icon cache to avoid repeated fetches
+const svgIconCache = {};
+
+// Get SVG icon for category - loads from external files
+async function getCategorySVGIcon(categoryKey) {
     const normalizedKey = categoryKey.toLowerCase();
-    return icons[normalizedKey] || icons['experience']; // Default to experience icon
+    const iconFile = normalizedKey + '.svg';
+    
+    // Check cache first
+    if (svgIconCache[normalizedKey]) {
+        return svgIconCache[normalizedKey];
+    }
+    
+    try {
+        const response = await fetch(`icons/${iconFile}`);
+        if (response.ok) {
+            const svgContent = await response.text();
+            svgIconCache[normalizedKey] = svgContent;
+            return svgContent;
+        }
+    } catch (error) {
+        console.warn(`Failed to load icon ${iconFile}:`, error);
+    }
+    
+    // Fallback to default experience icon
+    if (!svgIconCache['experience']) {
+        try {
+            const response = await fetch('icons/experience.svg');
+            if (response.ok) {
+                svgIconCache['experience'] = await response.text();
+            }
+        } catch (error) {
+            console.warn('Failed to load default experience icon:', error);
+        }
+    }
+    
+    return svgIconCache['experience'] || '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"></svg>';
+}
+
+// Synchronous version that returns cached icon or placeholder
+function getCategorySVGIconSync(categoryKey) {
+    const normalizedKey = categoryKey.toLowerCase();
+    return svgIconCache[normalizedKey] || '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"></svg>';
 }
 
 function createCategoryFilterButton(categoryKey, category) {
@@ -4728,15 +4758,15 @@ function createCategoryFilterButton(categoryKey, category) {
     // Create button content with SVG icon and name
     const iconSpan = document.createElement('span');
     iconSpan.className = 'category-icon';
-    const svgHtml = getCategorySVGIcon(categoryKey);
-    iconSpan.innerHTML = svgHtml;
-    // Ensure SVG is visible by setting style directly
-    const svg = iconSpan.querySelector('svg');
-    if (svg) {
-        svg.style.stroke = '#212529';
-        svg.style.strokeWidth = '2';
-        svg.style.fill = 'none';
-    }
+    
+    // Use img tag to load SVG from file
+    const img = document.createElement('img');
+    img.src = `icons/${categoryKey.toLowerCase()}.svg`;
+    img.alt = toSentenceCase(categoryKey);
+    img.style.width = '24px';
+    img.style.height = '24px';
+    img.style.display = 'block';
+    iconSpan.appendChild(img);
     
     const nameSpan = document.createElement('span');
     nameSpan.className = 'category-name';
