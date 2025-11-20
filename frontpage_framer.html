@@ -4993,6 +4993,17 @@ function handleUrlParameters() {
     const paramsHash = JSON.stringify(paramsToUse);
     if (lastProcessedParamsHash === paramsHash) {
         // Parameters haven't changed, skip processing
+        console.log('⏭️ URL parameters unchanged, skipping processing');
+        return;
+    }
+    
+    // Only process if we're not already rendering (to prevent duplicate renders)
+    if (isRendering) {
+        console.log('⏭️ Render in progress, deferring URL parameter processing...');
+        // Defer processing until render completes
+        setTimeout(function() {
+            handleUrlParameters();
+        }, 500);
         return;
     }
     
@@ -5145,6 +5156,11 @@ function handleUrlParameters() {
     
     // Restore original receivedUrlParams (don't permanently modify it)
     receivedUrlParams = originalReceivedParams;
+    
+    // Reset processing flag after a short delay to allow filterPreview to complete
+    setTimeout(function() {
+        isProcessingParams = false;
+    }, 100);
     
     // Reset processing flag after a delay
     setTimeout(function() {
