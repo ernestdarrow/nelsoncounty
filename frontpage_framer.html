@@ -987,6 +987,16 @@
             overflow-x: clip;
         }
         
+        /* Smooth fade-in for grid container on load */
+        #previewGrid {
+            opacity: 0;
+            transition: opacity 0.4s ease-out;
+        }
+        
+        #previewGrid.grid-loaded {
+            opacity: 1;
+        }
+        
         .preview-sidebar { 
             width: 280px; 
             flex-shrink: 0; 
@@ -2770,7 +2780,7 @@
         .flip-card { 
             cursor: pointer; 
             position: relative; 
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease-out, transform 0.6s ease-out;
             container-type: inline-size;
             container-name: card;
             will-change: transform;
@@ -2778,6 +2788,20 @@
             height: 100%;
             display: flex;
             flex-direction: column;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        /* Smooth fade-in for cards on load */
+        .flip-card.card-loaded {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Intersection Observer will add this class when card comes into view */
+        .flip-card.card-visible {
+            opacity: 1;
+            transform: translateY(0);
         }
         .flip-card-inner { 
             position: relative; 
@@ -5521,6 +5545,13 @@ loadDataFromGoogleSheets()
                 
                 // Process categories and re-render with updated categories (this will add any missing ones)
                 processCategoriesAndRender();
+                
+                // After categories load, check URL parameters again to ensure filters are applied
+                // This is important because handleUrlParameters needs categories to be loaded
+                setTimeout(function() {
+                    extractParamsFromReferrer();
+                    handleUrlParameters();
+                }, 300); // Short delay after categories load
             })
             .catch(function(error) {
                 console.error('❌ Error loading categories from Google Sheets:', error);
@@ -5530,20 +5561,33 @@ loadDataFromGoogleSheets()
                 
                 // Process categories and render anyway
                 processCategoriesAndRender();
+                
+                // After categories load (even from fallback), check URL parameters again
+                setTimeout(function() {
+                    extractParamsFromReferrer();
+                    handleUrlParameters();
+                }, 300);
             });
         
         // Start processing immediately with defaults (categories will update when they load)
         processCategoriesAndRender();
         
         // Handle URL parameters after data is loaded and rendered
-        // Use a single delay to allow postMessage response from parent
-        // Extract referrer params first, then handle URL parameters once
+        // Use a delay to allow postMessage response from parent
+        // Extract referrer params first, then handle URL parameters
         setTimeout(function() {
             // Re-check referrer in case it wasn't available immediately
             extractParamsFromReferrer();
-            // Single call to handleUrlParameters - deduplication will prevent duplicate processing
+            // Call handleUrlParameters - deduplication will prevent duplicate processing
             handleUrlParameters();
-        }, 800); // Single delay - long enough for postMessage but not too long
+        }, 800); // Initial delay - long enough for postMessage
+        
+        // Also check again after a longer delay to catch any late postMessages
+        // This ensures URL params are applied even if postMessage is slow
+        setTimeout(function() {
+            extractParamsFromReferrer();
+            handleUrlParameters();
+        }, 1500); // Second check - ensures params are applied even if first check was too early
     })
     .catch(error => {
         console.error('❌ Error loading data:', error);
@@ -6525,7 +6569,23 @@ function renderPreview(filteredListings) {
                 return;
             }
             
-            grid.innerHTML = '';
+            // Clear grid with fade-out for smooth transition
+            const existingCards = grid.querySelectorAll('.flip-card');
+            if (existingCards.length > 0) {
+                grid.classList.remove('grid-loaded');
+                existingCards.forEach(function(card) {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(-20px)';
+                });
+                // Wait for fade-out, then clear
+                setTimeout(function() {
+                    grid.innerHTML = '';
+                    grid.classList.add('grid-loaded');
+                }, 300);
+            } else {
+                grid.innerHTML = '';
+                grid.classList.add('grid-loaded');
+            }
     
     // Populate filters on first render
     // Helper function to ensure an option exists in a dropdown
@@ -7212,6 +7272,14 @@ function renderPreview(filteredListings) {
         card.appendChild(inner);
         grid.appendChild(card);
         
+        // Add staggered fade-in animation for smooth loading
+        // Use requestAnimationFrame to ensure DOM is ready
+        requestAnimationFrame(function() {
+            setTimeout(function() {
+                card.classList.add('card-loaded');
+            }, (index % 20) * 30); // Stagger by 30ms per card, max 20 cards at a time
+        });
+        
         // Adjust description line-clamp on back based on title height and card size
         setTimeout(function() {
             // Title is now an anchor tag, not h3
@@ -7239,6 +7307,30 @@ function renderPreview(filteredListings) {
             }
         }, 100);
     });
+    
+            // Set up Intersection Observer for smooth scroll animations
+            if (typeof IntersectionObserver !== 'undefined') {
+                const observerOptions = {
+                    root: null,
+                    rootMargin: '50px',
+                    threshold: 0.1
+                };
+                
+                const cardObserver = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(entry) {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('card-visible');
+                            cardObserver.unobserve(entry.target);
+                        }
+                    });
+                }, observerOptions);
+                
+                // Observe all cards for scroll animations
+                const allCards = grid.querySelectorAll('.flip-card');
+                allCards.forEach(function(card) {
+                    cardObserver.observe(card);
+                });
+            }
     
             // Report content height to parent (for Framer embed)
             // Wait for images and layout to settle

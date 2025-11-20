@@ -21,6 +21,7 @@ interface BreadcrumbProps {
     category?: string
     type?: string
     area?: string
+    listingName?: string
     homeLabel?: string
     homeUrl?: string
     showHome?: boolean
@@ -43,6 +44,7 @@ export default function Breadcrumb({
     category = "",
     type = "",
     area = "",
+    listingName = "",
     homeLabel = "Home",
     homeUrl = "/",
     showHome = true,
@@ -129,6 +131,14 @@ export default function Breadcrumb({
         })
     }
     
+    // Listing name as last item (if exists) - not clickable, just displays
+    if (listingName) {
+        items.push({ 
+            label: listingName,
+            url: "" // Empty URL means it's not clickable
+        })
+    }
+    
     // Don't render if no items
     if (items.length === 0) {
         return null
@@ -188,37 +198,56 @@ export default function Breadcrumb({
                 
                 return (
                     <React.Fragment key={index}>
-                        <a
-                            href={item.url}
-                            onClick={(e) => handleClick(e, item.url)}
-                            style={{
-                                color: isLast ? lastItemTextColor : linkColor,
-                                backgroundColor: isLast ? lastItemBackgroundColor : 'transparent',
-                                textDecoration: 'none',
-                                fontWeight: isLast ? '600' : '400',
-                                transition: 'all 0.2s',
-                                cursor: isLast ? 'default' : 'pointer',
-                                padding: isLast ? `${lastItemPadding}px ${lastItemPadding * 2.5}px` : '4px 8px',
-                                borderRadius: isLast ? `${lastItemBorderRadius}px` : `${Math.round(borderRadius / 2)}px`,
-                                whiteSpace: 'nowrap',
-                                display: 'inline-block',
-                                marginRight: isLast ? '0' : '0'
-                            }}
-                            onMouseEnter={(e) => {
-                                if (!isLast) {
-                                    e.currentTarget.style.color = '#1b4332'
-                                    e.currentTarget.style.backgroundColor = '#f8f9fa'
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (!isLast) {
-                                    e.currentTarget.style.color = linkColor
-                                    e.currentTarget.style.backgroundColor = 'transparent'
-                                }
-                            }}
-                        >
-                            {item.label}
-                        </a>
+                        {item.url ? (
+                            <a
+                                href={item.url}
+                                onClick={(e) => handleClick(e, item.url)}
+                                style={{
+                                    color: isLast ? lastItemTextColor : linkColor,
+                                    backgroundColor: isLast ? lastItemBackgroundColor : 'transparent',
+                                    textDecoration: 'none',
+                                    fontWeight: '400',
+                                    transition: 'all 0.2s',
+                                    cursor: isLast ? 'default' : 'pointer',
+                                    padding: isLast ? `${lastItemPadding}px ${lastItemPadding * 2.5}px` : '4px 8px',
+                                    borderRadius: isLast ? `${lastItemBorderRadius}px` : `${Math.round(borderRadius / 2)}px`,
+                                    whiteSpace: 'nowrap',
+                                    display: 'inline-block',
+                                    marginRight: isLast ? '0' : '0',
+                                    marginLeft: isLast ? `${lastItemPadding}px` : '0'
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (!isLast) {
+                                        e.currentTarget.style.color = '#1b4332'
+                                        e.currentTarget.style.backgroundColor = '#f8f9fa'
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!isLast) {
+                                        e.currentTarget.style.color = linkColor
+                                        e.currentTarget.style.backgroundColor = 'transparent'
+                                    }
+                                }}
+                            >
+                                {item.label}
+                            </a>
+                        ) : (
+                            <span
+                                style={{
+                                    color: isLast ? lastItemTextColor : linkColor,
+                                    backgroundColor: isLast ? lastItemBackgroundColor : 'transparent',
+                                    fontWeight: '400',
+                                    padding: isLast ? `${lastItemPadding}px ${lastItemPadding * 2.5}px` : '4px 8px',
+                                    borderRadius: isLast ? `${lastItemBorderRadius}px` : `${Math.round(borderRadius / 2)}px`,
+                                    whiteSpace: 'nowrap',
+                                    display: 'inline-block',
+                                    marginRight: isLast ? '0' : '0',
+                                    marginLeft: isLast ? `${lastItemPadding}px` : '0'
+                                }}
+                            >
+                                {item.label}
+                            </span>
+                        )}
                         {/* Don't show separator before the last item (since it's in a pill) */}
                         {!isLast && !nextIsLast && (
                             <span 
@@ -260,6 +289,12 @@ addPropertyControls(Breadcrumb, {
         title: "Area",
         defaultValue: "",
         placeholder: "e.g., Nellysford, Afton"
+    },
+    listingName: {
+        type: ControlType.String,
+        title: "Listing Name",
+        defaultValue: "",
+        placeholder: "e.g., Devil's Backbone Brewing"
     },
     homeLabel: {
         type: ControlType.String,
