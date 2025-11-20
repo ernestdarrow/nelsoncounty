@@ -3829,6 +3829,7 @@ let currentFeaturedOnly = false;
 let receivedUrlParams = {};
 let lastProcessedParamsHash = null; // Track last processed parameters hash to prevent loops
 let isProcessingParams = false; // Guard to prevent concurrent processing
+let ignoreUrlParamsUntil = 0; // Timestamp - ignore URL params until this time (to prevent re-applying after clear)
 
 // Pagination variables for infinite scroll
 let currentPage = 1;
@@ -6444,7 +6445,10 @@ function clearPreviewFilters() {
                     navigateTo: parentPath
                 }, '*');
                 
-                console.log('📨 Sent clearAll message to parent - filters cleared locally, parent URL will be cleared');
+                // Ignore URL parameters for 3 seconds to prevent re-applying filters
+                // This gives the parent time to clear its URL before the next poll
+                ignoreUrlParamsUntil = Date.now() + 3000;
+                console.log('📨 Sent clearAll message to parent - filters cleared locally, ignoring URL params for 3 seconds');
                 // Don't navigate iframe - filters are already cleared, just wait for parent to clear URL
                 return;
             } catch (e2) {
@@ -8558,6 +8562,8 @@ window.addEventListener('message', function(event) {
             // Clear all received parameters
             receivedUrlParams = {};
             lastProcessedParamsHash = null;
+            // Ignore URL parameters for 3 seconds to prevent re-applying filters
+            ignoreUrlParamsUntil = Date.now() + 3000;
             // Clear filter state
             currentCategoryFilter = null;
             currentTypeFilter = [];
@@ -8607,6 +8613,13 @@ window.addEventListener('message', function(event) {
         
         // Normal parameter update
         if (event.data.search) {
+            // Check if we should ignore URL parameters (recently cleared filters)
+            if (Date.now() < ignoreUrlParamsUntil) {
+                const secondsLeft = Math.round((ignoreUrlParamsUntil - Date.now()) / 1000);
+                console.log('⏭️ Ignoring URL parameters (recently cleared filters, ignoring for', secondsLeft, 'more seconds):', event.data.search);
+                return;
+            }
+            
             // Parse the search string and store as parameters
             var params = {};
             var searchParams = new URLSearchParams(event.data.search);
