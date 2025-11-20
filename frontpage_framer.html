@@ -5536,17 +5536,14 @@ loadDataFromGoogleSheets()
         processCategoriesAndRender();
         
         // Handle URL parameters after data is loaded and rendered
-        // Use longer delay to allow postMessage response from parent
-        setTimeout(function() {
-            handleUrlParameters();
-        }, 500);
-        
-        // Also try again after a longer delay in case postMessage response is slow
+        // Use a single delay to allow postMessage response from parent
+        // Extract referrer params first, then handle URL parameters once
         setTimeout(function() {
             // Re-check referrer in case it wasn't available immediately
             extractParamsFromReferrer();
+            // Single call to handleUrlParameters - deduplication will prevent duplicate processing
             handleUrlParameters();
-        }, 1000);
+        }, 800); // Single delay - long enough for postMessage but not too long
     })
     .catch(error => {
         console.error('❌ Error loading data:', error);
@@ -5590,17 +5587,13 @@ loadDataFromGoogleSheets()
         extractParamsFromReferrer();
         
         // Handle URL parameters after fallback data is loaded
-        // Use longer delay to allow postMessage response from parent
-        setTimeout(function() {
-            handleUrlParameters();
-        }, 500);
-        
-        // Also try again after a longer delay in case postMessage response is slow
+        // Use a single delay to allow postMessage response from parent
         setTimeout(function() {
             // Re-check referrer in case it wasn't available immediately
             extractParamsFromReferrer();
+            // Single call to handleUrlParameters - deduplication will prevent duplicate processing
             handleUrlParameters();
-        }, 1000);
+        }, 800); // Single delay - long enough for postMessage but not too long
     });
 
 // Function to escape HTML special characters
@@ -8199,28 +8192,8 @@ window.addEventListener('message', function(event) {
         reportContentHeight();
     }
     
-    // Handle filter parameters sent from parent (for cross-origin iframe support)
-    if (event.data && event.data.type === 'setFilters') {
-        const newParams = event.data.params || {};
-        
-        // Merge with existing params (don't overwrite, merge)
-        // This preserves parameters from iframe URL that aren't in Framer's URL
-        const mergedParams = Object.assign({}, receivedUrlParams, newParams);
-        const newParamsHash = JSON.stringify(mergedParams);
-        
-        // Only process if parameters actually changed
-        if (lastProcessedParamsHash !== newParamsHash) {
-            console.log('📨 Received filter parameters via postMessage:', newParams);
-            // Merge received parameters with existing ones (preserve iframe URL params)
-            receivedUrlParams = mergedParams;
-            // Apply filters if data is loaded
-            if (data) {
-                handleUrlParameters();
-            }
-        }
-    }
-    
-    // Handle URL parameters sent as query string from parent
+    // Handle URL parameters sent as query string from parent (preferred method)
+    // Note: setFilters is deprecated - use setUrlParams instead to avoid duplicate processing
     if (event.data && event.data.type === 'setUrlParams' && event.data.search) {
         // Parse the search string and store as parameters
         var params = {};

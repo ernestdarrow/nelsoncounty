@@ -85,15 +85,10 @@ export default function URLParamsHelper() {
                 
                 lastSentParams = paramsHash
                 
-                // Send via multiple methods for reliability
+                // Send via postMessage (single message type to avoid duplicate processing)
                 iframe.contentWindow.postMessage({
                     type: 'setUrlParams',
                     search: window.location.search,
-                    params: params
-                }, '*')
-                
-                iframe.contentWindow.postMessage({
-                    type: 'setFilters',
                     params: params
                 }, '*')
             }
