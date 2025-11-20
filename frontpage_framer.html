@@ -3986,7 +3986,8 @@ function mapCSVRowToListing(row, index) {
 // Helper function to extract filter options from listings
 function extractFilterOptions(listings) {
     const types = [...new Set(listings.map(l => l.type).filter(Boolean))].sort();
-    const areas = [...new Set(listings.map(l => l.area).filter(Boolean))].sort();
+    // Normalize areas: trim whitespace and filter out empty strings
+    const areas = [...new Set(listings.map(l => l.area ? l.area.trim() : '').filter(Boolean))].sort();
     const amenities = [...new Set(listings.flatMap(l => l.amenities || []).filter(Boolean))].sort();
     
     return { types, areas, amenities };
@@ -6021,7 +6022,13 @@ function filterPreview() {
                 return false;
             });
         }
-        const matchesArea = !selectedArea || listing.area === selectedArea;
+        // Area filter: case-insensitive match with trimmed whitespace
+        let matchesArea = true;
+        if (selectedArea) {
+            const selectedAreaNormalized = selectedArea.trim().toLowerCase();
+            const listingAreaNormalized = (listing.area || '').trim().toLowerCase();
+            matchesArea = listingAreaNormalized === selectedAreaNormalized;
+        }
         // Amenity filter: case-insensitive match against amenities array
         let matchesAmenity = true;
         if (selectedAmenity) {
