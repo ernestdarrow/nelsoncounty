@@ -5024,10 +5024,9 @@ function handleUrlParameters() {
     var typeParam = getUrlParameter('type');
     if (typeParam) {
         const typeValue = decodeURIComponent(typeParam);
+        // Set type filter - do NOT set category filter, let type filter work independently
         currentTypeFilter = [typeValue];
-        // Determine which category this type belongs to
-        const categoryForType = getCategoryForType(typeValue, null);
-        currentCategoryFilter = categoryForType;
+        currentCategoryFilter = null; // Clear category filter so type filter works independently
         
         var typeFilter = document.getElementById('previewTypeFilter');
         var mobileTypeFilter = document.getElementById('mobileTypeFilter');
@@ -5039,12 +5038,10 @@ function handleUrlParameters() {
             ensureDropdownOption(mobileTypeFilter, typeValue, typeValue);
             mobileTypeFilter.value = typeValue;
         }
-        // Update type filter buttons - activate the category button if it exists, or "All Types" if no category
+        // Update type filter buttons - deactivate all category buttons, keep "All Types" active
         document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
             btn.classList.remove('active');
-            if (categoryForType && btn.dataset.category === categoryForType) {
-                btn.classList.add('active');
-            } else if (!categoryForType && btn.dataset.type === '' && !btn.dataset.category) {
+            if (btn.dataset.type === '' && !btn.dataset.category) {
                 btn.classList.add('active');
             }
         });
@@ -5895,10 +5892,9 @@ function filterByBadge(event, filterType, value) {
     
     if (filterType === 'type') {
         // For badge clicks, set single type (replaces current selection)
+        // Do NOT set category filter - let type filter work independently
         currentTypeFilter = [value];
-        // Determine which category this type belongs to
-        const categoryForType = getCategoryForType(value, null);
-        currentCategoryFilter = categoryForType;
+        currentCategoryFilter = null; // Clear category filter so type filter works independently
         
         const typeFilter = document.getElementById('previewTypeFilter');
         const mobileTypeFilter = document.getElementById('mobileTypeFilter');
@@ -5910,12 +5906,10 @@ function filterByBadge(event, filterType, value) {
             ensureDropdownOption(mobileTypeFilter, value, value);
             mobileTypeFilter.value = value;
         }
-        // Update type filter buttons - activate the category button if it exists
+        // Update type filter buttons - deactivate all category buttons, keep "All Types" active
         document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
             btn.classList.remove('active');
-            if (categoryForType && btn.dataset.category === categoryForType) {
-                btn.classList.add('active');
-            } else if (!categoryForType && btn.dataset.type === '' && !btn.dataset.category) {
+            if (btn.dataset.type === '' && !btn.dataset.category) {
                 btn.classList.add('active');
             }
         });
@@ -6013,12 +6007,15 @@ function filterPreview() {
             matchesType = listingCategory === currentCategoryFilter;
         } else if (currentTypeFilter.length > 0) {
             // Individual type filter mode: User selected specific type(s) via badge, URL param, mobile filter, or individual type button
-            // Filter by exact type match
+            // Filter by exact type match (case-insensitive)
             matchesType = currentTypeFilter.some(function(filterType) {
-                if (filterType === listing.type) return true;
+                // Case-insensitive comparison
+                if (filterType.toLowerCase() === listing.type.toLowerCase()) return true;
                 // Handle Activity/Outdoor equivalence
-                if ((filterType === 'Activity' || filterType === 'Outdoor') && 
-                    (listing.type === 'Activity' || listing.type === 'Outdoor')) {
+                const filterLower = filterType.toLowerCase();
+                const listingLower = listing.type.toLowerCase();
+                if ((filterLower === 'activity' || filterLower === 'outdoor') && 
+                    (listingLower === 'activity' || listingLower === 'outdoor')) {
                     return true;
                 }
                 return false;
@@ -7454,36 +7451,49 @@ function handleMobileTypeFilter() {
 }
 
 function handleTypeFilter() {
+    // Get selected type from dropdown
     const typeFilter = document.getElementById('previewTypeFilter');
     const mobileTypeFilter = document.getElementById('mobileTypeFilter');
-    const value = typeFilter ? typeFilter.value : '';
+    const selectedType = (typeFilter ? typeFilter.value : '') || (mobileTypeFilter ? mobileTypeFilter.value : '');
     
-    // Mobile dropdown is single-select, so set as single-item array or empty
-    currentTypeFilter = value ? [value] : [];
-    
-    // Determine which category this type belongs to
-    if (value) {
-        const categoryForType = getCategoryForType(value, null);
-        currentCategoryFilter = categoryForType;
-    } else {
-        currentCategoryFilter = null;
+    // Sync mobile and desktop dropdowns
+    if (typeFilter && mobileTypeFilter) {
+        if (document.activeElement === typeFilter) {
+            mobileTypeFilter.value = typeFilter.value;
+        } else if (document.activeElement === mobileTypeFilter) {
+            typeFilter.value = mobileTypeFilter.value;
+        }
     }
     
-    // Sync with mobile dropdown
-    if (mobileTypeFilter) mobileTypeFilter.value = value;
-    
-    // Update sidebar buttons - activate the category button if it exists, or "All Types" if no category
-    document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
-        btn.classList.remove('active');
-        if (value && currentCategoryFilter && btn.dataset.category === currentCategoryFilter) {
-            btn.classList.add('active');
-        } else if (!value && btn.dataset.type === '' && !btn.dataset.category) {
-            btn.classList.add('active');
-        }
-    });
+    if (selectedType) {
+        // Set type filter - do NOT set category filter, let type filter work independently
+        currentTypeFilter = [selectedType];
+        currentCategoryFilter = null; // Clear category filter so type filter works independently
+        
+        // Update type filter buttons - deactivate all category buttons, keep "All Types" active
+        document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
+            btn.classList.remove('active');
+            if (btn.dataset.type === '' && !btn.dataset.category) {
+                btn.classList.add('active');
+            }
+        });
+    } else {
+        // No type selected - clear filters
+        currentTypeFilter = [];
+        currentCategoryFilter = null;
+        
+        // Activate "All Types" button
+        document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
+            btn.classList.remove('active');
+            if (btn.dataset.type === '' && !btn.dataset.category) {
+                btn.classList.add('active');
+            }
+        });
+    }
     
     filterPreview();
 }
+
 
 function handleMobileAreaFilter() {
     const mobileAreaFilter = document.getElementById('mobileAreaFilter');
