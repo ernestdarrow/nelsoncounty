@@ -6337,9 +6337,8 @@ function clearPreviewFilters() {
     receivedUrlParams = {};
     lastProcessedParamsHash = null;
     
-    // Reset pagination
+    // Reset pagination (allFilteredListings will be set by filterPreview())
     currentPage = 1;
-    allFilteredListings = []; // Will be set to all listings in filterPreview
     
     // Update URL to remove all filter parameters
     try {
@@ -6702,6 +6701,7 @@ function renderPreview(filteredListings, appendMode) {
             }
             
             // Clear grid only if not appending (new filter/search)
+            let needsDelayedRender = false;
             if (!appendMode) {
                 const existingCards = grid.querySelectorAll('.flip-card');
                 if (existingCards.length > 0) {
@@ -6710,10 +6710,13 @@ function renderPreview(filteredListings, appendMode) {
                         card.style.opacity = '0';
                         card.style.transform = 'translateY(-20px)';
                     });
-                    // Wait for fade-out, then clear
+                    // Wait for fade-out, then clear and render
+                    needsDelayedRender = true;
                     setTimeout(function() {
                         grid.innerHTML = '';
                         grid.classList.add('grid-loaded');
+                        // Now render cards after grid is cleared
+                        renderCardsAfterGridClear();
                     }, 300);
                 } else {
                     grid.innerHTML = '';
@@ -6723,7 +6726,16 @@ function renderPreview(filteredListings, appendMode) {
                 // Append mode - just ensure grid is visible
                 grid.classList.add('grid-loaded');
             }
-    
+            
+            // If we delayed rendering, return early (cards will render in setTimeout)
+            if (needsDelayedRender) {
+                return;
+            }
+            
+            // Normal path: render cards immediately
+            renderCardsAfterGridClear();
+            
+            function renderCardsAfterGridClear() {
     // Populate filters on first render
     // Helper function to ensure an option exists in a dropdown
     function ensureDropdownOption(select, value, text) {
@@ -6893,10 +6905,16 @@ function renderPreview(filteredListings, appendMode) {
         }
     });
     
-    // Update results count
+    // Update results count (show total filtered listings, not just current page)
     const countEl = document.getElementById('previewResultsCount');
     if (countEl) {
-        countEl.textContent = 'Showing ' + sortedListings.length + ' listing' + (sortedListings.length !== 1 ? 's' : '');
+        const totalCount = listingsToRender.length;
+        const showingCount = sortedListings.length;
+        if (totalCount > ITEMS_PER_PAGE) {
+            countEl.textContent = 'Showing ' + showingCount + ' of ' + totalCount + ' listing' + (totalCount !== 1 ? 's' : '');
+        } else {
+            countEl.textContent = 'Showing ' + totalCount + ' listing' + (totalCount !== 1 ? 's' : '');
+        }
     }
     
     // Update map markers (use all filtered listings for map, not just current page)
@@ -7516,6 +7534,7 @@ function renderPreview(filteredListings, appendMode) {
                     isRendering = false;
                 }, 500);
             }, 200);
+            } // End renderCardsAfterGridClear function
     
     // Adjust title sizes based on actual card width
     function adjustTitleSizes() {
