@@ -6411,10 +6411,30 @@ function clearPreviewFilters() {
     // Now try to clear the parent window URL (for Framer)
     // This prevents the filter from being re-applied on next page load
     try {
-        // Try to navigate parent window (Framer page) first
+        // Check if we're in an iframe
+        var isInIframe = false;
+        try {
+            isInIframe = window.self !== window.top;
+        } catch (e) {
+            // Cross-origin - can't access window.top, assume iframe
+            isInIframe = true;
+        }
+        
+        if (!isInIframe) {
+            // NOT in an iframe - clear URL directly (full page access)
+            var cleanUrl = window.location.pathname + (window.location.hash || '');
+            window.history.replaceState({}, '', cleanUrl);
+            console.log('🧹 Cleared URL parameters directly (not in iframe):', cleanUrl);
+            // Reset receivedUrlParams since we cleared the URL
+            receivedUrlParams = {};
+            lastProcessedParamsHash = null;
+            return; // Done - URL is cleared
+        }
+        
+        // We're in an iframe - try to clear parent URL
         try {
             if (window.parent && window.parent !== window) {
-                // Update parent window URL (for Framer) - use full URL
+                // Same-origin iframe - can access parent directly
                 const parentUrl = new URL(window.parent.location.href);
                 const parentBaseUrl = parentUrl.origin + parentUrl.pathname + (parentUrl.hash || '');
                 console.log('🧹 Navigating parent window to:', parentBaseUrl);
