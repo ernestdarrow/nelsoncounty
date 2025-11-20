@@ -137,6 +137,14 @@ export default function URLParamsHelper() {
             }
             
             if (iframe?.contentWindow && window.location) {
+                // Don't send parameters if URL has no search params (clean URL)
+                // This prevents re-applying filters when URL is clean
+                if (!window.location.search) {
+                    // URL is clean - reset lastSentParams so we can detect when params are added
+                    lastSentParams = ''
+                    return
+                }
+                
                 const params: Record<string, string> = {}
                 const searchParams = new URLSearchParams(window.location.search)
                 

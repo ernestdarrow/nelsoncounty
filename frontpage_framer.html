@@ -3862,6 +3862,7 @@ let receivedUrlParams = {};
 let lastProcessedParamsHash = null; // Track last processed parameters hash to prevent loops
 let isProcessingParams = false; // Guard to prevent concurrent processing
 let ignoreUrlParamsUntil = 0; // Timestamp - ignore URL params until this time (to prevent re-applying after clear)
+let filtersExplicitlyCleared = false; // Flag: if true, ignore all URL parameters until user explicitly sets a filter
 
 // Pagination variables for infinite scroll
 let currentPage = 1;
@@ -4863,6 +4864,15 @@ function attachCategoryFilterButtonHandler(btn, categoryKey, category) {
 
 // Update URL with category parameter (or remove it)
 function updateUrlWithCategory(categoryKey) {
+    // If user is setting a filter, clear the "explicitly cleared" flag
+    if (categoryKey) {
+        filtersExplicitlyCleared = false;
+        try {
+            sessionStorage.removeItem('filtersExplicitlyCleared');
+        } catch (e) {
+            // sessionStorage might not be available
+        }
+    }
     try {
         const url = new URL(window.location.href);
         
@@ -5052,6 +5062,22 @@ function handleUrlParameters() {
     // Prevent concurrent processing
     if (isProcessingParams) {
         console.log('⚠️ Already processing URL parameters, skipping duplicate call...');
+        return;
+    }
+    
+    // Check if filters were explicitly cleared - if so, ignore ALL URL parameters
+    try {
+        const clearedFlag = sessionStorage.getItem('filtersExplicitlyCleared');
+        if (clearedFlag === 'true') {
+            filtersExplicitlyCleared = true;
+        }
+    } catch (e) {
+        // sessionStorage might not be available
+    }
+    
+    if (filtersExplicitlyCleared) {
+        // Filters were explicitly cleared - ignore all URL parameters
+        console.log('🚫 Filters were explicitly cleared - ignoring all URL parameters');
         return;
     }
     
@@ -5734,15 +5760,29 @@ loadDataFromGoogleSheets()
         // Set up debounced search input handlers (fallback path)
         setupSearchInputs();
         
-        // Initialize receivedUrlParams from iframe's own URL first (preserve these)
+        // Check if filters were explicitly cleared on page load
         try {
-            const iframeUrl = new URL(window.location.href);
-            iframeUrl.searchParams.forEach(function(value, key) {
-                receivedUrlParams[key] = value;
-            });
-            console.log('🔗 Initialized params from iframe URL (fallback):', receivedUrlParams);
+            const clearedFlag = sessionStorage.getItem('filtersExplicitlyCleared');
+            if (clearedFlag === 'true') {
+                filtersExplicitlyCleared = true;
+                console.log('🚫 Filters were explicitly cleared - will ignore URL parameters');
+            }
         } catch (e) {
-            console.log('⚠️ Could not parse iframe URL:', e);
+            // sessionStorage might not be available
+        }
+        
+        // Initialize receivedUrlParams from iframe's own URL first (preserve these)
+        // BUT only if filters weren't explicitly cleared
+        if (!filtersExplicitlyCleared) {
+            try {
+                const iframeUrl = new URL(window.location.href);
+                iframeUrl.searchParams.forEach(function(value, key) {
+                    receivedUrlParams[key] = value;
+                });
+                console.log('🔗 Initialized params from iframe URL (fallback):', receivedUrlParams);
+            } catch (e) {
+                console.log('⚠️ Could not parse iframe URL:', e);
+            }
         }
         
         // Extract parameters from referrer (for cross-origin iframe support)
@@ -6249,6 +6289,14 @@ function filterByBadge(event, filterType, value) {
     event.preventDefault();
     event.stopPropagation();
     
+    // User is explicitly setting a filter - clear the "explicitly cleared" flag
+    filtersExplicitlyCleared = false;
+    try {
+        sessionStorage.removeItem('filtersExplicitlyCleared');
+    } catch (e) {
+        // sessionStorage might not be available
+    }
+    
     if (filterType === 'type') {
         // For badge clicks, set single type (replaces current selection)
         // Do NOT set category filter - let type filter work independently
@@ -6293,6 +6341,14 @@ function filterByBadge(event, filterType, value) {
 // Filter by amenity click
 function filterByAmenity(event, amenity) {
     event.stopPropagation();
+    
+    // User is explicitly setting a filter - clear the "explicitly cleared" flag
+    filtersExplicitlyCleared = false;
+    try {
+        sessionStorage.removeItem('filtersExplicitlyCleared');
+    } catch (e) {
+        // sessionStorage might not be available
+    }
     
     const amenityFilter = document.getElementById('previewAmenityFilter');
     const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
@@ -6532,6 +6588,14 @@ function clearPreviewFilters() {
     // Clear received URL parameters to prevent them from being re-applied
     receivedUrlParams = {};
     lastProcessedParamsHash = null;
+    
+    // Set flag to ignore all URL parameters until user explicitly sets a filter
+    filtersExplicitlyCleared = true;
+    try {
+        sessionStorage.setItem('filtersExplicitlyCleared', 'true');
+    } catch (e) {
+        // sessionStorage might not be available
+    }
     
     // Reset pagination
     currentPage = 1;
@@ -8797,7 +8861,14 @@ window.addEventListener('message', function(event) {
             // Clear all received parameters
             receivedUrlParams = {};
             lastProcessedParamsHash = null;
-            // Ignore URL parameters for 5 seconds to prevent re-applying filters
+            // Set flag to ignore all URL parameters until user explicitly sets a filter
+            filtersExplicitlyCleared = true;
+            try {
+                sessionStorage.setItem('filtersExplicitlyCleared', 'true');
+            } catch (e) {
+                // sessionStorage might not be available
+            }
+            // Ignore URL parameters for 5 seconds to prevent re-applying filters (backup)
             ignoreUrlParamsUntil = Date.now() + 5000;
             // Clear filter state
             currentCategoryFilter = null;
