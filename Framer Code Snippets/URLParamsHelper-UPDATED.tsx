@@ -65,6 +65,26 @@ export default function URLParamsHelper() {
         
         let lastSentParams = ''
         
+        // Listen for clearAll messages from iframe
+        const handleClearMessage = (event: MessageEvent) => {
+            if (
+                event.data && 
+                event.data.type === 'setUrlParams' && 
+                event.data.clearAll === true
+            ) {
+                // Iframe requested to clear URL - update parent URL to remove query params
+                if (window.location.search) {
+                    const cleanUrl = window.location.origin + window.location.pathname + (window.location.hash || '')
+                    window.history.replaceState({}, '', cleanUrl)
+                    console.log('🧹 Cleared parent URL parameters:', cleanUrl)
+                    // Reset lastSentParams so next sendParams will send empty params
+                    lastSentParams = ''
+                }
+            }
+        }
+        
+        window.addEventListener('message', handleClearMessage)
+        
         const sendParams = () => {
             const iframe = document.getElementById('adventure-directory-iframe') as HTMLIFrameElement
             if (iframe?.contentWindow && window.location) {
@@ -111,6 +131,7 @@ export default function URLParamsHelper() {
         }, 2000)
         
         return () => {
+            window.removeEventListener('message', handleClearMessage)
             window.removeEventListener('popstate', handlePopState)
             clearInterval(interval)
         }

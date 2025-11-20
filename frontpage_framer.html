@@ -6391,8 +6391,10 @@ function clearPreviewFilters() {
         // Build clean URL without ANY query string (base path + hash if exists)
         const cleanUrl = url.origin + url.pathname + (url.hash || '');
         
+        console.log('🧹 Clearing URL: ' + window.location.href + ' → ' + cleanUrl);
+        
         // Update URL without reloading page - use clean URL with no query params at all
-        window.history.pushState({}, '', cleanUrl);
+        window.history.replaceState({}, '', cleanUrl);
         
         // Also try to update parent window URL if in iframe (for Framer)
         try {
@@ -6401,19 +6403,22 @@ function clearPreviewFilters() {
                 
                 // Build clean parent URL without ANY query string
                 const cleanParentUrl = parentUrl.origin + parentUrl.pathname + (parentUrl.hash || '');
-                window.parent.history.pushState({}, '', cleanParentUrl);
+                console.log('🧹 Clearing parent URL: ' + window.parent.location.href + ' → ' + cleanParentUrl);
+                window.parent.history.replaceState({}, '', cleanParentUrl);
             }
         } catch (e) {
             // Cross-origin - can't update parent URL directly, send postMessage instead
+            console.log('📨 Sending postMessage to parent to clear URL (cross-origin)');
             try {
                 window.parent.postMessage({
                     type: 'setUrlParams',
                     search: '',
                     params: {},
-                    clearAll: true // Signal to clear all params
+                    clearAll: true, // Signal to clear all params
+                    url: window.parent.location.origin + window.parent.location.pathname + (window.parent.location.hash || '')
                 }, '*');
             } catch (e2) {
-                // Silently fail
+                console.warn('⚠️ Could not send postMessage to parent:', e2);
             }
         }
     } catch (e) {
@@ -8568,26 +8573,39 @@ window.addEventListener('message', function(event) {
     
     // Handle URL parameters sent as query string from parent (preferred method)
     // Note: setFilters is deprecated - use setUrlParams instead to avoid duplicate processing
-    if (event.data && event.data.type === 'setUrlParams' && event.data.search) {
-        // Parse the search string and store as parameters
-        var params = {};
-        var searchParams = new URLSearchParams(event.data.search);
-        for (var pair of searchParams.entries()) {
-            params[pair[0]] = pair[1];
+    if (event.data && event.data.type === 'setUrlParams') {
+        // Check if this is a clearAll request
+        if (event.data.clearAll === true) {
+            console.log('🧹 Received clearAll request from parent - clearing all URL parameters');
+            // Clear all received parameters
+            receivedUrlParams = {};
+            lastProcessedParamsHash = null;
+            // Don't process URL parameters - they've been cleared
+            return;
         }
         
-        // Merge with existing params (don't overwrite, merge)
-        const mergedParams = Object.assign({}, receivedUrlParams, params);
-        const newParamsHash = JSON.stringify(mergedParams);
-        
-        // Only process if parameters actually changed
-        if (lastProcessedParamsHash !== newParamsHash) {
-            console.log('📨 Received URL search string via postMessage:', event.data.search);
-            // Merge received parameters with existing ones (preserve iframe URL params)
-            receivedUrlParams = mergedParams;
-            // Apply filters if data is loaded
-            if (data) {
-                handleUrlParameters();
+        // Normal parameter update
+        if (event.data.search) {
+            // Parse the search string and store as parameters
+            var params = {};
+            var searchParams = new URLSearchParams(event.data.search);
+            for (var pair of searchParams.entries()) {
+                params[pair[0]] = pair[1];
+            }
+            
+            // Merge with existing params (don't overwrite, merge)
+            const mergedParams = Object.assign({}, receivedUrlParams, params);
+            const newParamsHash = JSON.stringify(mergedParams);
+            
+            // Only process if parameters actually changed
+            if (lastProcessedParamsHash !== newParamsHash) {
+                console.log('📨 Received URL search string via postMessage:', event.data.search);
+                // Merge received parameters with existing ones (preserve iframe URL params)
+                receivedUrlParams = mergedParams;
+                // Apply filters if data is loaded
+                if (data) {
+                    handleUrlParameters();
+                }
             }
         }
     }
