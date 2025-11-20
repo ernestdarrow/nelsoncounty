@@ -6378,49 +6378,8 @@ function clearPreviewFilters() {
     receivedUrlParams = {};
     lastProcessedParamsHash = null;
     
-    // Reset pagination (allFilteredListings will be set by filterPreview())
+    // Reset pagination
     currentPage = 1;
-    
-    // Update URL to remove ALL query parameters - reset to base URL with no query string
-    try {
-        const url = new URL(window.location.href);
-        
-        // Build clean URL without ANY query string (base path + hash if exists)
-        const cleanUrl = url.origin + url.pathname + (url.hash || '');
-        
-        console.log('🧹 Clearing URL: ' + window.location.href + ' → ' + cleanUrl);
-        
-        // Update URL without reloading page - use clean URL with no query params at all
-        window.history.replaceState({}, '', cleanUrl);
-        
-        // Also try to update parent window URL if in iframe (for Framer)
-        try {
-            if (window.parent && window.parent !== window) {
-                const parentUrl = new URL(window.parent.location.href);
-                
-                // Build clean parent URL without ANY query string
-                const cleanParentUrl = parentUrl.origin + parentUrl.pathname + (parentUrl.hash || '');
-                console.log('🧹 Clearing parent URL: ' + window.parent.location.href + ' → ' + cleanParentUrl);
-                window.parent.history.replaceState({}, '', cleanParentUrl);
-            }
-        } catch (e) {
-            // Cross-origin - can't update parent URL directly, send postMessage instead
-            console.log('📨 Sending postMessage to parent to clear URL (cross-origin)');
-            try {
-                window.parent.postMessage({
-                    type: 'setUrlParams',
-                    search: '',
-                    params: {},
-                    clearAll: true, // Signal to clear all params
-                    url: window.parent.location.origin + window.parent.location.pathname + (window.parent.location.hash || '')
-                }, '*');
-            } catch (e2) {
-                console.warn('⚠️ Could not send postMessage to parent:', e2);
-            }
-        }
-    } catch (e) {
-        console.warn('⚠️ Could not update URL:', e);
-    }
     
     // Reset ALL filter buttons (type and category) - activate "All Types" button
     // Clear all type filter buttons (including category buttons which have both classes)
@@ -6438,13 +6397,8 @@ function clearPreviewFilters() {
         }
     });
     
-    // Ensure sort dropdown is set to default (name-asc) if not already set
-    const sortDropdown = document.getElementById('sortDropdown');
-    if (sortDropdown && !sortDropdown.value) {
-        sortDropdown.value = 'name-asc';
-    }
-    
     // Navigate to base URL to clear all filters (simplest and most reliable approach)
+    // This will reload the page with no query parameters
     try {
         // Get the base path (without query parameters)
         const url = new URL(window.location.href);
@@ -6466,13 +6420,38 @@ function clearPreviewFilters() {
             // Cross-origin - can't access parent, send postMessage to clear parent URL
             console.log('📨 Cross-origin detected - sending postMessage to clear parent URL');
             try {
+                // Get parent path from referrer or construct it
+                const referrer = document.referrer;
+                let parentPath = '/find-your-adventure'; // Default Framer page path
+                if (referrer) {
+                    try {
+                        const referrerUrl = new URL(referrer);
+                        parentPath = referrerUrl.pathname + (referrerUrl.hash || '');
+                    } catch (e) {
+                        // Use default
+                    }
+                }
+                
+                // Send postMessage to parent to clear URL
                 window.parent.postMessage({
                     type: 'setUrlParams',
                     clearAll: true,
-                    navigateTo: window.parent.location.pathname + (window.parent.location.hash || '')
+                    navigateTo: parentPath
                 }, '*');
+                
+                // Wait a bit for parent to process, then navigate iframe
+                // This ensures parent URL is cleared before iframe reloads
+                setTimeout(function() {
+                    const fullBaseUrl = url.origin + basePath;
+                    console.log('🧹 Navigating iframe to:', fullBaseUrl);
+                    window.location.href = fullBaseUrl;
+                }, 200);
+                return;
             } catch (e2) {
                 console.warn('⚠️ Could not send postMessage:', e2);
+                // Fallback: just navigate iframe
+                const fullBaseUrl = url.origin + basePath;
+                window.location.href = fullBaseUrl;
             }
         }
         
@@ -8575,12 +8554,55 @@ window.addEventListener('message', function(event) {
     // Handle URL parameters sent as query string from parent (preferred method)
     // Note: setFilters is deprecated - use setUrlParams instead to avoid duplicate processing
     if (event.data && event.data.type === 'setUrlParams') {
-        // Check if this is a clearAll request
+        // Check if this is a clearAll request - handle this FIRST before any other processing
         if (event.data.clearAll === true) {
-            console.log('🧹 Received clearAll request from parent - clearing all URL parameters');
+            console.log('🧹 Received clearAll request - clearing all URL parameters and filters');
             // Clear all received parameters
             receivedUrlParams = {};
             lastProcessedParamsHash = null;
+            // Clear filter state
+            currentCategoryFilter = null;
+            currentTypeFilter = [];
+            currentFeaturedOnly = false;
+            // Clear filter inputs
+            const searchInput = document.getElementById('previewSearchInput');
+            const mobileSearchInput = document.getElementById('previewSearchInputMobile');
+            const typeFilter = document.getElementById('previewTypeFilter');
+            const areaFilter = document.getElementById('previewAreaFilter');
+            const amenityFilter = document.getElementById('previewAmenityFilter');
+            if (searchInput) searchInput.value = '';
+            if (mobileSearchInput) mobileSearchInput.value = '';
+            if (typeFilter && typeFilter.options.length > 0) {
+                typeFilter.selectedIndex = 0;
+                typeFilter.value = '';
+            }
+            if (areaFilter && areaFilter.options.length > 0) {
+                areaFilter.selectedIndex = 0;
+                areaFilter.value = '';
+            }
+            if (amenityFilter && amenityFilter.options.length > 0) {
+                amenityFilter.selectedIndex = 0;
+                amenityFilter.value = '';
+            }
+            // Clear filter buttons
+            document.querySelectorAll('.type-filter-btn, .category-filter-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            // Activate "All Types" button
+            document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
+                if (btn.dataset.type === '' && !btn.dataset.category) {
+                    btn.classList.add('active');
+                }
+            });
+            // Apply filters to show all listings (no filters active)
+            if (data) {
+                filterPreview();
+            }
+            // Hide clear button
+            const clearBtn = document.getElementById('clearFiltersBtn');
+            const mobileClearBtn = document.getElementById('mobileClearFiltersBtn');
+            if (clearBtn) clearBtn.style.display = 'none';
+            if (mobileClearBtn) mobileClearBtn.style.display = 'none';
             // Don't process URL parameters - they've been cleared
             return;
         }
