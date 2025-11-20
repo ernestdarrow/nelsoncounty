@@ -6022,7 +6022,18 @@ function filterPreview() {
             });
         }
         const matchesArea = !selectedArea || listing.area === selectedArea;
-        const matchesAmenity = !selectedAmenity || (listing.amenities && listing.amenities.includes(selectedAmenity));
+        // Amenity filter: case-insensitive match against amenities array
+        let matchesAmenity = true;
+        if (selectedAmenity) {
+            if (listing.amenities && Array.isArray(listing.amenities)) {
+                // Case-insensitive comparison
+                matchesAmenity = listing.amenities.some(function(amenity) {
+                    return amenity && amenity.toLowerCase() === selectedAmenity.toLowerCase();
+                });
+            } else {
+                matchesAmenity = false;
+            }
+        }
         const matchesFeatured = !currentFeaturedOnly || !!listing.featured;
         
         return matchesSearch && matchesType && matchesArea && matchesAmenity && matchesFeatured;
