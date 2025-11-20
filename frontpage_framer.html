@@ -7670,35 +7670,23 @@ function initMap() {
             keyboardShortcuts: false,
             gestureHandling: 'cooperative',
             styles: [
-                // Hide all points of interest
-                {
-                    featureType: "poi",
-                    elementType: "labels",
-                    stylers: [{ visibility: "off" }]
-                },
+                // Keep POI labels visible for context (but hide business icons to reduce clutter)
                 {
                     featureType: "poi.business",
+                    elementType: "labels.icon",
                     stylers: [{ visibility: "off" }]
                 },
                 {
-                    featureType: "poi",
+                    featureType: "poi.attraction",
+                    elementType: "labels.icon",
                     stylers: [{ visibility: "off" }]
                 },
-                // Hide transit
-                {
-                    featureType: "transit",
-                    elementType: "labels",
-                    stylers: [{ visibility: "off" }]
-                },
+                // Hide transit stations but keep lines visible
                 {
                     featureType: "transit.station",
                     stylers: [{ visibility: "off" }]
                 },
-                {
-                    featureType: "transit.line",
-                    stylers: [{ visibility: "off" }]
-                },
-                // Simplify administrative boundaries - hide fine gray lines
+                // Simplify administrative boundaries - keep labels but hide fine gray lines
                 {
                     featureType: "administrative",
                     elementType: "geometry.stroke",
@@ -7707,42 +7695,42 @@ function initMap() {
                 {
                     featureType: "administrative.locality",
                     elementType: "labels",
-                    stylers: [{ visibility: "simplified" }]
+                    stylers: [{ visibility: "on" }]
                 },
                 {
                     featureType: "administrative.neighborhood",
                     elementType: "labels",
-                    stylers: [{ visibility: "off" }]
+                    stylers: [{ visibility: "on" }]
                 },
                 {
                     featureType: "administrative.land_parcel",
                     stylers: [{ visibility: "off" }]
                 },
-                // Hide minor/local roads and their labels
+                // Show local roads and their labels when zoomed in
                 {
                     featureType: "road.local",
                     elementType: "labels",
-                    stylers: [{ visibility: "off" }]
+                    stylers: [{ visibility: "on" }]
                 },
                 {
                     featureType: "road.local",
-                    stylers: [{ visibility: "off" }]
+                    stylers: [{ visibility: "on" }]
                 },
                 {
                     featureType: "road",
                     elementType: "labels.text.fill",
-                    stylers: [{ visibility: "simplified" }]
+                    stylers: [{ visibility: "on" }]
                 },
-                // Hide water labels
+                // Show water labels for context
                 {
                     featureType: "water",
                     elementType: "labels",
-                    stylers: [{ visibility: "off" }]
+                    stylers: [{ visibility: "on" }]
                 },
                 {
                     featureType: "water",
                     elementType: "labels.text",
-                    stylers: [{ visibility: "off" }]
+                    stylers: [{ visibility: "on" }]
                 },
                 // Natural features
                 {
@@ -7787,6 +7775,104 @@ function initMap() {
                 });
             }
         }, 500);
+        
+        // Update map styles based on zoom level - show more details when zoomed in
+        function updateMapStylesForZoom() {
+            const currentZoom = map.getZoom();
+            // When zoomed in (zoom >= 14), show all details
+            // When zoomed out (zoom < 14), show fewer details for cleaner look
+            const isZoomedIn = currentZoom >= 14;
+            
+            const zoomedInStyles = [
+                // Hide POI icons but show labels when zoomed in
+                {
+                    featureType: "poi.business",
+                    elementType: "labels.icon",
+                    stylers: [{ visibility: "off" }]
+                },
+                {
+                    featureType: "poi.attraction",
+                    elementType: "labels.icon",
+                    stylers: [{ visibility: "off" }]
+                },
+                // Show POI labels when zoomed in
+                {
+                    featureType: "poi",
+                    elementType: "labels",
+                    stylers: [{ visibility: isZoomedIn ? "on" : "off" }]
+                },
+                {
+                    featureType: "transit.station",
+                    stylers: [{ visibility: isZoomedIn ? "on" : "off" }]
+                },
+                {
+                    featureType: "transit",
+                    elementType: "labels",
+                    stylers: [{ visibility: isZoomedIn ? "on" : "off" }]
+                },
+                {
+                    featureType: "administrative",
+                    elementType: "geometry.stroke",
+                    stylers: [{ visibility: isZoomedIn ? "on" : "off" }]
+                },
+                {
+                    featureType: "administrative.locality",
+                    elementType: "labels",
+                    stylers: [{ visibility: "on" }]
+                },
+                {
+                    featureType: "administrative.neighborhood",
+                    elementType: "labels",
+                    stylers: [{ visibility: isZoomedIn ? "on" : "off" }]
+                },
+                {
+                    featureType: "administrative.land_parcel",
+                    stylers: [{ visibility: "off" }]
+                },
+                // Show all roads and labels when zoomed in
+                {
+                    featureType: "road.local",
+                    elementType: "labels",
+                    stylers: [{ visibility: isZoomedIn ? "on" : "off" }]
+                },
+                {
+                    featureType: "road.local",
+                    stylers: [{ visibility: isZoomedIn ? "on" : "simplified" }]
+                },
+                {
+                    featureType: "road",
+                    elementType: "labels.text.fill",
+                    stylers: [{ visibility: "on" }]
+                },
+                // Show water labels when zoomed in
+                {
+                    featureType: "water",
+                    elementType: "labels",
+                    stylers: [{ visibility: isZoomedIn ? "on" : "off" }]
+                },
+                {
+                    featureType: "water",
+                    elementType: "labels.text",
+                    stylers: [{ visibility: isZoomedIn ? "on" : "off" }]
+                },
+                // Natural features
+                {
+                    featureType: "landscape.natural",
+                    stylers: [{ color: "#E1F3C9" }]
+                },
+                {
+                    featureType: "water",
+                    stylers: [{ color: "#CAE8F2" }]
+                }
+            ];
+            
+            map.setOptions({ styles: zoomedInStyles });
+        }
+        
+        // Update styles when zoom changes
+        map.addListener('zoom_changed', updateMapStylesForZoom);
+        // Also update on initial load
+        updateMapStylesForZoom();
         
         // Also apply on map idle event (when map is fully loaded)
         map.addListener('idle', () => {
