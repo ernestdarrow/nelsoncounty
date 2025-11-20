@@ -5,6 +5,11 @@ export default function AdventureDirectory() {
   const iframeRef = useRef(null)
 
   useEffect(() => {
+    // Only run on client-side
+    if (typeof window === 'undefined') {
+      return
+    }
+    
     function handleMessage(event) {
       if (event.data && event.data.type === 'resize') {
         const height = event.data.height
@@ -20,7 +25,7 @@ export default function AdventureDirectory() {
           iframeRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
           // Also scroll window to top of iframe
           setTimeout(() => {
-            if (iframeRef.current) {
+            if (iframeRef.current && window) {
               const rect = iframeRef.current.getBoundingClientRect()
               window.scrollTo({ top: window.scrollY + rect.top, behavior: 'smooth' })
             }

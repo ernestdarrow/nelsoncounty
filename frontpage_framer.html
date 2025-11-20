@@ -6337,19 +6337,26 @@ function reportContentHeight() {
             
             try {
                 window.parent.postMessage(message, '*');
+            } catch (e) {
+                // Cross-origin restriction - silently fail
+            }
+            
+            try {
+                window.top.postMessage(message, '*');
+            } catch (e) {
+                // Cross-origin restriction - silently fail
+            }
+            
+            // Reset flag after a short delay
+            setTimeout(function() {
+                isReportingHeight = false;
+            }, 100);
         } catch (e) {
-            // Cross-origin restriction - silently fail
+            // Silently fail if postMessage is blocked or parent is not accessible
+            console.log('Could not report height to parent:', e);
+            isReportingHeight = false;
         }
-        
-        try {
-            window.top.postMessage(message, '*');
-        } catch (e) {
-            // Cross-origin restriction - silently fail
-        }
-    } catch (e) {
-        // Silently fail if postMessage is blocked or parent is not accessible
-        console.log('Could not report height to parent:', e);
-    }
+    }, 150);
 }
 
 function renderPreview(filteredListings) {
