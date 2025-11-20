@@ -6340,37 +6340,22 @@ function clearPreviewFilters() {
     // Reset pagination (allFilteredListings will be set by filterPreview())
     currentPage = 1;
     
-    // Update URL to remove all filter parameters - reset to base URL with no query string
+    // Update URL to remove ALL query parameters - reset to base URL with no query string
     try {
         const url = new URL(window.location.href);
-        // Remove all filter-related parameters
-        url.searchParams.delete('category');
-        url.searchParams.delete('type');
-        url.searchParams.delete('area');
-        url.searchParams.delete('amenity');
-        url.searchParams.delete('featured');
-        url.searchParams.delete('search');
-        url.searchParams.delete('listing');
         
-        // Build clean URL without query string (base path + hash if exists)
+        // Build clean URL without ANY query string (base path + hash if exists)
         const cleanUrl = url.origin + url.pathname + (url.hash || '');
         
-        // Update URL without reloading page - use clean URL with no query params
+        // Update URL without reloading page - use clean URL with no query params at all
         window.history.pushState({}, '', cleanUrl);
         
         // Also try to update parent window URL if in iframe (for Framer)
         try {
             if (window.parent && window.parent !== window) {
                 const parentUrl = new URL(window.parent.location.href);
-                parentUrl.searchParams.delete('category');
-                parentUrl.searchParams.delete('type');
-                parentUrl.searchParams.delete('area');
-                parentUrl.searchParams.delete('amenity');
-                parentUrl.searchParams.delete('featured');
-                parentUrl.searchParams.delete('search');
-                parentUrl.searchParams.delete('listing');
                 
-                // Build clean parent URL without query string
+                // Build clean parent URL without ANY query string
                 const cleanParentUrl = parentUrl.origin + parentUrl.pathname + (parentUrl.hash || '');
                 window.parent.history.pushState({}, '', cleanParentUrl);
             }
