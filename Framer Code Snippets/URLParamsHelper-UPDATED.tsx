@@ -174,7 +174,8 @@ export default function URLParamsHelper() {
                     params: params
                 }, '*')
                 
-                // If iframe is already loaded, schedule clearing after a delay
+                // If iframe is already loaded, schedule clearing after a longer delay
+                // This ensures the iframe has time to process the parameters
                 if (iframe.contentDocument?.readyState === 'complete') {
                     setTimeout(() => {
                         if (
@@ -184,11 +185,11 @@ export default function URLParamsHelper() {
                             JSON.stringify(params) + window.location.search === lastSentParams
                         ) {
                             const cleanUrl = window.location.origin + window.location.pathname + (window.location.hash || '')
-                            console.log('🧹 Clearing URL parameters after iframe load (already loaded):', cleanUrl)
+                            console.log('🧹 Clearing URL parameters after iframe load (already loaded, 5s delay):', cleanUrl)
                             window.history.replaceState({}, '', cleanUrl)
                             paramsClearedAfterLoad = true
                         }
-                    }, 1000)
+                    }, 5000) // Wait 5 seconds to ensure parameters were processed by iframe
                 }
             }
         }
@@ -233,7 +234,12 @@ export default function URLParamsHelper() {
             
             // Wait for iframe to load
             iframe.addEventListener('load', () => {
-                // Wait a bit more to ensure parameters were sent via postMessage
+                // Wait longer to ensure parameters were sent AND processed by the iframe
+                // The iframe needs time to:
+                // 1. Receive postMessage
+                // 2. Process parameters
+                // 3. Apply filters
+                // Use a longer delay to ensure everything is processed
                 setTimeout(() => {
                     // Only clear if:
                     // 1. URL has parameters
@@ -256,12 +262,12 @@ export default function URLParamsHelper() {
                         // Only clear if params match what we sent (to avoid clearing if user changed them)
                         if (currentParamsHash === lastSentParams) {
                             const cleanUrl = window.location.origin + window.location.pathname + (window.location.hash || '')
-                            console.log('🧹 Clearing URL parameters after iframe load:', cleanUrl)
+                            console.log('🧹 Clearing URL parameters after iframe load and processing (5s delay):', cleanUrl)
                             window.history.replaceState({}, '', cleanUrl)
                             paramsClearedAfterLoad = true
                         }
                     }
-                }, 1000) // Wait 1 second after iframe load to ensure postMessage was sent
+                }, 5000) // Wait 5 seconds after iframe load to ensure postMessage was sent AND processed by iframe
             }, { once: true }) // Only listen once
         }
         

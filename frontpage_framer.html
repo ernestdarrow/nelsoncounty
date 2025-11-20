@@ -5083,7 +5083,8 @@ function handleUrlParameters() {
         return;
     }
     
-    // Check if filters were explicitly cleared - if so, ignore ALL URL parameters
+    // Check if filters were explicitly cleared - if so, ignore URL parameters
+    // BUT: if URL has parameters (user navigated to a filtered link), clear the flag and allow processing
     try {
         const clearedFlag = sessionStorage.getItem('filtersExplicitlyCleared');
         if (clearedFlag === 'true') {
@@ -5093,8 +5094,23 @@ function handleUrlParameters() {
         // sessionStorage might not be available
     }
     
-    if (filtersExplicitlyCleared) {
-        // Filters were explicitly cleared - ignore all URL parameters
+    // Check if URL has parameters - if so, user navigated to a filtered link, so clear the flag
+    const hasUrlParams = Object.keys(receivedUrlParams).length > 0 || 
+                        (window.location.search && window.location.search.length > 1);
+    
+    if (hasUrlParams && filtersExplicitlyCleared) {
+        // URL has parameters - user navigated to a filtered link, so clear the flag
+        console.log('🔗 URL has parameters - clearing filtersExplicitlyCleared flag to allow processing');
+        filtersExplicitlyCleared = false;
+        try {
+            sessionStorage.removeItem('filtersExplicitlyCleared');
+        } catch (e) {
+            // sessionStorage might not be available
+        }
+    }
+    
+    if (filtersExplicitlyCleared && !hasUrlParams) {
+        // Filters were explicitly cleared AND no URL params - ignore all URL parameters
         console.log('🚫 Filters were explicitly cleared - ignoring all URL parameters');
         return;
     }
