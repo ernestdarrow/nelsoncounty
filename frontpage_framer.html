@@ -8659,14 +8659,20 @@ window.addEventListener('message', function(event) {
             }
             
             // If we just cleared filters and parent is still sending filter params, ignore them
-            // Check if we have any filter params and if filters were recently cleared
+            // Keep ignoring until parent sends empty parameters (indicating URL was cleared)
             const hasFilterParams = !!(params.category || params.type || params.area || params.amenity || params.featured || params.search);
-            if (hasFilterParams && Date.now() < ignoreUrlParamsUntil + 5000) {
-                // Still in extended ignore period for filter params (5 seconds + 5 seconds buffer = 10 seconds total)
-                // This gives the parent window time to navigate and clear its URL
-                const secondsLeft = Math.round((ignoreUrlParamsUntil + 5000 - Date.now()) / 1000);
-                console.log('⏭️ Ignoring filter parameters (parent URL may not be cleared yet, ignoring for', secondsLeft, 'more seconds):', event.data.search);
+            if (hasFilterParams && ignoreUrlParamsUntil > 0) {
+                // We're in ignore period - keep ignoring filter params until parent sends empty params
+                // This prevents re-applying filters if parent URL hasn't been cleared yet
+                const secondsSinceClear = Math.round((Date.now() - (ignoreUrlParamsUntil - 5000)) / 1000);
+                console.log('⏭️ Ignoring filter parameters (parent URL may not be cleared yet, cleared', secondsSinceClear, 'seconds ago):', event.data.search);
                 return;
+            }
+            
+            // If we receive empty parameters (no filters), reset the ignore period
+            if (!hasFilterParams && ignoreUrlParamsUntil > 0) {
+                console.log('✅ Parent sent empty parameters - URL was cleared, resetting ignore period');
+                ignoreUrlParamsUntil = 0; // Reset ignore period
             }
             
             // Merge with existing params (don't overwrite, merge)
