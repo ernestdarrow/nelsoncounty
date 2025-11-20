@@ -72,13 +72,19 @@ export default function URLParamsHelper() {
                 event.data.type === 'setUrlParams' && 
                 event.data.clearAll === true
             ) {
-                // Iframe requested to clear URL - navigate to base URL
+                // Iframe requested to clear URL - navigate to base URL immediately
                 const navigateTo = event.data.navigateTo || (window.location.pathname + (window.location.hash || ''))
                 const cleanUrl = window.location.origin + navigateTo
-                console.log('🧹 Navigating parent to clean URL:', cleanUrl)
+                console.log('🧹 Navigating parent to clean URL:', cleanUrl, '(current URL:', window.location.href + ')')
+                
+                // Navigate immediately - this will reload the page with clean URL
                 window.location.href = cleanUrl
+                
                 // Reset lastSentParams so next sendParams will send empty params
                 lastSentParams = ''
+                
+                // Also clear the interval to stop polling temporarily
+                // (The page will reload anyway, so this is just for safety)
             }
         }
         
