@@ -108,25 +108,25 @@ export default function Breadcrumb({
         })
     }
     
-    // Type link (if exists)
-    if (type) {
-        items.push({ 
-            label: type,
-            url: buildFilterUrl({ 
-                category: category ? category.toLowerCase() : "",
-                type: type 
-            })
-        })
-    }
-    
-    // Area link (if exists)
+    // Area link (if exists) - comes before Type
     if (area) {
         items.push({ 
             label: area,
             url: buildFilterUrl({ 
                 category: category ? category.toLowerCase() : "",
-                type: type || "",
                 area: area 
+            })
+        })
+    }
+    
+    // Type link (if exists) - comes after Area
+    if (type) {
+        items.push({ 
+            label: type,
+            url: buildFilterUrl({ 
+                category: category ? category.toLowerCase() : "",
+                type: type,
+                area: area || ""
             })
         })
     }

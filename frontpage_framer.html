@@ -8380,6 +8380,39 @@ function updateMapMarkers(listings) {
                     if (markers.length > 0) {
                         setTimeout(function() {
                             try {
+                                // Check if bounds are valid (not empty)
+                                if (!bounds || (bounds.isEmpty && bounds.isEmpty())) {
+                                    console.warn('⚠️ Invalid bounds, skipping fitBounds');
+                                    isUpdatingMapMarkers = false;
+                                    return;
+                                }
+                                
+                                // Ensure bounds have minimum size to prevent excessive zoom-out
+                                // If bounds are too small (e.g., single point or very close points), extend them
+                                var ne = bounds.getNorthEast();
+                                var sw = bounds.getSouthWest();
+                                var latDiff = ne.lat() - sw.lat();
+                                var lngDiff = ne.lng() - sw.lng();
+                                
+                                // Minimum bounds size: ~0.05 degrees (roughly 3-5 miles)
+                                var minLatDiff = 0.05;
+                                var minLngDiff = 0.05;
+                                
+                                if (latDiff < minLatDiff || lngDiff < minLngDiff) {
+                                    // Extend bounds to ensure minimum size
+                                    var centerLat = (ne.lat() + sw.lat()) / 2;
+                                    var centerLng = (ne.lng() + sw.lng()) / 2;
+                                    
+                                    bounds.extend({
+                                        lat: centerLat + minLatDiff / 2,
+                                        lng: centerLng + minLngDiff / 2
+                                    });
+                                    bounds.extend({
+                                        lat: centerLat - minLatDiff / 2,
+                                        lng: centerLng - minLngDiff / 2
+                                    });
+                                }
+                                
                                 // Add padding to bounds to prevent excessive zoom when few listings are visible
                                 // More padding = less zoom = wider view
                                 var padding = 100; // pixels of padding on all sides
@@ -8402,38 +8435,40 @@ function updateMapMarkers(listings) {
                                     left: padding
                                 });
                                 
-                                // Also set a maximum zoom level to prevent zooming in too much
+                                // Also set a minimum and maximum zoom level to prevent excessive zoom
                                 // Wait for fitBounds to complete, then check zoom
                                 setTimeout(function() {
                                     var currentZoom = map.getZoom();
                                     
+                                    // Set minimum zoom to prevent zooming out too far (showing entire US)
+                                    var minZoom = 9; // Minimum zoom level (shows roughly county/region level)
+                                    
                                     // Set maximum zoom based on number of listings
+                                    var maxZoom = 14; // Default max zoom
                                     if (markers.length === 1) {
-                                        // Single listing: maximum zoom of 11 to show surrounding area
-                                        if (currentZoom > 11) {
-                                            map.setZoom(11);
-                                        }
+                                        maxZoom = 11; // Single listing: maximum zoom of 11 to show surrounding area
                                     } else if (markers.length === 2) {
-                                        // Two listings: maximum zoom of 12
-                                        if (currentZoom > 12) {
-                                            map.setZoom(12);
-                                        }
+                                        maxZoom = 12; // Two listings: maximum zoom of 12
                                     } else if (markers.length <= 5) {
-                                        // Few listings: maximum zoom of 13
-                                        if (currentZoom > 13) {
-                                            map.setZoom(13);
-                                        }
-                                    } else {
-                                        // Many listings: maximum zoom of 14
-                                        if (currentZoom > 14) {
-                                            map.setZoom(14);
-                                        }
+                                        maxZoom = 13; // Few listings: maximum zoom of 13
                                     }
+                                    
+                                    // Apply zoom limits
+                                    if (currentZoom < minZoom) {
+                                        map.setZoom(minZoom);
+                                    } else if (currentZoom > maxZoom) {
+                                        map.setZoom(maxZoom);
+                                    }
+                                    
+                                    isUpdatingMapMarkers = false;
                                 }, 100);
                             } catch (e) {
                                 console.warn('Error fitting map bounds:', e);
+                                isUpdatingMapMarkers = false;
                             }
                         }, 500);
+                    } else {
+                        isUpdatingMapMarkers = false;
                     }
                 } catch (e) {
                     console.error('Error creating marker cluster:', e);
