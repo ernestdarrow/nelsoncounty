@@ -112,3 +112,4 @@ If you encounter issues:
 2. Verify your Google Sheets data structure
 3. Ensure all required fields are present in listings
 
+
