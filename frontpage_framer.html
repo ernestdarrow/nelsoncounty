@@ -6340,7 +6340,7 @@ function clearPreviewFilters() {
     // Reset pagination (allFilteredListings will be set by filterPreview())
     currentPage = 1;
     
-    // Update URL to remove all filter parameters
+    // Update URL to remove all filter parameters - reset to base URL with no query string
     try {
         const url = new URL(window.location.href);
         // Remove all filter-related parameters
@@ -6352,8 +6352,11 @@ function clearPreviewFilters() {
         url.searchParams.delete('search');
         url.searchParams.delete('listing');
         
-        // Update URL without reloading page
-        window.history.pushState({}, '', url.toString());
+        // Build clean URL without query string (base path + hash if exists)
+        const cleanUrl = url.origin + url.pathname + (url.hash || '');
+        
+        // Update URL without reloading page - use clean URL with no query params
+        window.history.pushState({}, '', cleanUrl);
         
         // Also try to update parent window URL if in iframe (for Framer)
         try {
@@ -6366,7 +6369,10 @@ function clearPreviewFilters() {
                 parentUrl.searchParams.delete('featured');
                 parentUrl.searchParams.delete('search');
                 parentUrl.searchParams.delete('listing');
-                window.parent.history.pushState({}, '', parentUrl.toString());
+                
+                // Build clean parent URL without query string
+                const cleanParentUrl = parentUrl.origin + parentUrl.pathname + (parentUrl.hash || '');
+                window.parent.history.pushState({}, '', cleanParentUrl);
             }
         } catch (e) {
             // Cross-origin - can't update parent URL directly, send postMessage instead
@@ -6374,7 +6380,8 @@ function clearPreviewFilters() {
                 window.parent.postMessage({
                     type: 'setUrlParams',
                     search: '',
-                    params: {}
+                    params: {},
+                    clearAll: true // Signal to clear all params
                 }, '*');
             } catch (e2) {
                 // Silently fail
