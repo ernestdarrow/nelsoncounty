@@ -4798,6 +4798,16 @@ function attachCategoryFilterButtonHandler(btn, categoryKey, category) {
     btn.addEventListener('click', function() {
         // Remove clicking class after click
         this.classList.remove('clicking');
+        
+        // Clear the "explicitly cleared" flag FIRST, before any filter logic
+        // This allows new filters to be applied even if filters were previously cleared
+        filtersExplicitlyCleared = false;
+        try {
+            sessionStorage.removeItem('filtersExplicitlyCleared');
+        } catch (e) {
+            // sessionStorage might not be available
+        }
+        
         const filterCategory = this.dataset.category;
         
         // Special handling for "All Types" button (empty data-type and no category)
@@ -4834,6 +4844,14 @@ function attachCategoryFilterButtonHandler(btn, categoryKey, category) {
                     }
                 });
             } else {
+                // User is explicitly setting a filter - clear the "explicitly cleared" flag FIRST
+                filtersExplicitlyCleared = false;
+                try {
+                    sessionStorage.removeItem('filtersExplicitlyCleared');
+                } catch (e) {
+                    // sessionStorage might not be available
+                }
+                
                 // Clear previous category selection and set new category
                 const selectedCategory = TYPE_CATEGORIES[filterCategory];
                 console.log('🎯 Filtering by category:', filterCategory, selectedCategory ? selectedCategory.name : 'unknown');
@@ -8099,6 +8117,14 @@ function adjustImageWidths(force) {
 
 // Mobile filter handlers
 function handleMobileTypeFilter() {
+    // Clear the "explicitly cleared" flag FIRST, before any filter logic
+    filtersExplicitlyCleared = false;
+    try {
+        sessionStorage.removeItem('filtersExplicitlyCleared');
+    } catch (e) {
+        // sessionStorage might not be available
+    }
+    
     const mobileTypeFilter = document.getElementById('mobileTypeFilter');
     const value = mobileTypeFilter ? mobileTypeFilter.value : '';
     // Mobile dropdown is single-select, so set as single-item array or empty
@@ -8126,6 +8152,14 @@ function handleMobileTypeFilter() {
 }
 
 function handleTypeFilter() {
+    // Clear the "explicitly cleared" flag FIRST, before any filter logic
+    filtersExplicitlyCleared = false;
+    try {
+        sessionStorage.removeItem('filtersExplicitlyCleared');
+    } catch (e) {
+        // sessionStorage might not be available
+    }
+    
     // Get selected type from dropdown
     const typeFilter = document.getElementById('previewTypeFilter');
     const mobileTypeFilter = document.getElementById('mobileTypeFilter');

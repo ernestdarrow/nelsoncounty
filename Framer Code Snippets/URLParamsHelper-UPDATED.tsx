@@ -64,6 +64,7 @@ export default function URLParamsHelper() {
         }
         
         let lastSentParams = ''
+        let paramsClearedAfterLoad = false // Track if we've cleared params after iframe load
         
         // Listen for clearAll messages from iframe
         const handleClearMessage = (event: MessageEvent) => {
@@ -162,12 +163,33 @@ export default function URLParamsHelper() {
                 
                 lastSentParams = paramsHash
                 
+                // Reset the cleared flag when new parameters are sent
+                // This allows clearing again if URL changes
+                paramsClearedAfterLoad = false
+                
                 // Send via postMessage (single message type to avoid duplicate processing)
                 iframe.contentWindow.postMessage({
                     type: 'setUrlParams',
                     search: window.location.search,
                     params: params
                 }, '*')
+                
+                // If iframe is already loaded, schedule clearing after a delay
+                if (iframe.contentDocument?.readyState === 'complete') {
+                    setTimeout(() => {
+                        if (
+                            window.location.search &&
+                            lastSentParams &&
+                            !paramsClearedAfterLoad &&
+                            JSON.stringify(params) + window.location.search === lastSentParams
+                        ) {
+                            const cleanUrl = window.location.origin + window.location.pathname + (window.location.hash || '')
+                            console.log('🧹 Clearing URL parameters after iframe load (already loaded):', cleanUrl)
+                            window.history.replaceState({}, '', cleanUrl)
+                            paramsClearedAfterLoad = true
+                        }
+                    }, 1000)
+                }
             }
         }
         
@@ -192,11 +214,59 @@ export default function URLParamsHelper() {
                     console.log('🧹 Page hidden - clearing URL parameters:', cleanUrl)
                     window.history.replaceState({}, '', cleanUrl)
                     lastSentParams = ''
+                    paramsClearedAfterLoad = false // Reset flag when navigating away
                 }
             }
         }
         
         document.addEventListener('visibilitychange', handleVisibilityChange)
+        
+        // Clear URL parameters after iframe loads (once parameters have been sent)
+        const clearParamsAfterIframeLoad = () => {
+            const iframe = document.getElementById('adventure-directory-iframe') as HTMLIFrameElement
+            
+            if (!iframe) {
+                // Iframe not found yet, try again after a short delay
+                setTimeout(clearParamsAfterIframeLoad, 500)
+                return
+            }
+            
+            // Wait for iframe to load
+            iframe.addEventListener('load', () => {
+                // Wait a bit more to ensure parameters were sent via postMessage
+                setTimeout(() => {
+                    // Only clear if:
+                    // 1. URL has parameters
+                    // 2. We've sent parameters (lastSentParams is set)
+                    // 3. We haven't cleared yet (paramsClearedAfterLoad is false)
+                    // 4. URL still has the same parameters we sent
+                    if (
+                        window.location.search &&
+                        lastSentParams &&
+                        !paramsClearedAfterLoad
+                    ) {
+                        // Verify the current URL params match what we sent
+                        const currentParams: Record<string, string> = {}
+                        const searchParams = new URLSearchParams(window.location.search)
+                        searchParams.forEach((value, key) => {
+                            currentParams[key] = value
+                        })
+                        const currentParamsHash = JSON.stringify(currentParams) + window.location.search
+                        
+                        // Only clear if params match what we sent (to avoid clearing if user changed them)
+                        if (currentParamsHash === lastSentParams) {
+                            const cleanUrl = window.location.origin + window.location.pathname + (window.location.hash || '')
+                            console.log('🧹 Clearing URL parameters after iframe load:', cleanUrl)
+                            window.history.replaceState({}, '', cleanUrl)
+                            paramsClearedAfterLoad = true
+                        }
+                    }
+                }, 1000) // Wait 1 second after iframe load to ensure postMessage was sent
+            }, { once: true }) // Only listen once
+        }
+        
+        // Start checking for iframe after a short delay (to allow iframe to be added to DOM)
+        setTimeout(clearParamsAfterIframeLoad, 100)
         
         // Check periodically but less frequently (every 2 seconds instead of 1)
         // Only send if URL actually changed
