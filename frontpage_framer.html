@@ -6384,9 +6384,17 @@ function clearPreviewFilters() {
         console.warn('⚠️ Could not update URL:', e);
     }
     
-    // Reset type filter buttons - activate "All Types" button
+    // Reset ALL filter buttons (type and category) - activate "All Types" button
+    // Clear all type filter buttons (including category buttons which have both classes)
     document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
         btn.classList.remove('active');
+    });
+    // Also clear any category filter buttons explicitly (they have .category-filter-btn class)
+    document.querySelectorAll('.category-filter-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+    // Activate the "All Types" button (no category attribute, empty type)
+    document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
         if (btn.dataset.type === '' && !btn.dataset.category) {
             btn.classList.add('active');
         }
