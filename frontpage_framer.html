@@ -4937,8 +4937,25 @@ function handleUrlParameters() {
         return;
     }
     
+    // Merge receivedUrlParams with actual iframe URL parameters (preserve iframe's own params)
+    // This ensures parameters from the iframe URL aren't lost when postMessages arrive
+    let paramsToUse = Object.assign({}, receivedUrlParams);
+    
+    // Also check the iframe's own URL parameters (in case we're in an iframe)
+    try {
+        const iframeUrl = new URL(window.location.href);
+        iframeUrl.searchParams.forEach(function(value, key) {
+            // Only add if not already in receivedUrlParams (receivedUrlParams takes priority)
+            if (!(key in paramsToUse)) {
+                paramsToUse[key] = value;
+            }
+        });
+    } catch (e) {
+        // If we can't parse URL, continue with receivedUrlParams only
+    }
+    
     // Create a hash of current parameters to check if they've changed
-    const paramsHash = JSON.stringify(receivedUrlParams);
+    const paramsHash = JSON.stringify(paramsToUse);
     if (lastProcessedParamsHash === paramsHash) {
         // Parameters haven't changed, skip processing
         return;
@@ -4946,6 +4963,10 @@ function handleUrlParameters() {
     
     isProcessingParams = true;
     lastProcessedParamsHash = paramsHash;
+    
+    // Temporarily override receivedUrlParams for this processing
+    const originalReceivedParams = receivedUrlParams;
+    receivedUrlParams = paramsToUse;
     if (!data) return;
     
     var listing = null;
@@ -5086,6 +5107,14 @@ function handleUrlParameters() {
     if (hasFilters) {
         filterPreview();
     }
+    
+    // Restore original receivedUrlParams (don't permanently modify it)
+    receivedUrlParams = originalReceivedParams;
+    
+    // Reset processing flag after a delay
+    setTimeout(function() {
+        isProcessingParams = false;
+    }, 300);
 }
 
 // Fetch data from GitHub and initialize
@@ -5498,6 +5527,17 @@ loadDataFromGoogleSheets()
         renderTypeFilterButtons(data.listings, '.type-quick-filters'); // Show all categories
         
         renderPreview(); // Sorting is now handled inside renderPreview
+        
+        // Initialize receivedUrlParams from iframe's own URL first (preserve these)
+        try {
+            const iframeUrl = new URL(window.location.href);
+            iframeUrl.searchParams.forEach(function(value, key) {
+                receivedUrlParams[key] = value;
+            });
+            console.log('🔗 Initialized params from iframe URL (fallback):', receivedUrlParams);
+        } catch (e) {
+            console.log('⚠️ Could not parse iframe URL:', e);
+        }
         
         // Extract parameters from referrer (for cross-origin iframe support)
         extractParamsFromReferrer();
@@ -8029,13 +8069,17 @@ window.addEventListener('message', function(event) {
     // Handle filter parameters sent from parent (for cross-origin iframe support)
     if (event.data && event.data.type === 'setFilters') {
         const newParams = event.data.params || {};
-        const newParamsHash = JSON.stringify(newParams);
+        
+        // Merge with existing params (don't overwrite, merge)
+        // This preserves parameters from iframe URL that aren't in Framer's URL
+        const mergedParams = Object.assign({}, receivedUrlParams, newParams);
+        const newParamsHash = JSON.stringify(mergedParams);
         
         // Only process if parameters actually changed
         if (lastProcessedParamsHash !== newParamsHash) {
             console.log('📨 Received filter parameters via postMessage:', newParams);
-            // Store received parameters
-            receivedUrlParams = newParams;
+            // Merge received parameters with existing ones (preserve iframe URL params)
+            receivedUrlParams = mergedParams;
             // Apply filters if data is loaded
             if (data) {
                 handleUrlParameters();
@@ -8051,12 +8095,16 @@ window.addEventListener('message', function(event) {
         for (var pair of searchParams.entries()) {
             params[pair[0]] = pair[1];
         }
-        const newParamsHash = JSON.stringify(params);
+        
+        // Merge with existing params (don't overwrite, merge)
+        const mergedParams = Object.assign({}, receivedUrlParams, params);
+        const newParamsHash = JSON.stringify(mergedParams);
         
         // Only process if parameters actually changed
         if (lastProcessedParamsHash !== newParamsHash) {
             console.log('📨 Received URL search string via postMessage:', event.data.search);
-            receivedUrlParams = params;
+            // Merge received parameters with existing ones (preserve iframe URL params)
+            receivedUrlParams = mergedParams;
             // Apply filters if data is loaded
             if (data) {
                 handleUrlParameters();
@@ -8067,12 +8115,16 @@ window.addEventListener('message', function(event) {
     // Handle response to getUrlParams request
     if (event.data && event.data.type === 'urlParamsResponse' && event.data.params) {
         const newParams = event.data.params;
-        const newParamsHash = JSON.stringify(newParams);
+        
+        // Merge with existing params (don't overwrite, merge)
+        const mergedParams = Object.assign({}, receivedUrlParams, newParams);
+        const newParamsHash = JSON.stringify(mergedParams);
         
         // Only process if parameters actually changed
         if (lastProcessedParamsHash !== newParamsHash) {
             console.log('📨 Received URL parameters response from parent:', newParams);
-            receivedUrlParams = newParams;
+            // Merge received parameters with existing ones (preserve iframe URL params)
+            receivedUrlParams = mergedParams;
             // Apply filters if data is loaded
             if (data) {
                 handleUrlParameters();
