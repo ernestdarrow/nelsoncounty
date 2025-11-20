@@ -86,12 +86,56 @@ export default function URLParamsHelper() {
                 // Also clear the interval to stop polling temporarily
                 // (The page will reload anyway, so this is just for safety)
             }
+            
+            // Listen for iframe hidden message - clear URL parameters when navigating away
+            if (
+                event.data && 
+                event.data.type === 'iframeHidden' && 
+                event.data.source === 'find-your-adventure' &&
+                event.data.clearUrlParams === true
+            ) {
+                // Iframe became hidden - clear URL parameters without reloading
+                const navigateTo = window.location.pathname + (window.location.hash || '')
+                const cleanUrl = window.location.origin + navigateTo
+                
+                // Only clear if URL actually has parameters
+                if (window.location.search) {
+                    console.log('🧹 Iframe hidden - clearing URL parameters:', cleanUrl, '(current URL:', window.location.href + ')')
+                    
+                    // Use replaceState to update URL without reloading
+                    window.history.replaceState({}, '', cleanUrl)
+                    
+                    // Reset lastSentParams so next sendParams will send empty params
+                    lastSentParams = ''
+                }
+            }
         }
         
         window.addEventListener('message', handleClearMessage)
         
         const sendParams = () => {
             const iframe = document.getElementById('adventure-directory-iframe') as HTMLIFrameElement
+            
+            // Check if iframe is visible before sending parameters
+            if (iframe) {
+                // Check if iframe is in viewport using IntersectionObserver or visibility
+                const rect = iframe.getBoundingClientRect()
+                const isVisible = rect.width > 0 && rect.height > 0 && 
+                                 rect.top < window.innerHeight && 
+                                 rect.bottom > 0 &&
+                                 rect.left < window.innerWidth && 
+                                 rect.right > 0
+                
+                // Also check if iframe is not hidden via CSS
+                const style = window.getComputedStyle(iframe)
+                const isNotHidden = style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0'
+                
+                if (!isVisible || !isNotHidden) {
+                    // Iframe is not visible - don't send parameters
+                    return
+                }
+            }
+            
             if (iframe?.contentWindow && window.location) {
                 const params: Record<string, string> = {}
                 const searchParams = new URLSearchParams(window.location.search)
@@ -129,6 +173,23 @@ export default function URLParamsHelper() {
         
         window.addEventListener('popstate', handlePopState)
         
+        // Clear URL parameters when page becomes hidden (user navigates away)
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                // Page became hidden - clear URL parameters
+                const navigateTo = window.location.pathname + (window.location.hash || '')
+                const cleanUrl = window.location.origin + navigateTo
+                
+                if (window.location.search) {
+                    console.log('🧹 Page hidden - clearing URL parameters:', cleanUrl)
+                    window.history.replaceState({}, '', cleanUrl)
+                    lastSentParams = ''
+                }
+            }
+        }
+        
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+        
         // Check periodically but less frequently (every 2 seconds instead of 1)
         // Only send if URL actually changed
         const interval = setInterval(() => {
@@ -138,6 +199,7 @@ export default function URLParamsHelper() {
         return () => {
             window.removeEventListener('message', handleClearMessage)
             window.removeEventListener('popstate', handlePopState)
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
             clearInterval(interval)
         }
     }, [])

@@ -5758,6 +5758,60 @@ loadDataFromGoogleSheets()
         }, 800); // Single delay - long enough for postMessage but not too long
     });
 
+// Detect when iframe becomes hidden and clear URL parameters in parent
+(function() {
+    let wasVisible = !document.hidden;
+    
+    function handleVisibilityChange() {
+        const isVisible = !document.hidden;
+        
+        // If iframe just became hidden, notify parent to clear URL parameters
+        if (wasVisible && !isVisible) {
+            console.log('👋 Iframe became hidden - requesting parent to clear URL parameters');
+            try {
+                window.parent.postMessage({
+                    type: 'iframeHidden',
+                    source: 'find-your-adventure',
+                    clearUrlParams: true
+                }, '*');
+            } catch (e) {
+                console.warn('⚠️ Could not notify parent of visibility change:', e);
+            }
+        }
+        
+        wasVisible = isVisible;
+    }
+    
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Also check if iframe is in a hidden container (using IntersectionObserver)
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (!entry.isIntersecting) {
+                    // Iframe is not visible, notify parent to clear URL parameters
+                    console.log('👋 Iframe not visible in viewport - requesting parent to clear URL parameters');
+                    try {
+                        window.parent.postMessage({
+                            type: 'iframeHidden',
+                            source: 'find-your-adventure',
+                            clearUrlParams: true
+                        }, '*');
+                    } catch (e) {
+                        console.warn('⚠️ Could not notify parent of visibility change:', e);
+                    }
+                }
+            });
+        }, {
+            threshold: 0
+        });
+        
+        // Observe the document body
+        observer.observe(document.body);
+    }
+})();
+
 // Set up debounced search input handlers
 function setupSearchInputs() {
     const searchInput = document.getElementById('previewSearchInput');
