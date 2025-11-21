@@ -7234,7 +7234,51 @@ function applyBreadcrumbFilter(filterParams) {
         featured: currentFeaturedOnly
     });
     
-    filterPreview();
+    // Small delay to ensure DOM is updated before filtering
+    // This prevents race conditions where dropdowns aren't ready yet
+    setTimeout(function() {
+        // Double-check that filter values are set correctly
+        if (filterParams.area && areaFilter && areaFilter.value !== filterParams.area) {
+            ensureDropdownOption(areaFilter, filterParams.area, filterParams.area);
+            areaFilter.value = filterParams.area;
+            console.log('✅ Re-verified area filter:', areaFilter.value);
+        }
+        if (filterParams.amenity && amenityFilter && amenityFilter.value !== filterParams.amenity) {
+            ensureDropdownOption(amenityFilter, filterParams.amenity, filterParams.amenity);
+            amenityFilter.value = filterParams.amenity;
+            console.log('✅ Re-verified amenity filter:', amenityFilter.value);
+        }
+        if (filterParams.type) {
+            const typeFilter = document.getElementById('previewTypeFilter');
+            const mobileTypeFilter = document.getElementById('mobileTypeFilter');
+            if (typeFilter && typeFilter.value !== filterParams.type) {
+                ensureDropdownOption(typeFilter, filterParams.type, filterParams.type);
+                typeFilter.value = filterParams.type;
+                console.log('✅ Re-verified type filter:', typeFilter.value);
+            }
+            if (mobileTypeFilter && mobileTypeFilter.value !== filterParams.type) {
+                ensureDropdownOption(mobileTypeFilter, filterParams.type, filterParams.type);
+                mobileTypeFilter.value = filterParams.type;
+            }
+        }
+        
+        // Verify filter state before applying
+        console.log('🔍 Filter state before filterPreview():', {
+            currentCategoryFilter: currentCategoryFilter,
+            currentTypeFilter: currentTypeFilter,
+            areaFilterValue: areaFilter ? areaFilter.value : 'N/A',
+            amenityFilterValue: amenityFilter ? amenityFilter.value : 'N/A',
+            currentFeaturedOnly: currentFeaturedOnly
+        });
+        
+        // Now apply filters - this will call renderPreview() internally
+        filterPreview();
+        
+        // Verify after filtering
+        setTimeout(function() {
+            console.log('✅ After filterPreview() - allFilteredListings count:', allFilteredListings.length);
+        }, 100);
+    }, 50); // Small delay to ensure DOM updates are complete
 }
 
 // Filter to show only a specific listing (from map popup)
