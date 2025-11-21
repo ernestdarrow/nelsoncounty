@@ -3882,6 +3882,22 @@ console.log('📍 GitHub URL (fallback):', GITHUB_JSON_URL);
 console.log('💾 Fallback data available:', fallbackData ? 'YES' : 'NO');
 console.log('📦 Fallback listings count:', fallbackData?.listings?.length || 0);
 
+// Check for pending breadcrumb filter IMMEDIATELY on page load (before data loads)
+// This ensures we capture it even if postMessage from parent doesn't work
+try {
+    const storedFilter = sessionStorage.getItem('pendingBreadcrumbFilter');
+    if (storedFilter) {
+        const filterParams = JSON.parse(storedFilter);
+        console.log('🍞 ✅ Iframe found pending breadcrumb filter in sessionStorage on INITIAL LOAD:', filterParams);
+        pendingBreadcrumbFilter = filterParams;
+        // DON'T clear it yet - wait until filters are applied
+    } else {
+        console.log('🍞 No pending breadcrumb filter found in sessionStorage on initial load');
+    }
+} catch (e) {
+    console.warn('⚠️ Could not read pending breadcrumb filter from sessionStorage on initial load:', e);
+}
+
 // Global data variable
 let data = null;
 let currentTypeFilter = []; // Array to hold types for the selected category (only one category active at a time)
@@ -5755,6 +5771,22 @@ loadDataFromGoogleSheets()
         
         // Process categories and render (called after categories load or immediately with defaults)
         function processCategoriesAndRender() {
+            // FIRST: Check for pending breadcrumb filter from sessionStorage (before anything else)
+            // This handles cases where postMessage from parent doesn't work
+            try {
+                const storedFilter = sessionStorage.getItem('pendingBreadcrumbFilter');
+                if (storedFilter) {
+                    const filterParams = JSON.parse(storedFilter);
+                    console.log('🍞 ✅ Iframe found pending breadcrumb filter in sessionStorage on load:', filterParams);
+                    pendingBreadcrumbFilter = filterParams;
+                    // Clear it so it doesn't reapply on next load
+                    sessionStorage.removeItem('pendingBreadcrumbFilter');
+                }
+            } catch (e) {
+                // sessionStorage might not be available or parse failed
+                console.warn('⚠️ Could not read pending breadcrumb filter from sessionStorage:', e);
+            }
+            
             // Extract categories from Google Sheets data and ensure they're in TYPE_CATEGORIES
             // This ensures custom categories from Google Sheets show up even if not in Categories sheet yet
             const categoriesFromData = [...new Set(data.listings.map(l => l.category).filter(Boolean))];
