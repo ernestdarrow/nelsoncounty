@@ -76,14 +76,14 @@ export default function Breadcrumb({
         return "/find-your-adventure"
     }
     
-    // Helper to store filter params in sessionStorage for iframe to pick up after navigation
+    // Helper to store filter params in sessionStorage for URLParamsHelper to pick up after navigation
     const storeFilterForIframe = (params: Record<string, string>) => {
         if (typeof window === 'undefined') return
         
-        // Store params in sessionStorage - iframe will check this on load
+        // Store in sessionStorage - URLParamsHelper will check this after navigation
         try {
             sessionStorage.setItem('pendingBreadcrumbFilter', JSON.stringify(params))
-            console.log('🍞 Stored filter params in sessionStorage:', params)
+            console.log('🍞 Stored filter params in sessionStorage for URLParamsHelper:', params)
         } catch (e) {
             console.warn('🍞 Could not store filter params in sessionStorage:', e)
         }
@@ -175,7 +175,7 @@ export default function Breadcrumb({
             e.stopPropagation()
             
             // Store filter params in sessionStorage before navigation
-            // The iframe will check sessionStorage on load and apply filters
+            // URLParamsHelper will check this after navigation and send to iframe
             storeFilterForIframe(filterParams)
             
             // Navigate to clean URL (no parameters)

@@ -426,6 +426,105 @@ export default function URLParamsHelper() {
         // Start checking for iframe after a short delay (to allow iframe to be added to DOM)
         setTimeout(clearParamsAfterIframeLoad, 100)
         
+        // Check for pending breadcrumb filter in sessionStorage and send to iframe
+        const sendPendingBreadcrumbFilter = () => {
+            try {
+                const storedFilter = sessionStorage.getItem('pendingBreadcrumbFilter')
+                if (storedFilter) {
+                    const filterParams = JSON.parse(storedFilter)
+                    console.log('🍞 URLParamsHelper found pending breadcrumb filter:', filterParams)
+                    
+                    // Find iframe and send filter command
+                    const iframe = document.getElementById('adventure-directory-iframe') as HTMLIFrameElement
+                    
+                    if (!iframe) {
+                        console.log('🍞 ⚠️ Iframe not found yet, will retry...')
+                        // Retry after a delay
+                        setTimeout(sendPendingBreadcrumbFilter, 200)
+                        return
+                    }
+                    
+                    const trySendFilter = (attempt: number = 0) => {
+                        // Check if iframe is loaded and ready
+                        if (iframe.contentWindow && iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+                            try {
+                                iframe.contentWindow.postMessage({
+                                    type: 'applyFilter',
+                                    params: filterParams,
+                                    source: 'breadcrumb'
+                                }, '*')
+                                
+                                console.log('🍞 ✅ URLParamsHelper sent filter to iframe:', filterParams)
+                                
+                                // Clear sessionStorage after sending
+                                sessionStorage.removeItem('pendingBreadcrumbFilter')
+                                return true
+                            } catch (e) {
+                                console.warn('🍞 ⚠️ Error sending filter to iframe:', e)
+                                // Clear on error to prevent infinite retries
+                                sessionStorage.removeItem('pendingBreadcrumbFilter')
+                                return false
+                            }
+                        } else {
+                            // Iframe not ready yet, try again
+                            if (attempt < 100) { // Try for up to 10 seconds (100 * 100ms)
+                                setTimeout(() => trySendFilter(attempt + 1), 100)
+                            } else {
+                                console.warn('🍞 ⚠️ Iframe not ready after 10 seconds, clearing stored filter')
+                                sessionStorage.removeItem('pendingBreadcrumbFilter')
+                            }
+                            return false
+                        }
+                    }
+                    
+                    // Wait for iframe load event, then try sending
+                    iframe.addEventListener('load', () => {
+                        setTimeout(() => trySendFilter(), 500) // Wait 500ms after load for iframe to initialize
+                    }, { once: true })
+                    
+                    // Also try immediately if iframe is already loaded
+                    if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+                        setTimeout(() => trySendFilter(), 500)
+                    }
+                }
+            } catch (e) {
+                console.warn('🍞 ⚠️ Error reading pending breadcrumb filter:', e)
+                try {
+                    sessionStorage.removeItem('pendingBreadcrumbFilter')
+                } catch (e2) {
+                    // Ignore
+                }
+            }
+        }
+        
+        // Check for pending filter after page loads
+        if (document.readyState === 'complete') {
+            setTimeout(sendPendingBreadcrumbFilter, 1000) // Wait 1 second for iframe to start loading
+        } else {
+            window.addEventListener('load', () => {
+                setTimeout(sendPendingBreadcrumbFilter, 1000)
+            }, { once: true })
+        }
+        
+        // Also check periodically in case iframe loads late
+        const breadcrumbCheckInterval = setInterval(() => {
+            try {
+                if (sessionStorage.getItem('pendingBreadcrumbFilter')) {
+                    sendPendingBreadcrumbFilter()
+                } else {
+                    // No pending filter, stop checking
+                    clearInterval(breadcrumbCheckInterval)
+                }
+            } catch (e) {
+                // Ignore
+            }
+        }, 500) // Check every 500ms
+        
+        // Clear interval after 15 seconds to prevent infinite checking
+        setTimeout(() => {
+            clearInterval(breadcrumbCheckInterval)
+        }, 15000)
+        
         // Track last known pathname to detect navigation
         let lastKnownPathname = window.location.pathname
         let lastKnownUrl = window.location.href
