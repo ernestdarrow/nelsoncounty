@@ -512,29 +512,57 @@ export default function URLParamsHelper() {
         }
         
         // Check for pending filter after page loads
-        if (document.readyState === 'complete') {
-            setTimeout(() => sendPendingBreadcrumbFilter(0), 500) // Wait 500ms for iframe to start loading
-        } else {
-            window.addEventListener('load', () => {
-                setTimeout(() => sendPendingBreadcrumbFilter(0), 500)
-            }, { once: true })
-        }
+        // Use multiple strategies to ensure we catch it:
+        // 1. Check immediately (in case page is already loaded)
+        // 2. Check after DOMContentLoaded
+        // 3. Check after window load
+        // 4. Check periodically as backup
         
-        // Also check periodically in case iframe loads late
-        const breadcrumbCheckInterval = setInterval(() => {
+        const checkBreadcrumbFilter = () => {
             try {
-                if (sessionStorage.getItem('pendingBreadcrumbFilter')) {
+                const stored = sessionStorage.getItem('pendingBreadcrumbFilter')
+                if (stored) {
+                    console.log('🍞 URLParamsHelper found pending filter, sending to iframe...')
                     sendPendingBreadcrumbFilter(0)
                 }
             } catch (e) {
                 // Ignore
             }
-        }, 1000) // Check every 1 second
+        }
         
-        // Clear interval after 20 seconds to prevent infinite checking
+        // Check immediately
+        setTimeout(checkBreadcrumbFilter, 100)
+        
+        // Check after DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', checkBreadcrumbFilter, { once: true })
+        }
+        
+        // Check after page fully loads
+        if (document.readyState === 'complete') {
+            setTimeout(checkBreadcrumbFilter, 1000) // Wait 1 second for iframe to start loading
+        } else {
+            window.addEventListener('load', () => {
+                setTimeout(checkBreadcrumbFilter, 1000)
+            }, { once: true })
+        }
+        
+        // Also check periodically in case iframe loads late (more aggressive)
+        const breadcrumbCheckInterval = setInterval(() => {
+            try {
+                if (sessionStorage.getItem('pendingBreadcrumbFilter')) {
+                    console.log('🍞 Periodic check: Found pending filter, sending...')
+                    sendPendingBreadcrumbFilter(0)
+                }
+            } catch (e) {
+                // Ignore
+            }
+        }, 500) // Check every 500ms (more frequent)
+        
+        // Clear interval after 30 seconds to prevent infinite checking
         setTimeout(() => {
             clearInterval(breadcrumbCheckInterval)
-        }, 20000)
+        }, 30000)
         
         // Track last known pathname to detect navigation
         let lastKnownPathname = window.location.pathname

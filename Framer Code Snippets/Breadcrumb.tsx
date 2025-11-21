@@ -173,20 +173,26 @@ export default function Breadcrumb({
         console.log('🍞 Breadcrumb clicked, navigating to:', url, 'with filters:', filterParams)
         
         // If the URL contains /find-your-adventure, navigate cleanly and send filters via postMessage
-        if (url.includes('/find-your-adventure') && filterParams) {
+        if (url.includes('/find-your-adventure')) {
             // Build clean URL (no parameters)
             const cleanUrl = url.startsWith('http') ? url.split('?')[0] : (url.startsWith('/') ? window.location.origin + url.split('?')[0] : window.location.origin + '/' + url.split('?')[0])
             
             console.log('🍞 Navigating to clean URL:', cleanUrl)
-            console.log('🍞 Will send filters via postMessage:', filterParams)
+            console.log('🍞 Filter params:', filterParams)
             
             // Prevent default to handle navigation ourselves
             e.preventDefault()
             e.stopPropagation()
             
-            // Store filter params in sessionStorage before navigation
-            // URLParamsHelper will check this after navigation and send to iframe
-            storeFilterForIframe(filterParams)
+            // Only store filter params if they exist
+            if (filterParams && Object.keys(filterParams).length > 0) {
+                console.log('🍞 Will send filters via postMessage:', filterParams)
+                // Store filter params in sessionStorage before navigation
+                // URLParamsHelper will check this after navigation and send to iframe
+                storeFilterForIframe(filterParams)
+            } else {
+                console.log('🍞 No filter params to send')
+            }
             
             // Navigate to clean URL (no parameters)
             window.location.href = cleanUrl

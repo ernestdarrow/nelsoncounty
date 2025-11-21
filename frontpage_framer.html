@@ -3902,6 +3902,19 @@ try {
 // Log that we're ready to receive postMessage from parent
 console.log('🍞 Iframe ready to receive breadcrumb filter via postMessage');
 
+// TEST FUNCTION: Run this in browser console to test filter system
+// Example: window.testBreadcrumbFilter({category: 'outdoor'})
+window.testBreadcrumbFilter = function(filterParams) {
+    console.log('🧪 TEST: Manually applying filter:', filterParams);
+    if (data) {
+        applyBreadcrumbFilter(filterParams);
+        console.log('🧪 TEST: Filter applied successfully');
+    } else {
+        console.log('🧪 TEST: Data not loaded yet, storing filter');
+        pendingBreadcrumbFilter = filterParams;
+    }
+};
+
 // Global data variable
 let data = null;
 let currentTypeFilter = []; // Array to hold types for the selected category (only one category active at a time)
