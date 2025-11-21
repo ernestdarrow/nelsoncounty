@@ -2927,7 +2927,7 @@
             line-clamp: 3;
         }
         
-        /* Scrollable images on card front - square by default, 2:3 on small screens */
+        /* Scrollable images on card front - square by default, 3:2 (wider) on small screens */
         .card-front-image-scroll {
             position: relative;
             height: 0 !important;
@@ -2944,13 +2944,13 @@
             clip-path: inset(0 round 24px);
         }
         
-        /* 2:3 aspect ratio for screens below 435px */
+        /* 3:2 aspect ratio (wider than tall) for screens below 435px */
         @media (max-width: 434px) {
             .card-front-image-scroll {
-                padding-bottom: 150% !important; /* 2:3 aspect ratio (height = 1.5 * width) */
+                padding-bottom: 66.67% !important; /* 3:2 aspect ratio (height = 2/3 * width) */
             }
             .card-front-image-scroll img {
-                aspect-ratio: 2 / 3 !important;
+                aspect-ratio: 3 / 2 !important;
             }
         }
         .card-front-image-scroll::-webkit-scrollbar {
