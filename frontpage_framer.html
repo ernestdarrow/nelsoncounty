@@ -1931,14 +1931,57 @@
             /* Filter controls inside unified mobile bar - horizontal row, FORCED to new row */
             .mobile-filter-bar > .mobile-filter-group {
                 order: 3;
-                flex: 0 0 33.333%;
-                width: 33.333%;
+                flex: 0 0 25%;
+                width: 25%;
                 position: relative;
                 display: flex !important;
                 align-items: center;
-                flex-basis: 33.333%;
-                min-width: 33.333%;
+                flex-basis: 25%;
+                min-width: 25%;
                 padding: 0 8px;
+            }
+            
+            /* Category filter - compact, icon only */
+            .mobile-filter-bar > .mobile-category-filter-group {
+                flex: 0 0 auto;
+                width: auto;
+                min-width: 50px;
+                max-width: 60px;
+                padding: 0 4px;
+                position: relative;
+            }
+            
+            .mobile-filter-bar > .mobile-category-filter-group select {
+                padding-left: 32px;
+                padding-right: 8px;
+                text-indent: 0;
+                position: relative;
+                appearance: none;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                background-color: transparent;
+            }
+            
+            /* Icon wrapper for category select */
+            .mobile-filter-bar > .mobile-category-filter-group::before {
+                content: '';
+                position: absolute;
+                left: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 20px;
+                height: 20px;
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-position: center;
+                pointer-events: none;
+                z-index: 1;
+                background-image: url('icons/all-types.svg'); /* Default icon */
+            }
+            
+            /* Show text in dropdown options */
+            .mobile-filter-bar > .mobile-category-filter-group select option {
+                padding-left: 8px;
             }
             
             
@@ -3465,6 +3508,11 @@
                                 </svg>
                                 <input type="text" id="previewSearchInputMobile" placeholder="Find your adventure">
                             </div>
+                        </div>
+                        <div class="mobile-filter-group mobile-category-filter-group">
+                            <select id="mobileCategoryFilter" onchange="handleMobileCategoryFilter()">
+                                <option value="">All</option>
+                            </select>
                         </div>
                         <div class="mobile-filter-group">
                             <select id="mobileTypeFilter" onchange="handleMobileTypeFilter()">
@@ -5953,6 +6001,9 @@ loadDataFromGoogleSheets()
             // Render type filter buttons dynamically based on usage
             renderTypeFilterButtons(data.listings, '.type-quick-filters'); // Show all categories
             
+            // Populate mobile category dropdown
+            populateMobileCategoryFilter();
+            
             // Restore active state on filter buttons after re-rendering
             // This preserves the active highlight when buttons are recreated after categories load
             if (currentCategoryFilter) {
@@ -6951,6 +7002,12 @@ function clearPreviewFilters() {
         amenityFilter.selectedIndex = 0;
         amenityFilter.value = amenityFilter.options[0].value || '';
     }
+    const mobileCategoryFilter = document.getElementById('mobileCategoryFilter');
+    if (mobileCategoryFilter && mobileCategoryFilter.options.length > 0) {
+        mobileCategoryFilter.selectedIndex = 0;
+        mobileCategoryFilter.value = mobileCategoryFilter.options[0].value || '';
+        updateMobileCategoryIcon('');
+    }
     if (mobileTypeFilter && mobileTypeFilter.options.length > 0) {
         mobileTypeFilter.selectedIndex = 0;
         mobileTypeFilter.value = mobileTypeFilter.options[0].value || '';
@@ -7157,12 +7214,26 @@ function applyBreadcrumbFilter(filterParams) {
                 console.log('✅ Activated category button:', currentCategoryFilter);
             }
         });
+        
+        // Update mobile category dropdown
+        const mobileCategoryFilter = document.getElementById('mobileCategoryFilter');
+        if (mobileCategoryFilter) {
+            mobileCategoryFilter.value = currentCategoryFilter;
+            updateMobileCategoryIcon(currentCategoryFilter);
+        }
     }
     
     if (filterParams.type) {
         currentTypeFilter = [filterParams.type];
         currentCategoryFilter = null; // Clear category when filtering by type
         console.log('✅ Setting type filter:', currentTypeFilter);
+        
+        // Clear mobile category dropdown
+        const mobileCategoryFilter = document.getElementById('mobileCategoryFilter');
+        if (mobileCategoryFilter) {
+            mobileCategoryFilter.value = '';
+            updateMobileCategoryIcon('');
+        }
         
         // Update type filter dropdowns
         const typeFilter = document.getElementById('previewTypeFilter');
@@ -8678,6 +8749,108 @@ function adjustImageWidths(force) {
 }
 
 // Mobile filter handlers
+function handleMobileCategoryFilter() {
+    // Clear the "explicitly cleared" flag FIRST, before any filter logic
+    filtersExplicitlyCleared = false;
+    try {
+        sessionStorage.removeItem('filtersExplicitlyCleared');
+    } catch (e) {
+        // sessionStorage might not be available
+    }
+    
+    const mobileCategoryFilter = document.getElementById('mobileCategoryFilter');
+    const value = mobileCategoryFilter ? mobileCategoryFilter.value : '';
+    
+    // Update icon based on selected category
+    updateMobileCategoryIcon(value);
+    
+    if (value) {
+        // Set category filter
+        currentCategoryFilter = value.toLowerCase();
+        currentTypeFilter = []; // Clear type filter when category is selected
+        
+        // Get types for this category
+        const categoryData = TYPE_CATEGORIES[currentCategoryFilter];
+        if (categoryData && categoryData.types) {
+            currentTypeFilter = categoryData.types.slice();
+        }
+    } else {
+        // Clear category filter
+        currentCategoryFilter = null;
+        currentTypeFilter = [];
+    }
+    
+    // Clear type filter dropdown
+    const mobileTypeFilter = document.getElementById('mobileTypeFilter');
+    if (mobileTypeFilter) {
+        mobileTypeFilter.value = '';
+    }
+    
+    // Update sidebar buttons
+    document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (value && btn.dataset.category === currentCategoryFilter) {
+            btn.classList.add('active');
+        } else if (!value && btn.dataset.type === '' && !btn.dataset.category) {
+            btn.classList.add('active');
+        }
+    });
+    
+    filterPreview();
+}
+
+function populateMobileCategoryFilter() {
+    const mobileCategoryFilter = document.getElementById('mobileCategoryFilter');
+    if (!mobileCategoryFilter) return;
+    
+    // Clear existing options except "All"
+    mobileCategoryFilter.innerHTML = '<option value="">All</option>';
+    
+    // Get categories from TYPE_CATEGORIES, sorted by name
+    const categories = Object.keys(TYPE_CATEGORIES)
+        .map(function(key) {
+            return {
+                key: key,
+                name: TYPE_CATEGORIES[key].name || key
+            };
+        })
+        .sort(function(a, b) {
+            return a.name.localeCompare(b.name);
+        });
+    
+    // Add each category as an option
+    categories.forEach(function(category) {
+        const option = document.createElement('option');
+        option.value = category.key;
+        option.textContent = category.name;
+        mobileCategoryFilter.appendChild(option);
+    });
+    
+    // Update icon if a category is already selected
+    if (currentCategoryFilter) {
+        mobileCategoryFilter.value = currentCategoryFilter;
+        updateMobileCategoryIcon(currentCategoryFilter);
+    } else {
+        updateMobileCategoryIcon('');
+    }
+}
+
+function updateMobileCategoryIcon(categoryKey) {
+    const categoryGroup = document.querySelector('.mobile-category-filter-group');
+    if (!categoryGroup) return;
+    
+    const iconUrl = categoryKey ? `icons/${categoryKey.toLowerCase()}.svg` : 'icons/all-types.svg';
+    
+    // Update ::before pseudo-element background using a style tag
+    let style = document.getElementById('mobile-category-icon-style');
+    if (!style) {
+        style = document.createElement('style');
+        style.id = 'mobile-category-icon-style';
+        document.head.appendChild(style);
+    }
+    style.textContent = `.mobile-filter-bar > .mobile-category-filter-group::before { background-image: url('${iconUrl}'); }`;
+}
+
 function handleMobileTypeFilter() {
     // Clear the "explicitly cleared" flag FIRST, before any filter logic
     filtersExplicitlyCleared = false;
@@ -8696,8 +8869,21 @@ function handleMobileTypeFilter() {
     if (value) {
         const categoryForType = getCategoryForType(value, null);
         currentCategoryFilter = categoryForType;
+        
+        // Update category dropdown to match
+        const mobileCategoryFilter = document.getElementById('mobileCategoryFilter');
+        if (mobileCategoryFilter && currentCategoryFilter) {
+            mobileCategoryFilter.value = currentCategoryFilter;
+            updateMobileCategoryIcon(currentCategoryFilter);
+        }
     } else {
         currentCategoryFilter = null;
+        // Clear category dropdown
+        const mobileCategoryFilter = document.getElementById('mobileCategoryFilter');
+        if (mobileCategoryFilter) {
+            mobileCategoryFilter.value = '';
+            updateMobileCategoryIcon('');
+        }
     }
     
     // Update sidebar buttons - activate the category button if it exists, or "All Types" if no category
