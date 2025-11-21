@@ -4987,6 +4987,93 @@ function getUrlParameter(name) {
     return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
 }
 
+// Build URL with parameters preserved only if target contains /find-your-adventure
+// If target doesn't contain /find-your-adventure, returns URL without parameters
+function buildUrlWithConditionalParams(targetUrl) {
+    if (!targetUrl) return targetUrl;
+    
+    // Check if target URL contains /find-your-adventure
+    const containsFindYourAdventure = targetUrl.includes('/find-your-adventure');
+    
+    if (!containsFindYourAdventure) {
+        // Remove any existing parameters from target URL
+        try {
+            const url = new URL(targetUrl);
+            return url.origin + url.pathname + (url.hash || '');
+        } catch (e) {
+            // If URL parsing fails, try to remove query string manually
+            const urlWithoutParams = targetUrl.split('?')[0].split('#')[0];
+            const hash = targetUrl.includes('#') ? targetUrl.substring(targetUrl.indexOf('#')) : '';
+            return urlWithoutParams + hash;
+        }
+    }
+    
+    // Target contains /find-your-adventure - preserve current URL parameters
+    try {
+        const targetUrlObj = new URL(targetUrl);
+        const currentUrl = window.location.href;
+        
+        // Get current URL parameters
+        let currentParams = {};
+        try {
+            // Try to get from receivedUrlParams first (cross-origin iframe support)
+            if (receivedUrlParams && Object.keys(receivedUrlParams).length > 0) {
+                currentParams = Object.assign({}, receivedUrlParams);
+            } else {
+                // Fall back to current window URL
+                const currentUrlObj = new URL(currentUrl);
+                currentUrlObj.searchParams.forEach((value, key) => {
+                    currentParams[key] = value;
+                });
+            }
+        } catch (e) {
+            // If we can't get current params, just return target URL as-is
+            return targetUrl;
+        }
+        
+        // Merge current parameters into target URL
+        Object.keys(currentParams).forEach(function(key) {
+            if (currentParams[key]) {
+                targetUrlObj.searchParams.set(key, currentParams[key]);
+            }
+        });
+        
+        return targetUrlObj.toString();
+    } catch (e) {
+        // If URL parsing fails, try manual approach
+        const urlParts = targetUrl.split('?');
+        const baseUrl = urlParts[0];
+        const hash = baseUrl.includes('#') ? baseUrl.substring(baseUrl.indexOf('#')) : (targetUrl.includes('#') ? targetUrl.substring(targetUrl.indexOf('#')) : '');
+        const cleanBaseUrl = baseUrl.split('#')[0];
+        
+        // Get current parameters
+        let currentParams = {};
+        try {
+            if (receivedUrlParams && Object.keys(receivedUrlParams).length > 0) {
+                currentParams = Object.assign({}, receivedUrlParams);
+            } else if (window.location.search) {
+                const searchParams = new URLSearchParams(window.location.search);
+                searchParams.forEach((value, key) => {
+                    currentParams[key] = value;
+                });
+            }
+        } catch (e2) {
+            return cleanBaseUrl + hash;
+        }
+        
+        // Build query string
+        const paramPairs = [];
+        Object.keys(currentParams).forEach(function(key) {
+            if (currentParams[key]) {
+                paramPairs.push(encodeURIComponent(key) + '=' + encodeURIComponent(currentParams[key]));
+            }
+        });
+        
+        const queryString = paramPairs.length > 0 ? '?' + paramPairs.join('&') : '';
+        return cleanBaseUrl + queryString + hash;
+    }
+}
+
 // Find listing by legacy WordPress URL
 function findListingByLegacyUrl(url) {
     if (!data || !data.listings) return null;
@@ -9145,6 +9232,75 @@ document.addEventListener('DOMContentLoaded', function() {
     if ('scrollRestoration' in history) {
         history.scrollRestoration = 'manual';
     }
+    
+    // Global link click handler: preserve parameters only for /find-your-adventure links
+    document.addEventListener('click', function(e) {
+        // Find the closest anchor tag
+        const link = e.target.closest('a');
+        if (!link || !link.href) return;
+        
+        // Skip if link has target="_blank" (opens in new tab - don't interfere)
+        if (link.target === '_blank') return;
+        
+        const href = link.href;
+        
+        // Check if link contains /find-your-adventure
+        const containsFindYourAdventure = href.includes('/find-your-adventure');
+        
+        if (containsFindYourAdventure) {
+            // Preserve parameters - use buildUrlWithConditionalParams to add current params
+            const urlWithParams = buildUrlWithConditionalParams(href);
+            if (urlWithParams !== href) {
+                // Prevent default navigation, modify href, then navigate
+                e.preventDefault();
+                e.stopPropagation();
+                link.href = urlWithParams;
+                // Navigate to the modified URL
+                if (link.target === '_parent' && window.parent && window.parent !== window) {
+                    window.parent.location.href = urlWithParams;
+                } else {
+                    window.location.href = urlWithParams;
+                }
+                return false;
+            }
+        } else {
+            // Remove parameters - ensure URL doesn't have query string
+            try {
+                const url = new URL(href);
+                if (url.search) {
+                    const cleanUrl = url.origin + url.pathname + (url.hash || '');
+                    // Only modify if URL actually has parameters
+                    e.preventDefault();
+                    e.stopPropagation();
+                    link.href = cleanUrl;
+                    // Navigate to the clean URL
+                    if (link.target === '_parent' && window.parent && window.parent !== window) {
+                        window.parent.location.href = cleanUrl;
+                    } else {
+                        window.location.href = cleanUrl;
+                    }
+                    return false;
+                }
+            } catch (err) {
+                // If URL parsing fails, try manual removal
+                if (href.includes('?')) {
+                    const urlWithoutParams = href.split('?')[0];
+                    const hash = href.includes('#') ? href.substring(href.indexOf('#')) : '';
+                    const cleanUrl = urlWithoutParams + hash;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    link.href = cleanUrl;
+                    // Navigate to the clean URL
+                    if (link.target === '_parent' && window.parent && window.parent !== window) {
+                        window.parent.location.href = cleanUrl;
+                    } else {
+                        window.location.href = cleanUrl;
+                    }
+                    return false;
+                }
+            }
+        }
+    }, true); // Use capture phase to catch links before they navigate
     
     // Handle sticky positioning for iframe context
     handleStickyInIframe();
