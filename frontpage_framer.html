@@ -3041,7 +3041,7 @@
             border: none !important;
             border-radius: 12px !important;
             padding: 10px 16px !important;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
             font-size: 14px !important;
             font-weight: 500 !important;
             color: #333 !important;
@@ -3068,9 +3068,27 @@
             background: #ffffff !important;
             color: #333 !important;
             padding: 10px !important;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
             font-size: 14px !important;
             font-weight: 500 !important;
+        }
+        
+        /* Safari/Mac specific fix to force sans-serif font */
+        @supports (-webkit-appearance: none) {
+            #sortDropdown {
+                font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+            }
+            #sortDropdown option {
+                font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+            }
+        }
+        
+        /* Additional Safari-specific rules */
+        select#sortDropdown,
+        select#sortDropdown option {
+            font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+            -webkit-font-smoothing: antialiased !important;
+            -moz-osx-font-smoothing: grayscale !important;
         }
         
         /* Safari/Mac specific fix to prevent serif fonts in native dropdown */
@@ -3079,13 +3097,15 @@
                 -webkit-appearance: none !important;
                 -moz-appearance: none !important;
                 appearance: none !important;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+                font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
                 -webkit-font-smoothing: antialiased !important;
                 -moz-osx-font-smoothing: grayscale !important;
             }
             #sortDropdown optgroup,
             #sortDropdown option {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+                font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+                font-style: normal !important;
+                font-variant: normal !important;
                 font-synthesis: none !important;
                 -webkit-font-smoothing: antialiased !important;
                 -moz-osx-font-smoothing: grayscale !important;
@@ -3370,8 +3390,8 @@
                             <div class="filter-section">
                                 <div class="type-quick-filters" id="typeQuickFilters">
                                     <button class="type-filter-btn category-filter-btn active" data-type="">
-                                        <span class="category-icon"><img src="icons/all-types.svg" alt="All Types" style="width: 24px; height: 24px; display: block;" /></span>
-                                        <span class="category-name">All Types</span>
+                                        <span class="category-icon"><img src="icons/all-types.svg" alt="All" style="width: 24px; height: 24px; display: block;" /></span>
+                                        <span class="category-name">All</span>
                                     </button>
                                     <!-- Type filter buttons will be dynamically generated here based on data usage -->
                                 </div>
@@ -3475,12 +3495,12 @@
 
                     <div class="preview-results" style="display: flex; justify-content: space-between; align-items: center;">
                         <span id="previewResultsCount">Showing 15 listings</span>
-                        <select id="sortDropdown" onchange="sortListings()" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                            <option value="default" selected style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Area → Type → Name</option>
-                            <option value="name-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Name (A-Z)</option>
-                            <option value="name-desc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Name (Z-A)</option>
-                            <option value="area-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Area (A-Z)</option>
-                            <option value="type-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Type (A-Z)</option>
+                        <select id="sortDropdown" onchange="sortListings()" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 14px; cursor: pointer; font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif !important;">
+                            <option value="default" selected style="font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif !important;">Default</option>
+                            <option value="name-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif !important;">Name (A-Z)</option>
+                            <option value="name-desc" style="font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif !important;">Name (Z-A)</option>
+                            <option value="area-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif !important;">Area (A-Z)</option>
+                            <option value="type-asc" style="font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif !important;">Type (A-Z)</option>
                         </select>
                     </div>
 
