@@ -5822,8 +5822,18 @@ loadDataFromGoogleSheets()
         console.log('📊 First listing name:', data.listings[0]?.name || 'N/A');
         console.log('📊 Last listing name:', data.listings[data.listings.length - 1]?.name || 'N/A');
         
+        // Guard to prevent double rendering
+        let hasRendered = false;
+        let categoriesLoaded = false;
+        
         // Process categories and render (called after categories load or immediately with defaults)
-        function processCategoriesAndRender() {
+        function processCategoriesAndRender(forceRender = false) {
+            // Prevent double rendering unless forced (e.g., for filter updates)
+            if (hasRendered && !forceRender) {
+                console.log('⏭️ Skipping duplicate render - already rendered');
+                return;
+            }
+            
             // FIRST: Check for pending breadcrumb filter from sessionStorage (before anything else)
             // This handles cases where postMessage from parent doesn't work
             try {
@@ -5992,6 +6002,9 @@ loadDataFromGoogleSheets()
                 renderPreview(); // Sorting is now handled inside renderPreview
             }
             
+            // Mark as rendered to prevent duplicate renders
+            hasRendered = true;
+            
             // Extract parameters from referrer (for cross-origin iframe support)
             extractParamsFromReferrer();
         }
@@ -6021,15 +6034,38 @@ loadDataFromGoogleSheets()
                     }
                 }
                 
-                // Process categories and re-render with updated categories (this will add any missing ones)
-                processCategoriesAndRender();
+                // Mark categories as loaded
+                categoriesLoaded = true;
+                
+                // Only re-render if we haven't rendered yet (categories loaded before initial render)
+                // Otherwise, just update the categories without full re-render
+                if (!hasRendered) {
+                    // Process categories and render with updated categories
+                    processCategoriesAndRender();
+                } else {
+                    // Categories loaded after initial render - just update filter buttons without full re-render
+                    console.log('📋 Categories loaded after initial render - updating filter buttons only');
+                    renderTypeFilterButtons(data.listings, '.type-quick-filters');
+                    
+                    // Restore active state on filter buttons
+                    if (currentCategoryFilter) {
+                        document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
+                            btn.classList.remove('active');
+                            if (btn.dataset.category === currentCategoryFilter) {
+                                btn.classList.add('active');
+                            }
+                        });
+                    }
+                }
                 
                 // After categories load, check URL parameters again to ensure filters are applied
                 // This is important because handleUrlParameters needs categories to be loaded
-                setTimeout(function() {
-                    extractParamsFromReferrer();
-                    handleUrlParameters();
-                }, 300); // Short delay after categories load
+                if (!hasRendered) {
+                    setTimeout(function() {
+                        extractParamsFromReferrer();
+                        handleUrlParameters();
+                    }, 300); // Short delay after categories load
+                }
             })
             .catch(function(error) {
                 console.error('❌ Error loading categories from Google Sheets:', error);
@@ -6037,17 +6073,23 @@ loadDataFromGoogleSheets()
                 TYPE_CATEGORIES = JSON.parse(JSON.stringify(DEFAULT_TYPE_CATEGORIES));
                 console.log('⚠️ Using default categories due to error');
                 
-                // Process categories and render anyway
-                processCategoriesAndRender();
+                // Mark categories as loaded (even if from fallback)
+                categoriesLoaded = true;
                 
-                // After categories load (even from fallback), check URL parameters again
-                setTimeout(function() {
-                    extractParamsFromReferrer();
-                    handleUrlParameters();
-                }, 300);
+                // Only render if we haven't rendered yet
+                if (!hasRendered) {
+                    processCategoriesAndRender();
+                    
+                    // After categories load (even from fallback), check URL parameters again
+                    setTimeout(function() {
+                        extractParamsFromReferrer();
+                        handleUrlParameters();
+                    }, 300);
+                }
             });
         
         // Start processing immediately with defaults (categories will update when they load)
+        // This will render once, and when categories load, they'll just update the buttons
         processCategoriesAndRender();
         
         // Set up debounced search input handlers
