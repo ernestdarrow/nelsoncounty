@@ -5495,6 +5495,19 @@ function handleUrlParameters() {
     setTimeout(function() {
         isProcessingParams = false;
     }, 300);
+    
+    // Notify parent that filters were applied (for aggressive URL clearing)
+    try {
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                type: 'filtersApplied',
+                source: 'find-your-adventure'
+            }, '*');
+            console.log('📨 Notified parent that filters were applied');
+        }
+    } catch (e) {
+        // Cross-origin restriction - silently fail
+    }
 }
 
 // Fetch data from GitHub and initialize
@@ -7107,6 +7120,22 @@ function filterByListingName(listingName) {
     }
     
     renderPreview(filtered); // Sorting is now handled inside renderPreview
+    
+    // Notify parent that filters were applied (for aggressive URL clearing)
+    // This happens after renderPreview completes, so filters are definitely applied
+    setTimeout(function() {
+        try {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'filtersApplied',
+                    source: 'find-your-adventure'
+                }, '*');
+                console.log('📨 Notified parent that filters were applied');
+            }
+        } catch (e) {
+            // Cross-origin restriction - silently fail
+        }
+    }, 100); // Small delay to ensure renderPreview has completed
     
     // Report height after filtering to specific listing
     setTimeout(function() {
