@@ -21,6 +21,8 @@ export default function URLParamsHelper() {
             return
         }
         
+        console.log('🍞 URLParamsHelper initialized on page:', window.location.pathname)
+        
         const handleMessage = (event: MessageEvent) => {
             // Listen for requests from the iframe
             if (
@@ -521,12 +523,15 @@ export default function URLParamsHelper() {
         const checkBreadcrumbFilter = () => {
             try {
                 const stored = sessionStorage.getItem('pendingBreadcrumbFilter')
+                console.log('🍞 URLParamsHelper checking for pending filter...', stored ? 'FOUND!' : 'not found')
                 if (stored) {
                     console.log('🍞 URLParamsHelper found pending filter, sending to iframe...')
                     sendPendingBreadcrumbFilter(0)
+                } else {
+                    console.log('🍞 URLParamsHelper: No pending filter in sessionStorage')
                 }
             } catch (e) {
-                // Ignore
+                console.warn('🍞 URLParamsHelper: Error checking for filter:', e)
             }
         }
         
@@ -563,6 +568,33 @@ export default function URLParamsHelper() {
         setTimeout(() => {
             clearInterval(breadcrumbCheckInterval)
         }, 30000)
+        
+        // Expose test function for debugging
+        if (typeof window !== 'undefined') {
+            (window as any).testBreadcrumbFilter = () => {
+                console.log('🧪 Testing breadcrumb filter...')
+                const stored = sessionStorage.getItem('pendingBreadcrumbFilter')
+                console.log('🧪 Stored filter:', stored)
+                if (stored) {
+                    const iframe = document.getElementById('adventure-directory-iframe') as HTMLIFrameElement
+                    console.log('🧪 Iframe found:', !!iframe)
+                    if (iframe && iframe.contentWindow) {
+                        const filterParams = JSON.parse(stored)
+                        console.log('🧪 Sending test filter:', filterParams)
+                        iframe.contentWindow.postMessage({
+                            type: 'applyFilter',
+                            params: filterParams,
+                            source: 'breadcrumb-test'
+                        }, '*')
+                        console.log('🧪 ✅ Test message sent!')
+                    } else {
+                        console.log('🧪 ❌ Iframe not found or not ready')
+                    }
+                } else {
+                    console.log('🧪 ❌ No stored filter found')
+                }
+            }
+        }
         
         // Track last known pathname to detect navigation
         let lastKnownPathname = window.location.pathname

@@ -94,6 +94,28 @@ export default function Breadcrumb({
             } else {
                 console.warn('🍞 ⚠️ Warning: Stored value does not match!')
             }
+            
+            // If we're already on the find-your-adventure page, trigger URLParamsHelper immediately
+            // by sending directly to the iframe if it exists
+            try {
+                const iframe = document.getElementById('adventure-directory-iframe') as HTMLIFrameElement
+                if (iframe && iframe.contentWindow) {
+                    console.log('🍞 Already on find-your-adventure page - sending filter immediately')
+                    // Send directly to iframe
+                    iframe.contentWindow.postMessage({
+                        type: 'applyFilter',
+                        params: params,
+                        source: 'breadcrumb'
+                    }, '*')
+                    console.log('🍞 ✅ Sent filter directly to iframe')
+                    // Clear sessionStorage since we sent it directly
+                    sessionStorage.removeItem('pendingBreadcrumbFilter')
+                } else {
+                    console.log('🍞 Iframe not found yet - URLParamsHelper will pick it up after navigation')
+                }
+            } catch (e) {
+                console.log('🍞 Could not send directly (will be picked up by URLParamsHelper):', e)
+            }
         } catch (e) {
             console.error('🍞 ❌ Could not store filter params in sessionStorage:', e)
         }
