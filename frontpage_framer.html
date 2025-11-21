@@ -4977,6 +4977,9 @@ function updateUrlWithCategory(categoryKey) {
 // Track last known parent URL to detect navigation
 let lastParentUrl = '';
 let lastParentSearch = '';
+let lastGetUrlParamsRequest = 0;
+let pendingGetUrlParamsRequest = false;
+const GET_URL_PARAMS_THROTTLE = 5000; // Only request every 5 seconds max
 
 // Extract URL parameters from referrer (works cross-origin for iframe embeds)
 function extractParamsFromReferrer() {
@@ -5027,12 +5030,14 @@ function extractParamsFromReferrer() {
                 }
                 receivedUrlParams = Object.assign({}, receivedUrlParams, params);
             }
+            
+            // If we can access parent URL directly (same-origin), don't need to request via postMessage
+            return false;
         }
     } catch (e) {
         // Cross-origin restriction - can't access parent URL directly, try referrer
         try {
             var referrer = document.referrer;
-            console.log('🔍 Checking referrer:', referrer);
             if (referrer && referrer.includes('?')) {
                 var referrerUrl = new URL(referrer);
                 var params = {};
@@ -5045,20 +5050,34 @@ function extractParamsFromReferrer() {
                     return true;
                 }
             }
+            // No referrer params - don't log, just continue
         } catch (e2) {
-            console.log('⚠️ Could not extract params from referrer:', e2);
+            // Referrer check failed, continue to postMessage fallback
         }
     }
     
-    // Also try to request URL from parent via postMessage (works cross-origin)
-    try {
-        console.log('📨 Requesting URL parameters from parent via postMessage...');
-        window.parent.postMessage({ 
-            type: 'getUrlParams',
-            source: 'find-your-adventure'
-        }, '*');
-    } catch (e) {
-        console.log('⚠️ Could not send postMessage to parent:', e);
+    // Only request via postMessage if:
+    // 1. We haven't sent a request recently (throttle)
+    // 2. We're not waiting for a response
+    // 3. We're in cross-origin context (couldn't access parent URL)
+    const now = Date.now();
+    if (!pendingGetUrlParamsRequest && (now - lastGetUrlParamsRequest) > GET_URL_PARAMS_THROTTLE) {
+        try {
+            pendingGetUrlParamsRequest = true;
+            lastGetUrlParamsRequest = now;
+            window.parent.postMessage({ 
+                type: 'getUrlParams',
+                source: 'find-your-adventure'
+            }, '*');
+            
+            // Reset pending flag after a delay (in case response never comes)
+            setTimeout(function() {
+                pendingGetUrlParamsRequest = false;
+            }, 2000);
+        } catch (e) {
+            pendingGetUrlParamsRequest = false;
+            console.log('⚠️ Could not send postMessage to parent:', e);
+        }
     }
     
     return false;
@@ -5069,12 +5088,29 @@ let parentUrlPollInterval = null;
 function startParentUrlPolling() {
     if (parentUrlPollInterval) return; // Already polling
     
-    parentUrlPollInterval = setInterval(function() {
-        extractParamsFromReferrer();
-    }, 1000); // Check every second for parent URL changes
+    // Only poll if we're in cross-origin context (can't access parent.location)
+    // Check once, then only poll if needed
+    var needsPolling = false;
+    try {
+        if (window.parent && window.parent !== window) {
+            // Try to access parent URL - if this fails, we're cross-origin
+            var test = window.parent.location.href;
+            // If we get here, we can access parent URL directly - no need to poll
+        }
+    } catch (e) {
+        // Cross-origin - we need polling
+        needsPolling = true;
+    }
+    
+    if (needsPolling) {
+        // Poll less frequently - every 5 seconds instead of every second
+        parentUrlPollInterval = setInterval(function() {
+            extractParamsFromReferrer();
+        }, 5000); // Check every 5 seconds for parent URL changes
+    }
 }
 
-// Start polling when page loads
+// Start polling when page loads (only if needed)
 if (typeof window !== 'undefined') {
     setTimeout(startParentUrlPolling, 2000); // Start after initial load
 }
@@ -9297,9 +9333,20 @@ try {
 
 // Listen for messages from parent (height requests and filter parameters)
 window.addEventListener('message', function(event) {
-    // Log ALL incoming messages for debugging breadcrumb filters
+    // Only log important messages (not empty setUrlParams/setFilters spam)
     if (event.data && typeof event.data === 'object') {
-        console.log('📨 Received postMessage:', event.data.type || 'unknown type', event.data);
+        const msgType = event.data.type
+        // Skip logging empty setUrlParams/setFilters messages to reduce spam
+        if (msgType === 'setUrlParams' || msgType === 'setFilters') {
+            // Only log if there are actual params or it's a clearAll request
+            if (event.data.clearAll === true || (event.data.params && Object.keys(event.data.params).length > 0) || (event.data.search && event.data.search.length > 1)) {
+                console.log('📨 Received postMessage:', msgType, event.data);
+            }
+        } else if (msgType === 'applyFilter' || msgType === 'urlParamsResponse' || msgType === 'requestHeight') {
+            // Always log important messages
+            console.log('📨 Received postMessage:', msgType, event.data);
+        }
+        // Skip logging other messages to reduce console spam
     }
     
     if (event.data && event.data.type === 'requestHeight') {
@@ -9424,7 +9471,16 @@ window.addEventListener('message', function(event) {
     
     // Handle response to getUrlParams request
     if (event.data && event.data.type === 'urlParamsResponse' && event.data.params) {
+        // Reset pending flag since we got a response
+        pendingGetUrlParamsRequest = false;
+        
         const newParams = event.data.params;
+        
+        // Only process if there are actually params (don't spam when URL is clean)
+        if (Object.keys(newParams).length === 0) {
+            // Empty params response - don't log or process, just reset flag
+            return;
+        }
         
         // Merge with existing params (don't overwrite, merge)
         const mergedParams = Object.assign({}, receivedUrlParams, newParams);

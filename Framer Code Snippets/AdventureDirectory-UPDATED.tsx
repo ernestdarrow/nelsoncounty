@@ -19,6 +19,13 @@ export default function AdventureDirectory() {
   const [iframeHeight, setIframeHeight] = useState(800)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const breadcrumbFilterSentRef = useRef(false)
+  
+  // Log when component mounts
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log('🍞 AdventureDirectory component MOUNTED')
+    }
+  }, [])
 
   // Read URL parameters from Framer page and build iframe URL
   const getIframeUrl = () => {
@@ -49,16 +56,23 @@ export default function AdventureDirectory() {
       return
     }
     
+    let lastSentParams = ''
+    let lastSentUrl = ''
+    
     const updateIframe = () => {
       if (iframeRef.current) {
         const newUrl = getIframeUrl()
-        // Only update if URL actually changed (prevents infinite loops)
+        const currentSearch = window.location.search || ''
+        const paramsHash = currentSearch
+        
+        // Only update iframe src if URL actually changed (prevents infinite loops)
         if (iframeRef.current.src !== newUrl) {
           iframeRef.current.src = newUrl
+          lastSentUrl = newUrl
         }
         
-        // Also send via postMessage for immediate updates
-        if (iframeRef.current.contentWindow && window.location) {
+        // Only send postMessage if params actually changed
+        if (paramsHash !== lastSentParams && iframeRef.current.contentWindow && window.location) {
           const params: Record<string, string> = {}
           const searchParams = new URLSearchParams(window.location.search)
           
@@ -66,17 +80,17 @@ export default function AdventureDirectory() {
             params[key] = value
           })
           
-          // Send to iframe via multiple methods
-          iframeRef.current.contentWindow.postMessage({
-            type: 'setUrlParams',
-            search: window.location.search,
-            params: params
-          }, '*')
+          // Only send if URL has params (don't spam empty params)
+          if (currentSearch) {
+            // Send to iframe (removed deprecated setFilters)
+            iframeRef.current.contentWindow.postMessage({
+              type: 'setUrlParams',
+              search: currentSearch,
+              params: params
+            }, '*')
+          }
           
-          iframeRef.current.contentWindow.postMessage({
-            type: 'setFilters',
-            params: params
-          }, '*')
+          lastSentParams = paramsHash
         }
       }
       
@@ -103,8 +117,9 @@ export default function AdventureDirectory() {
     // Listen for URL changes (popstate for back/forward)
     window.addEventListener('popstate', updateIframe)
     
-    // Also check periodically (fallback for Framer's navigation)
-    const interval = setInterval(updateIframe, 500)
+    // Check periodically but less frequently (fallback for Framer's navigation)
+    // Reduced frequency to prevent spam - only check every 2 seconds
+    const interval = setInterval(updateIframe, 2000)
     
     return () => {
       window.removeEventListener('popstate', updateIframe)
@@ -115,6 +130,11 @@ export default function AdventureDirectory() {
   // Handle breadcrumb filter - check for stored filter and send to iframe
   useEffect(() => {
     if (typeof window === 'undefined') return
+
+    console.log('🍞 ========================================')
+    console.log('🍞 AdventureDirectory: Breadcrumb filter handler initialized')
+    console.log('🍞 Checking for stored filter...')
+    console.log('🍞 ========================================')
 
     const sendBreadcrumbFilter = (filterParams: Record<string, string>, attempt: number = 0) => {
       if (!iframeRef.current) {
@@ -166,16 +186,21 @@ export default function AdventureDirectory() {
 
     // Check for stored breadcrumb filter
     const checkForBreadcrumbFilter = () => {
-      if (breadcrumbFilterSentRef.current) return
+      if (breadcrumbFilterSentRef.current) {
+        console.log('🍞 AdventureDirectory: Filter already sent, skipping check')
+        return
+      }
       
       try {
         const storedFilterString = sessionStorage.getItem('__pendingBreadcrumbFilter')
+        console.log('🍞 AdventureDirectory checking sessionStorage:', storedFilterString ? 'FOUND!' : 'not found')
+        
         if (storedFilterString) {
           const storedFilter = JSON.parse(storedFilterString)
-          console.log('🍞 AdventureDirectory found pending breadcrumb filter:', storedFilter)
+          console.log('🍞 ✅ AdventureDirectory found pending breadcrumb filter:', storedFilter)
           sendBreadcrumbFilter(storedFilter)
         } else {
-          console.log('🍞 AdventureDirectory: No pending breadcrumb filter found')
+          console.log('🍞 AdventureDirectory: No pending breadcrumb filter in sessionStorage')
         }
       } catch (e) {
         console.warn('🍞 AdventureDirectory: Error checking for breadcrumb filter:', e)
@@ -183,24 +208,33 @@ export default function AdventureDirectory() {
     }
 
     // Check immediately
+    console.log('🍞 AdventureDirectory: Scheduling immediate check...')
     setTimeout(checkForBreadcrumbFilter, 100)
     
     // Check after iframe loads
     if (iframeRef.current) {
+      console.log('🍞 AdventureDirectory: Setting up iframe load listener...')
       const sendOnLoad = () => {
+        console.log('🍞 AdventureDirectory: Iframe loaded, checking for filter...')
         setTimeout(checkForBreadcrumbFilter, 500)
       }
       iframeRef.current.addEventListener('load', sendOnLoad, { once: true })
+    } else {
+      console.log('🍞 AdventureDirectory: Iframe ref not available yet')
     }
     
     // Also check periodically
+    console.log('🍞 AdventureDirectory: Starting periodic checks...')
     const checkInterval = setInterval(() => {
       if (!breadcrumbFilterSentRef.current) {
         checkForBreadcrumbFilter()
       }
     }, 500)
     
-    setTimeout(() => clearInterval(checkInterval), 10000) // Stop after 10 seconds
+    setTimeout(() => {
+      clearInterval(checkInterval)
+      console.log('🍞 AdventureDirectory: Stopped periodic checks after 10 seconds')
+    }, 10000) // Stop after 10 seconds
   }, [])
 
   // Handle messages from iframe (resize, etc.)

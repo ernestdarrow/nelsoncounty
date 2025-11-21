@@ -73,28 +73,72 @@ export default function AmenityPills(props: Props) {
         )
     }
 
+    // Helper to store filter params for AdventureDirectory to pick up after navigation
+    const storeFilterForIframe = (params: Record<string, string>) => {
+        if (typeof window === 'undefined') return
+        
+        try {
+            // Store in sessionStorage (persists across navigation in same session)
+            // AdventureDirectory will check this and send to iframe
+            const paramsString = JSON.stringify(params)
+            sessionStorage.setItem('__pendingBreadcrumbFilter', paramsString)
+            console.log('🏷️ ✅ Stored amenity filter for AdventureDirectory:', params)
+            
+            // If we're already on the find-your-adventure page, try to send directly to iframe
+            // Retry a few times in case iframe is still loading
+            let attempts = 0
+            const maxAttempts = 10
+            const trySendDirectly = () => {
+                try {
+                    const iframe = document.getElementById('adventure-directory-iframe') as HTMLIFrameElement
+                    if (iframe && iframe.contentWindow) {
+                        console.log('🏷️ Already on find-your-adventure page - sending filter immediately')
+                        // Send directly to iframe
+                        iframe.contentWindow.postMessage({
+                            type: 'applyFilter',
+                            params: params,
+                            source: 'amenity'
+                        }, '*')
+                        console.log('🏷️ ✅ Sent amenity filter directly to iframe')
+                        // Clear stored filter since we sent it directly
+                        sessionStorage.removeItem('__pendingBreadcrumbFilter')
+                        return
+                    }
+                } catch (e) {
+                    console.warn('🏷️ Error sending filter directly:', e)
+                }
+                
+                attempts++
+                if (attempts < maxAttempts) {
+                    setTimeout(trySendDirectly, 100)
+                }
+            }
+            
+            // Try sending directly if on same page
+            trySendDirectly()
+        } catch (e) {
+            console.warn('🏷️ Error storing filter:', e)
+        }
+    }
+
     // Handle click on amenity pill
     const handleAmenityClick = (amenity: string) => {
-        // Build filter URL
-        const filterUrl = `/find-your-adventure?amenity=${encodeURIComponent(amenity)}`
-        
-        // Update iframe if it exists (if on same page)
-        const iframe = document.getElementById('adventure-directory-iframe') as HTMLIFrameElement
-        if (iframe?.contentWindow) {
-            iframe.contentWindow.postMessage({
-                type: 'setUrlParams',
-                search: `?amenity=${encodeURIComponent(amenity)}`,
-                params: { amenity: amenity }
-            }, '*')
-            
-            iframe.contentWindow.postMessage({
-                type: 'setFilters',
-                params: { amenity: amenity }
-            }, '*')
+        // Only run on client-side
+        if (typeof window === 'undefined') {
+            return
         }
         
-        // Navigate to filtered view
-        window.location.href = filterUrl
+        // Build clean URL (no parameters)
+        const cleanUrl = '/find-your-adventure'
+        
+        console.log('🏷️ Amenity clicked, navigating to:', cleanUrl, 'with filter:', { amenity })
+        
+        // Store filter params in sessionStorage before navigation
+        // AdventureDirectory will check this after navigation and send to iframe
+        storeFilterForIframe({ amenity: amenity })
+        
+        // Navigate to clean URL (no parameters)
+        window.location.href = cleanUrl
     }
 
     // Render as pills
