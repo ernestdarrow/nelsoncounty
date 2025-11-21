@@ -84,10 +84,15 @@ export default function AdventureDirectory() {
       // Reset the sent flag when navigating to allow new filters
       breadcrumbFilterSentRef.current = false
       setTimeout(() => {
-        const storedFilter = (window as any).__pendingBreadcrumbFilter
-        if (storedFilter && !breadcrumbFilterSentRef.current) {
-          console.log('🍞 AdventureDirectory: Found breadcrumb filter after navigation:', storedFilter)
-          // The breadcrumb filter handler will pick it up
+        try {
+          const storedFilterString = sessionStorage.getItem('__pendingBreadcrumbFilter')
+          if (storedFilterString && !breadcrumbFilterSentRef.current) {
+            const storedFilter = JSON.parse(storedFilterString)
+            console.log('🍞 AdventureDirectory: Found breadcrumb filter after navigation:', storedFilter)
+            // The breadcrumb filter handler will pick it up
+          }
+        } catch (e) {
+          // Ignore
         }
       }, 500)
     }
@@ -133,9 +138,7 @@ export default function AdventureDirectory() {
           breadcrumbFilterSentRef.current = true
           
           // Clear stored filter
-          if ((window as any).__pendingBreadcrumbFilter) {
-            delete (window as any).__pendingBreadcrumbFilter
-          }
+          sessionStorage.removeItem('__pendingBreadcrumbFilter')
           
           // Send again after delay to ensure iframe received it
           setTimeout(() => {
@@ -166,13 +169,16 @@ export default function AdventureDirectory() {
       if (breadcrumbFilterSentRef.current) return
       
       try {
-        const storedFilter = (window as any).__pendingBreadcrumbFilter
-        if (storedFilter) {
+        const storedFilterString = sessionStorage.getItem('__pendingBreadcrumbFilter')
+        if (storedFilterString) {
+          const storedFilter = JSON.parse(storedFilterString)
           console.log('🍞 AdventureDirectory found pending breadcrumb filter:', storedFilter)
           sendBreadcrumbFilter(storedFilter)
+        } else {
+          console.log('🍞 AdventureDirectory: No pending breadcrumb filter found')
         }
       } catch (e) {
-        // Ignore
+        console.warn('🍞 AdventureDirectory: Error checking for breadcrumb filter:', e)
       }
     }
 

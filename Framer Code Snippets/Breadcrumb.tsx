@@ -81,9 +81,10 @@ export default function Breadcrumb({
         if (typeof window === 'undefined') return
         
         try {
-            // Store in window object (accessible across navigation in same session)
+            // Store in sessionStorage (persists across navigation in same session)
             // AdventureDirectory will check this and send to iframe
-            ;(window as any).__pendingBreadcrumbFilter = params
+            const paramsString = JSON.stringify(params)
+            sessionStorage.setItem('__pendingBreadcrumbFilter', paramsString)
             console.log('🍞 ✅ Stored breadcrumb filter for AdventureDirectory:', params)
             
             // If we're already on the find-your-adventure page, try to send directly to iframe
@@ -103,7 +104,7 @@ export default function Breadcrumb({
                         }, '*')
                         console.log('🍞 ✅ Sent filter directly to iframe')
                         // Clear stored filter since we sent it directly
-                        delete (window as any).__pendingBreadcrumbFilter
+                        sessionStorage.removeItem('__pendingBreadcrumbFilter')
                         return true // Success
                     } else if (attempts < maxAttempts) {
                         attempts++
