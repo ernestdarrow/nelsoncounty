@@ -9389,9 +9389,9 @@ window.addEventListener('message', function(event) {
     }
     
     // Handle direct filter application (from breadcrumbs - no URL params)
-    if (event.data && event.data.type === 'applyFilter' && event.data.params) {
+    if (event.data && event.data.type === 'applyFilter' && event.data.params && event.data.source === 'breadcrumb') {
         const filterParams = event.data.params;
-        console.log('📨 Received direct filter command (no URL params):', filterParams);
+        console.log('📨 ✅ Received direct filter command from breadcrumb:', filterParams);
         
         // Clear the "explicitly cleared" flag since user is setting a filter
         filtersExplicitlyCleared = false;
@@ -9409,6 +9409,7 @@ window.addEventListener('message', function(event) {
         }
         
         // Apply filters directly without using URL parameters
+        console.log('🔍 Applying breadcrumb filter now...');
         applyBreadcrumbFilter(filterParams);
         
         // Don't update URL - breadcrumbs use direct filtering

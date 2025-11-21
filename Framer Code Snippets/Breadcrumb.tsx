@@ -82,10 +82,20 @@ export default function Breadcrumb({
         
         // Store in sessionStorage - URLParamsHelper will check this after navigation
         try {
-            sessionStorage.setItem('pendingBreadcrumbFilter', JSON.stringify(params))
-            console.log('🍞 Stored filter params in sessionStorage for URLParamsHelper:', params)
+            const paramsString = JSON.stringify(params)
+            sessionStorage.setItem('pendingBreadcrumbFilter', paramsString)
+            console.log('🍞 ✅ Stored filter params in sessionStorage:', params)
+            console.log('🍞 SessionStorage key "pendingBreadcrumbFilter" =', paramsString)
+            
+            // Verify it was stored
+            const verify = sessionStorage.getItem('pendingBreadcrumbFilter')
+            if (verify === paramsString) {
+                console.log('🍞 ✅ Verified: Filter params stored correctly')
+            } else {
+                console.warn('🍞 ⚠️ Warning: Stored value does not match!')
+            }
         } catch (e) {
-            console.warn('🍞 Could not store filter params in sessionStorage:', e)
+            console.error('🍞 ❌ Could not store filter params in sessionStorage:', e)
         }
     }
     
