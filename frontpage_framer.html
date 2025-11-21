@@ -7121,15 +7121,39 @@ function applyBreadcrumbFilter(filterParams) {
         currentTypeFilter = [filterParams.type];
         currentCategoryFilter = null; // Clear category when filtering by type
         console.log('✅ Setting type filter:', currentTypeFilter);
+        
+        // Update type filter dropdowns
+        const typeFilter = document.getElementById('previewTypeFilter');
+        const mobileTypeFilter = document.getElementById('mobileTypeFilter');
+        if (typeFilter) {
+            ensureDropdownOption(typeFilter, filterParams.type, filterParams.type);
+            typeFilter.value = filterParams.type;
+        }
+        if (mobileTypeFilter) {
+            ensureDropdownOption(mobileTypeFilter, filterParams.type, filterParams.type);
+            mobileTypeFilter.value = filterParams.type;
+        }
+        
+        // Update type filter buttons - deactivate all category buttons, keep "All Types" active
+        document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
+            btn.classList.remove('active');
+            if (btn.dataset.type === '' && !btn.dataset.category) {
+                btn.classList.add('active');
+            }
+        });
     }
     
     // Set area filter
     if (filterParams.area) {
         if (areaFilter) {
+            ensureDropdownOption(areaFilter, filterParams.area, filterParams.area);
             areaFilter.value = filterParams.area;
             console.log('✅ Setting area filter:', filterParams.area);
         }
-        if (mobileAreaFilter) mobileAreaFilter.value = filterParams.area;
+        if (mobileAreaFilter) {
+            ensureDropdownOption(mobileAreaFilter, filterParams.area, filterParams.area);
+            mobileAreaFilter.value = filterParams.area;
+        }
     }
     
     // Set amenity filter
