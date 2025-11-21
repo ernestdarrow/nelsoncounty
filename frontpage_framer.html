@@ -5831,6 +5831,21 @@ loadDataFromGoogleSheets()
                 return TYPE_CATEGORIES[k].name;
             }).join(', '));
             
+            // Check for pending breadcrumb filter from sessionStorage (set by breadcrumb navigation)
+            try {
+                const storedFilter = sessionStorage.getItem('pendingBreadcrumbFilter');
+                if (storedFilter) {
+                    const filterParams = JSON.parse(storedFilter);
+                    console.log('🍞 Found pending breadcrumb filter in sessionStorage:', filterParams);
+                    pendingBreadcrumbFilter = filterParams;
+                    // Clear it so it doesn't reapply on next load
+                    sessionStorage.removeItem('pendingBreadcrumbFilter');
+                }
+            } catch (e) {
+                // sessionStorage might not be available or parse failed
+                console.warn('⚠️ Could not read pending breadcrumb filter from sessionStorage:', e);
+            }
+            
             // Check for pending breadcrumb filter and apply it BEFORE rendering buttons
             if (pendingBreadcrumbFilter) {
                 console.log('📨 Applying pending breadcrumb filter after data load:', pendingBreadcrumbFilter);

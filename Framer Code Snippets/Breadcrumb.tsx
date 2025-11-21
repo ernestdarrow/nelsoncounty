@@ -70,25 +70,23 @@ export default function Breadcrumb({
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
     }
     
-    // Helper to build filter URL with parameters
+    // Helper to build clean URL (no parameters) - filters will be sent via postMessage
     const buildFilterUrl = (params: Record<string, string>) => {
-        const baseUrl = "/find-your-adventure"
+        // Always return clean URL - filters will be sent via postMessage instead
+        return "/find-your-adventure"
+    }
+    
+    // Helper to store filter params in sessionStorage for iframe to pick up after navigation
+    const storeFilterForIframe = (params: Record<string, string>) => {
+        if (typeof window === 'undefined') return
         
-        // Check if window exists (client-side only)
-        if (typeof window === 'undefined') {
-            // Server-side rendering: return simple URL without search params
-            return baseUrl
+        // Store params in sessionStorage - iframe will check this on load
+        try {
+            sessionStorage.setItem('pendingBreadcrumbFilter', JSON.stringify(params))
+            console.log('🍞 Stored filter params in sessionStorage:', params)
+        } catch (e) {
+            console.warn('🍞 Could not store filter params in sessionStorage:', e)
         }
-        
-        const url = new URL(baseUrl, window.location.origin)
-        
-        Object.entries(params).forEach(([key, value]) => {
-            if (value) {
-                url.searchParams.set(key, value)
-            }
-        })
-        
-        return url.pathname + url.search
     }
     
     // Home link
@@ -106,7 +104,7 @@ export default function Breadcrumb({
         items.push({ 
             label: categoryLabel,
             url: buildFilterUrl({ category: category.toLowerCase() }),
-            filterParams: {} // Not needed anymore - URL has params
+            filterParams: { category: category.toLowerCase() }
         })
     }
     
@@ -118,7 +116,10 @@ export default function Breadcrumb({
                 category: category ? category.toLowerCase() : "",
                 area: area 
             }),
-            filterParams: {} // Not needed anymore - URL has params
+            filterParams: { 
+                category: category ? category.toLowerCase() : "",
+                area: area 
+            }
         })
     }
     
@@ -131,7 +132,11 @@ export default function Breadcrumb({
                 type: type,
                 area: area || ""
             }),
-            filterParams: {} // Not needed anymore - URL has params
+            filterParams: { 
+                category: category ? category.toLowerCase() : "",
+                type: type,
+                area: area || ""
+            }
         })
     }
     
@@ -149,28 +154,32 @@ export default function Breadcrumb({
         return null
     }
     
-    const handleClick = (e: React.MouseEvent, url: string) => {
+    const handleClick = (e: React.MouseEvent, url: string, filterParams?: Record<string, string>) => {
         // Only run on client-side
         if (typeof window === 'undefined') {
             return
         }
         
-        console.log('🍞 Breadcrumb clicked, navigating to:', url)
+        console.log('🍞 Breadcrumb clicked, navigating to:', url, 'with filters:', filterParams)
         
-        // If the URL contains /find-your-adventure, navigate and let URLParamsHelper handle it
-        if (url.includes('/find-your-adventure')) {
-            // Build full URL
-            const targetUrl = url.startsWith('http') ? url : (url.startsWith('/') ? window.location.origin + url : window.location.origin + '/' + url)
+        // If the URL contains /find-your-adventure, navigate cleanly and send filters via postMessage
+        if (url.includes('/find-your-adventure') && filterParams) {
+            // Build clean URL (no parameters)
+            const cleanUrl = url.startsWith('http') ? url.split('?')[0] : (url.startsWith('/') ? window.location.origin + url.split('?')[0] : window.location.origin + '/' + url.split('?')[0])
             
-            console.log('🍞 Navigating to:', targetUrl)
+            console.log('🍞 Navigating to clean URL:', cleanUrl)
+            console.log('🍞 Will send filters via postMessage:', filterParams)
             
-            // Navigate to the URL - URLParamsHelper will send params to iframe
             // Prevent default to handle navigation ourselves
             e.preventDefault()
             e.stopPropagation()
             
-            // Navigate immediately
-            window.location.href = targetUrl
+            // Store filter params in sessionStorage before navigation
+            // The iframe will check sessionStorage on load and apply filters
+            storeFilterForIframe(filterParams)
+            
+            // Navigate to clean URL (no parameters)
+            window.location.href = cleanUrl
             
             return false
         }
@@ -201,8 +210,8 @@ export default function Breadcrumb({
                             <a
                                 href={item.url}
                                 onClick={(e) => {
-                                    // Just log - let the link navigate normally with URL params
-                                    handleClick(e, item.url)
+                                    // Navigate cleanly and send filters via postMessage
+                                    handleClick(e, item.url, item.filterParams)
                                 }}
                                 style={{
                                     color: isLast ? lastItemTextColor : linkColor,
