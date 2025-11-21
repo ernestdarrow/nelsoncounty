@@ -70,16 +70,25 @@ export default function Breadcrumb({
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
     }
     
-    // Helper to build filter parameters object (no URL needed)
-    const buildFilterParams = (params: Record<string, string>): Record<string, string> => {
-        // Return clean params object (no URL building needed)
-        const cleanParams: Record<string, string> = {}
+    // Helper to build filter URL with parameters
+    const buildFilterUrl = (params: Record<string, string>) => {
+        const baseUrl = "/find-your-adventure"
+        
+        // Check if window exists (client-side only)
+        if (typeof window === 'undefined') {
+            // Server-side rendering: return simple URL without search params
+            return baseUrl
+        }
+        
+        const url = new URL(baseUrl, window.location.origin)
+        
         Object.entries(params).forEach(([key, value]) => {
             if (value) {
-                cleanParams[key] = value
+                url.searchParams.set(key, value)
             }
         })
-        return cleanParams
+        
+        return url.pathname + url.search
     }
     
     // Home link
@@ -96,8 +105,8 @@ export default function Breadcrumb({
         const categoryLabel = capitalize(category)
         items.push({ 
             label: categoryLabel,
-            url: "/find-your-adventure", // Base URL for navigation
-            filterParams: buildFilterParams({ category: category.toLowerCase() })
+            url: buildFilterUrl({ category: category.toLowerCase() }),
+            filterParams: {} // Not needed anymore - URL has params
         })
     }
     
@@ -105,11 +114,11 @@ export default function Breadcrumb({
     if (area) {
         items.push({ 
             label: area,
-            url: "/find-your-adventure", // Base URL for navigation
-            filterParams: buildFilterParams({ 
+            url: buildFilterUrl({ 
                 category: category ? category.toLowerCase() : "",
                 area: area 
-            })
+            }),
+            filterParams: {} // Not needed anymore - URL has params
         })
     }
     
@@ -117,12 +126,12 @@ export default function Breadcrumb({
     if (type) {
         items.push({ 
             label: type,
-            url: "/find-your-adventure", // Base URL for navigation
-            filterParams: buildFilterParams({ 
+            url: buildFilterUrl({ 
                 category: category ? category.toLowerCase() : "",
                 type: type,
                 area: area || ""
-            })
+            }),
+            filterParams: {} // Not needed anymore - URL has params
         })
     }
     
@@ -140,53 +149,10 @@ export default function Breadcrumb({
         return null
     }
     
-    const handleClick = (e: React.MouseEvent, filterParams: Record<string, string>) => {
-        e.preventDefault()
-        e.stopPropagation()
-        
-        // Only run on client-side
-        if (typeof window === 'undefined') {
-            return
-        }
-        
-        console.log('🍞 Breadcrumb clicked with filter params:', filterParams)
-        
-        // Update iframe if it exists - send direct filter command instead of URL params
-        const iframe = document.getElementById('adventure-directory-iframe') as HTMLIFrameElement
-        
-        if (iframe?.contentWindow) {
-            try {
-                // Send direct filter command to iframe (no URL navigation)
-                iframe.contentWindow.postMessage({
-                    type: 'applyFilter',
-                    params: filterParams,
-                    source: 'breadcrumb'
-                }, '*')
-                
-                console.log('📨 Sent filter command to iframe:', filterParams)
-            } catch (err) {
-                console.warn('Error sending filter command:', err)
-            }
-        } else {
-            console.warn('⚠️ Iframe not found (id: adventure-directory-iframe) - trying to find by querySelector')
-            // Try alternative method to find iframe
-            const iframes = document.querySelectorAll('iframe')
-            console.log('Found iframes:', iframes.length)
-            iframes.forEach((iframe, index) => {
-                console.log(`Iframe ${index}:`, iframe.id, iframe.src)
-            })
-        }
-        
-        // Navigate to base /find-your-adventure page (without parameters)
-        // The iframe will handle the filtering via postMessage
-        const baseUrl = '/find-your-adventure'
-        
-        // Use a small delay to ensure postMessage is sent before navigation
-        setTimeout(() => {
-            window.location.href = baseUrl
-        }, 50)
-        
-        return false
+    const handleClick = (e: React.MouseEvent, url: string) => {
+        // Don't prevent default - let the link navigate normally
+        // The URL already contains the filter parameters
+        console.log('🍞 Breadcrumb clicked, navigating to:', url)
     }
     
     return (
@@ -213,12 +179,8 @@ export default function Breadcrumb({
                             <a
                                 href={item.url}
                                 onClick={(e) => {
-                                    // Use filter command if filterParams exist (category, area, type links)
-                                    if (item.filterParams && Object.keys(item.filterParams).length > 0) {
-                                        handleClick(e, item.filterParams)
-                                    }
-                                    // For home link (no filterParams or empty filterParams), let it navigate normally
-                                    // Don't prevent default for home link
+                                    // Just log - let the link navigate normally with URL params
+                                    handleClick(e, item.url)
                                 }}
                                 style={{
                                     color: isLast ? lastItemTextColor : linkColor,
