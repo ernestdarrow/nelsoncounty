@@ -2927,7 +2927,7 @@
             line-clamp: 3;
         }
         
-        /* Scrollable images on card front - always square regardless of content */
+        /* Scrollable images on card front - square by default, 2:3 on small screens */
         .card-front-image-scroll {
             position: relative;
             height: 0 !important;
@@ -2942,6 +2942,16 @@
             -ms-overflow-style: none;
             border-radius: 24px;
             clip-path: inset(0 round 24px);
+        }
+        
+        /* 2:3 aspect ratio for screens below 435px */
+        @media (max-width: 434px) {
+            .card-front-image-scroll {
+                padding-bottom: 150% !important; /* 2:3 aspect ratio (height = 1.5 * width) */
+            }
+            .card-front-image-scroll img {
+                aspect-ratio: 2 / 3 !important;
+            }
         }
         .card-front-image-scroll::-webkit-scrollbar {
             display: none;
