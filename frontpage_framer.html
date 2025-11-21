@@ -1928,6 +1928,28 @@
                 background: #ffffff;
             }
             
+            /* Container for Type, Area, and Amenities filters */
+            .mobile-filter-bar > .mobile-filters-wrapper {
+                order: 3;
+                flex: 1 1 calc(100% - 50px);
+                width: calc(100% - 50px);
+                display: flex;
+                flex-direction: row;
+                flex-wrap: nowrap;
+            }
+            
+            /* Filter controls inside wrapper - each gets 1/3 */
+            .mobile-filters-wrapper > .mobile-filter-group {
+                flex: 0 0 33.333%;
+                width: 33.333%;
+                position: relative;
+                display: flex !important;
+                align-items: center;
+                flex-basis: 33.333%;
+                min-width: 0;
+                padding: 0 8px;
+            }
+            
             /* Filter controls inside unified mobile bar - horizontal row, FORCED to new row */
             .mobile-filter-bar > .mobile-filter-group {
                 order: 3;
@@ -1943,32 +1965,53 @@
             
             /* Category filter - compact, icon only */
             .mobile-filter-bar > .mobile-category-filter-group {
-                flex: 0 0 auto;
-                width: auto;
+                flex: 0 0 50px;
+                width: 50px;
                 min-width: 50px;
-                max-width: 60px;
-                padding: 0 4px;
+                max-width: 50px;
+                padding: 0;
                 position: relative;
             }
             
             .mobile-filter-bar > .mobile-category-filter-group select {
-                padding-left: 32px;
-                padding-right: 8px;
-                text-indent: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                text-indent: -9999px; /* Hide text on the bar */
+                color: transparent; /* Make text invisible */
                 position: relative;
-                appearance: none;
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                background-color: transparent;
+                appearance: none !important;
+                -webkit-appearance: none !important;
+                -moz-appearance: none !important;
+                background-color: transparent !important;
+                background-image: none !important;
+                border: none;
+                outline: none;
+                cursor: pointer;
+            }
+            
+            /* Remove dropdown arrow - all browser variants */
+            .mobile-filter-bar > .mobile-category-filter-group select::-ms-expand {
+                display: none !important; /* IE/Edge */
+            }
+            
+            .mobile-filter-bar > .mobile-category-filter-group select::-webkit-appearance {
+                -webkit-appearance: none !important;
+            }
+            
+            /* Remove any pseudo-elements that might show arrows */
+            .mobile-filter-bar > .mobile-category-filter-group select::after,
+            .mobile-filter-bar > .mobile-category-filter-group select::before {
+                display: none !important;
             }
             
             /* Icon wrapper for category select */
             .mobile-filter-bar > .mobile-category-filter-group::before {
                 content: '';
                 position: absolute;
-                left: 12px;
+                left: 50%;
                 top: 50%;
-                transform: translateY(-50%);
+                transform: translate(-50%, -50%);
                 width: 20px;
                 height: 20px;
                 background-size: contain;
@@ -1977,16 +2020,105 @@
                 pointer-events: none;
                 z-index: 1;
                 background-image: url('icons/all-types.svg'); /* Default icon */
+                transition: filter 0.2s ease;
+            }
+            
+            /* Category-specific background colors and white icon when selected */
+            /* Colors match the SVG icon stroke colors */
+            .mobile-filter-bar > .mobile-category-filter-group.category-outdoor {
+                background-color: #7575b5 !important; /* Purple-blue - outdoor SVG color */
+            }
+            .mobile-filter-bar > .mobile-category-filter-group.category-outdoor select {
+                background-color: #7575b5 !important; /* Purple-blue - outdoor SVG color */
+            }
+            .mobile-filter-bar > .mobile-category-filter-group.category-outdoor::before {
+                filter: brightness(0) invert(1); /* Make icon white */
+            }
+            
+            .mobile-filter-bar > .mobile-category-filter-group.category-stay {
+                background-color: #e5675c !important; /* Red/coral - stay SVG color */
+            }
+            .mobile-filter-bar > .mobile-category-filter-group.category-stay select {
+                background-color: #e5675c !important; /* Red/coral - stay SVG color */
+            }
+            .mobile-filter-bar > .mobile-category-filter-group.category-stay::before {
+                filter: brightness(0) invert(1); /* Make icon white */
+            }
+            
+            .mobile-filter-bar > .mobile-category-filter-group.category-taste {
+                background-color: #57d1ae !important; /* Teal/green - taste SVG color */
+            }
+            .mobile-filter-bar > .mobile-category-filter-group.category-taste select {
+                background-color: #57d1ae !important; /* Teal/green - taste SVG color */
+            }
+            .mobile-filter-bar > .mobile-category-filter-group.category-taste::before {
+                filter: brightness(0) invert(1); /* Make icon white */
+            }
+            
+            .mobile-filter-bar > .mobile-category-filter-group.category-culture {
+                background-color: #8b5cf6 !important; /* Purple - culture SVG color */
+            }
+            .mobile-filter-bar > .mobile-category-filter-group.category-culture select {
+                background-color: #8b5cf6 !important; /* Purple - culture SVG color */
+            }
+            .mobile-filter-bar > .mobile-category-filter-group.category-culture::before {
+                filter: brightness(0) invert(1); /* Make icon white */
+            }
+            
+            .mobile-filter-bar > .mobile-category-filter-group.category-experience {
+                background-color: #f1b918 !important; /* Yellow/gold - experience SVG color */
+            }
+            .mobile-filter-bar > .mobile-category-filter-group.category-experience select {
+                background-color: #f1b918 !important; /* Yellow/gold - experience SVG color */
+            }
+            .mobile-filter-bar > .mobile-category-filter-group.category-experience::before {
+                filter: brightness(0) invert(1); /* Make icon white */
+            }
+            
+            .mobile-filter-bar > .mobile-category-filter-group.category-community {
+                background-color: #a3bb12 !important; /* Green/yellow-green - community SVG color */
+            }
+            .mobile-filter-bar > .mobile-category-filter-group.category-community select {
+                background-color: #a3bb12 !important; /* Green/yellow-green - community SVG color */
+            }
+            .mobile-filter-bar > .mobile-category-filter-group.category-community::before {
+                filter: brightness(0) invert(1); /* Make icon white */
             }
             
             /* Show text in dropdown options */
             .mobile-filter-bar > .mobile-category-filter-group select option {
+                text-indent: 0; /* Show text in dropdown */
+                color: #000; /* Make text visible in dropdown */
                 padding-left: 8px;
             }
             
             
             /* Fine vertical dividers between filters - full height */
             .mobile-filter-bar > .mobile-filter-group:not(:last-child)::after {
+                content: '';
+                position: absolute;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                width: 1px;
+                height: 100%;
+                background: #e5e7eb;
+            }
+            
+            /* Divider after category filter */
+            .mobile-filter-bar > .mobile-category-filter-group::after {
+                content: '';
+                position: absolute;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                width: 1px;
+                height: 100%;
+                background: #e5e7eb;
+            }
+            
+            /* Dividers between filters inside wrapper */
+            .mobile-filters-wrapper > .mobile-filter-group:not(:last-child)::after {
                 content: '';
                 position: absolute;
                 right: 0;
@@ -2199,25 +2331,46 @@
                 .mobile-filter-bar > .mobile-filter-group {
                     padding: 0 2px 0 6px;
                 }
-                /* Make Type and Area slightly narrower, Amenities slightly wider */
-                .mobile-filter-bar > .mobile-filter-group:nth-child(2),
-                .mobile-filter-bar > .mobile-filter-group:nth-child(3) {
-                    flex: 0 0 31%;
-                    width: 31%;
-                    flex-basis: 31%;
-                    min-width: 31%;
+                
+                /* Keep category filter at 50px on all mobile screens */
+                .mobile-filter-bar > .mobile-category-filter-group {
+                    flex: 0 0 50px !important;
+                    width: 50px !important;
+                    min-width: 50px !important;
+                    max-width: 50px !important;
+                    padding: 0 2px !important;
                 }
-                .mobile-filter-bar > .mobile-filter-group:nth-child(4) {
-                    flex: 0 0 38%;
-                    width: 38%;
-                    flex-basis: 38%;
-                    min-width: 38%;
+                
+                /* Container takes remaining space after 50px category filter */
+                .mobile-filter-bar > .mobile-filters-wrapper {
+                    flex: 1 1 calc(100% - 50px) !important;
+                    width: calc(100% - 50px) !important;
+                    min-width: 0;
+                }
+                
+                /* Each filter in wrapper gets 1/3 of remaining space */
+                .mobile-filters-wrapper > .mobile-filter-group {
+                    flex: 0 0 33.333% !important;
+                    width: 33.333% !important;
+                    flex-basis: 33.333% !important;
+                    min-width: 0 !important;
+                    padding: 0 2px 0 4px;
                 }
                 .mobile-filter-group select {
                     padding: 12px 2px 12px 26px;
                     padding-right: 2px;
                     font-size: 15px;
+                    appearance: none !important;
+                    -webkit-appearance: none !important;
+                    -moz-appearance: none !important;
                 }
+                
+                /* Remove dropdown arrows for all mobile selects on small screens */
+                .mobile-filter-group select::-ms-expand {
+                    display: none !important;
+                }
+                
+                /* Restore icons for Type, Area, and Amenities filters */
                 #mobileTypeFilter,
                 #mobileAreaFilter,
                 #mobileAmenityFilter {
@@ -3514,20 +3667,22 @@
                                 <option value="">All</option>
                             </select>
                         </div>
-                        <div class="mobile-filter-group">
-                            <select id="mobileTypeFilter" onchange="handleMobileTypeFilter()">
-                                <option value="">All Types</option>
-                            </select>
-                        </div>
-                        <div class="mobile-filter-group">
-                            <select id="mobileAreaFilter" onchange="handleMobileAreaFilter()">
-                                <option value="">Area</option>
-                            </select>
-                        </div>
-                        <div class="mobile-filter-group">
-                            <select id="mobileAmenityFilter" onchange="handleMobileAmenityFilter()">
-                                <option value="">Amenities</option>
-                            </select>
+                        <div class="mobile-filters-wrapper">
+                            <div class="mobile-filter-group">
+                                <select id="mobileTypeFilter" onchange="handleMobileTypeFilter()">
+                                    <option value="">All Types</option>
+                                </select>
+                            </div>
+                            <div class="mobile-filter-group">
+                                <select id="mobileAreaFilter" onchange="handleMobileAreaFilter()">
+                                    <option value="">Area</option>
+                                </select>
+                            </div>
+                            <div class="mobile-filter-group">
+                                <select id="mobileAmenityFilter" onchange="handleMobileAmenityFilter()">
+                                    <option value="">Amenities</option>
+                                </select>
+                            </div>
                         </div>
                         <button id="mobileClearFiltersBtn" class="mobile-clear-btn" onclick="clearPreviewFilters()" style="display: none;">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -8837,9 +8992,21 @@ function populateMobileCategoryFilter() {
 
 function updateMobileCategoryIcon(categoryKey) {
     const categoryGroup = document.querySelector('.mobile-category-filter-group');
-    if (!categoryGroup) return;
+    const categorySelect = document.getElementById('mobileCategoryFilter');
+    if (!categoryGroup || !categorySelect) return;
     
     const iconUrl = categoryKey ? `icons/${categoryKey.toLowerCase()}.svg` : 'icons/all-types.svg';
+    
+    // Remove all category classes from both select and group
+    categorySelect.classList.remove('category-outdoor', 'category-stay', 'category-taste', 'category-culture', 'category-experience', 'category-community');
+    categoryGroup.classList.remove('category-outdoor', 'category-stay', 'category-taste', 'category-culture', 'category-experience', 'category-community');
+    
+    // Add class based on selected category to both elements
+    if (categoryKey) {
+        const categoryClass = 'category-' + categoryKey.toLowerCase();
+        categorySelect.classList.add(categoryClass);
+        categoryGroup.classList.add(categoryClass);
+    }
     
     // Update ::before pseudo-element background using a style tag
     let style = document.getElementById('mobile-category-icon-style');
