@@ -18,6 +18,7 @@ import React, { useState, useRef, useEffect } from "react"
 export default function AdventureDirectory() {
   const [iframeHeight, setIframeHeight] = useState(800)
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  const breadcrumbFilterSentRef = useRef(false)
 
   // Read URL parameters from Framer page and build iframe URL
   const getIframeUrl = () => {
@@ -78,6 +79,17 @@ export default function AdventureDirectory() {
           }, '*')
         }
       }
+      
+      // After updating iframe, check for breadcrumb filter (in case we just navigated here)
+      // Reset the sent flag when navigating to allow new filters
+      breadcrumbFilterSentRef.current = false
+      setTimeout(() => {
+        const storedFilter = (window as any).__pendingBreadcrumbFilter
+        if (storedFilter && !breadcrumbFilterSentRef.current) {
+          console.log('🍞 AdventureDirectory: Found breadcrumb filter after navigation:', storedFilter)
+          // The breadcrumb filter handler will pick it up
+        }
+      }, 500)
     }
     
     // Update immediately
@@ -93,6 +105,96 @@ export default function AdventureDirectory() {
       window.removeEventListener('popstate', updateIframe)
       clearInterval(interval)
     }
+  }, [])
+
+  // Handle breadcrumb filter - check for stored filter and send to iframe
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const sendBreadcrumbFilter = (filterParams: Record<string, string>, attempt: number = 0) => {
+      if (!iframeRef.current) {
+        if (attempt < 50) {
+          setTimeout(() => sendBreadcrumbFilter(filterParams, attempt + 1), 100)
+        } else {
+          console.warn('🍞 AdventureDirectory: Iframe not found after 5 seconds')
+        }
+        return
+      }
+
+      try {
+        if (iframeRef.current.contentWindow) {
+          iframeRef.current.contentWindow.postMessage({
+            type: 'applyFilter',
+            params: filterParams,
+            source: 'breadcrumb'
+          }, '*')
+          
+          console.log('🍞 ✅ AdventureDirectory sent breadcrumb filter to iframe:', filterParams)
+          breadcrumbFilterSentRef.current = true
+          
+          // Clear stored filter
+          if ((window as any).__pendingBreadcrumbFilter) {
+            delete (window as any).__pendingBreadcrumbFilter
+          }
+          
+          // Send again after delay to ensure iframe received it
+          setTimeout(() => {
+            if (iframeRef.current?.contentWindow) {
+              iframeRef.current.contentWindow.postMessage({
+                type: 'applyFilter',
+                params: filterParams,
+                source: 'breadcrumb'
+              }, '*')
+              console.log('🍞 ✅ AdventureDirectory sent breadcrumb filter again (backup)')
+            }
+          }, 1000)
+        } else {
+          if (attempt < 50) {
+            setTimeout(() => sendBreadcrumbFilter(filterParams, attempt + 1), 100)
+          }
+        }
+      } catch (e) {
+        console.warn('🍞 AdventureDirectory: Error sending breadcrumb filter:', e)
+        if (attempt < 50) {
+          setTimeout(() => sendBreadcrumbFilter(filterParams, attempt + 1), 100)
+        }
+      }
+    }
+
+    // Check for stored breadcrumb filter
+    const checkForBreadcrumbFilter = () => {
+      if (breadcrumbFilterSentRef.current) return
+      
+      try {
+        const storedFilter = (window as any).__pendingBreadcrumbFilter
+        if (storedFilter) {
+          console.log('🍞 AdventureDirectory found pending breadcrumb filter:', storedFilter)
+          sendBreadcrumbFilter(storedFilter)
+        }
+      } catch (e) {
+        // Ignore
+      }
+    }
+
+    // Check immediately
+    setTimeout(checkForBreadcrumbFilter, 100)
+    
+    // Check after iframe loads
+    if (iframeRef.current) {
+      const sendOnLoad = () => {
+        setTimeout(checkForBreadcrumbFilter, 500)
+      }
+      iframeRef.current.addEventListener('load', sendOnLoad, { once: true })
+    }
+    
+    // Also check periodically
+    const checkInterval = setInterval(() => {
+      if (!breadcrumbFilterSentRef.current) {
+        checkForBreadcrumbFilter()
+      }
+    }, 500)
+    
+    setTimeout(() => clearInterval(checkInterval), 10000) // Stop after 10 seconds
   }, [])
 
   // Handle messages from iframe (resize, etc.)

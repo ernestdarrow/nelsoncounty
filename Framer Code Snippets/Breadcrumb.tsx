@@ -76,48 +76,52 @@ export default function Breadcrumb({
         return "/find-your-adventure"
     }
     
-    // Helper to store filter params in sessionStorage for URLParamsHelper to pick up after navigation
+    // Helper to store filter params for AdventureDirectory to pick up after navigation
     const storeFilterForIframe = (params: Record<string, string>) => {
         if (typeof window === 'undefined') return
         
-        // Store in sessionStorage - URLParamsHelper will check this after navigation
         try {
-            const paramsString = JSON.stringify(params)
-            sessionStorage.setItem('pendingBreadcrumbFilter', paramsString)
-            console.log('🍞 ✅ Stored filter params in sessionStorage:', params)
-            console.log('🍞 SessionStorage key "pendingBreadcrumbFilter" =', paramsString)
+            // Store in window object (accessible across navigation in same session)
+            // AdventureDirectory will check this and send to iframe
+            ;(window as any).__pendingBreadcrumbFilter = params
+            console.log('🍞 ✅ Stored breadcrumb filter for AdventureDirectory:', params)
             
-            // Verify it was stored
-            const verify = sessionStorage.getItem('pendingBreadcrumbFilter')
-            if (verify === paramsString) {
-                console.log('🍞 ✅ Verified: Filter params stored correctly')
-            } else {
-                console.warn('🍞 ⚠️ Warning: Stored value does not match!')
-            }
-            
-            // If we're already on the find-your-adventure page, trigger URLParamsHelper immediately
-            // by sending directly to the iframe if it exists
-            try {
-                const iframe = document.getElementById('adventure-directory-iframe') as HTMLIFrameElement
-                if (iframe && iframe.contentWindow) {
-                    console.log('🍞 Already on find-your-adventure page - sending filter immediately')
-                    // Send directly to iframe
-                    iframe.contentWindow.postMessage({
-                        type: 'applyFilter',
-                        params: params,
-                        source: 'breadcrumb'
-                    }, '*')
-                    console.log('🍞 ✅ Sent filter directly to iframe')
-                    // Clear sessionStorage since we sent it directly
-                    sessionStorage.removeItem('pendingBreadcrumbFilter')
-                } else {
-                    console.log('🍞 Iframe not found yet - URLParamsHelper will pick it up after navigation')
+            // If we're already on the find-your-adventure page, try to send directly to iframe
+            // Retry a few times in case iframe is still loading
+            let attempts = 0
+            const maxAttempts = 10
+            const trySendDirectly = () => {
+                try {
+                    const iframe = document.getElementById('adventure-directory-iframe') as HTMLIFrameElement
+                    if (iframe && iframe.contentWindow) {
+                        console.log('🍞 Already on find-your-adventure page - sending filter immediately')
+                        // Send directly to iframe
+                        iframe.contentWindow.postMessage({
+                            type: 'applyFilter',
+                            params: params,
+                            source: 'breadcrumb'
+                        }, '*')
+                        console.log('🍞 ✅ Sent filter directly to iframe')
+                        // Clear stored filter since we sent it directly
+                        delete (window as any).__pendingBreadcrumbFilter
+                        return true // Success
+                    } else if (attempts < maxAttempts) {
+                        attempts++
+                        console.log(`🍞 Iframe not found yet (attempt ${attempts}/${maxAttempts}), retrying...`)
+                        setTimeout(trySendDirectly, 100) // Retry after 100ms
+                        return false // Still trying
+                    } else {
+                        console.log('🍞 Iframe not found after retries - AdventureDirectory will pick it up after navigation')
+                        return false // Give up, AdventureDirectory will handle it
+                    }
+                } catch (e) {
+                    console.log('🍞 Could not send directly (AdventureDirectory will pick it up):', e)
+                    return false
                 }
-            } catch (e) {
-                console.log('🍞 Could not send directly (will be picked up by URLParamsHelper):', e)
             }
+            trySendDirectly()
         } catch (e) {
-            console.error('🍞 ❌ Could not store filter params in sessionStorage:', e)
+            console.error('🍞 ❌ Could not store breadcrumb filter:', e)
         }
     }
     
