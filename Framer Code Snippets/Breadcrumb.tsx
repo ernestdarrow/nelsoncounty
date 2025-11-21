@@ -96,7 +96,7 @@ export default function Breadcrumb({
         const categoryLabel = capitalize(category)
         items.push({ 
             label: categoryLabel,
-            url: "", // No URL - will use postMessage
+            url: "/find-your-adventure", // Base URL for navigation
             filterParams: buildFilterParams({ category: category.toLowerCase() })
         })
     }
@@ -105,7 +105,7 @@ export default function Breadcrumb({
     if (area) {
         items.push({ 
             label: area,
-            url: "", // No URL - will use postMessage
+            url: "/find-your-adventure", // Base URL for navigation
             filterParams: buildFilterParams({ 
                 category: category ? category.toLowerCase() : "",
                 area: area 
@@ -117,7 +117,7 @@ export default function Breadcrumb({
     if (type) {
         items.push({ 
             label: type,
-            url: "", // No URL - will use postMessage
+            url: "/find-your-adventure", // Base URL for navigation
             filterParams: buildFilterParams({ 
                 category: category ? category.toLowerCase() : "",
                 type: type,
@@ -142,14 +142,18 @@ export default function Breadcrumb({
     
     const handleClick = (e: React.MouseEvent, filterParams: Record<string, string>) => {
         e.preventDefault()
+        e.stopPropagation()
         
         // Only run on client-side
         if (typeof window === 'undefined') {
             return
         }
         
+        console.log('🍞 Breadcrumb clicked with filter params:', filterParams)
+        
         // Update iframe if it exists - send direct filter command instead of URL params
         const iframe = document.getElementById('adventure-directory-iframe') as HTMLIFrameElement
+        
         if (iframe?.contentWindow) {
             try {
                 // Send direct filter command to iframe (no URL navigation)
@@ -160,17 +164,29 @@ export default function Breadcrumb({
                 }, '*')
                 
                 console.log('📨 Sent filter command to iframe:', filterParams)
-            } catch (e) {
-                console.warn('Error sending filter command:', e)
+            } catch (err) {
+                console.warn('Error sending filter command:', err)
             }
         } else {
-            console.warn('⚠️ Iframe not found - cannot apply filter')
+            console.warn('⚠️ Iframe not found (id: adventure-directory-iframe) - trying to find by querySelector')
+            // Try alternative method to find iframe
+            const iframes = document.querySelectorAll('iframe')
+            console.log('Found iframes:', iframes.length)
+            iframes.forEach((iframe, index) => {
+                console.log(`Iframe ${index}:`, iframe.id, iframe.src)
+            })
         }
         
         // Navigate to base /find-your-adventure page (without parameters)
         // The iframe will handle the filtering via postMessage
         const baseUrl = '/find-your-adventure'
-        window.location.href = baseUrl
+        
+        // Use a small delay to ensure postMessage is sent before navigation
+        setTimeout(() => {
+            window.location.href = baseUrl
+        }, 50)
+        
+        return false
     }
     
     return (
@@ -197,11 +213,12 @@ export default function Breadcrumb({
                             <a
                                 href={item.url}
                                 onClick={(e) => {
-                                    // Only use filter command if filterParams exist (not for home link)
+                                    // Use filter command if filterParams exist (category, area, type links)
                                     if (item.filterParams && Object.keys(item.filterParams).length > 0) {
                                         handleClick(e, item.filterParams)
                                     }
-                                    // For home link (no filterParams), let it navigate normally
+                                    // For home link (no filterParams or empty filterParams), let it navigate normally
+                                    // Don't prevent default for home link
                                 }}
                                 style={{
                                     color: isLast ? lastItemTextColor : linkColor,

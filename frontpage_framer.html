@@ -3863,6 +3863,7 @@ let lastProcessedParamsHash = null; // Track last processed parameters hash to p
 let isProcessingParams = false; // Guard to prevent concurrent processing
 let ignoreUrlParamsUntil = 0; // Timestamp - ignore URL params until this time (to prevent re-applying after clear)
 let filtersExplicitlyCleared = false; // Flag: if true, ignore all URL parameters until user explicitly sets a filter
+let pendingBreadcrumbFilter = null; // Store breadcrumb filter command if data isn't loaded yet
 
 // Pagination variables for infinite scroll
 let currentPage = 1;
@@ -5719,6 +5720,13 @@ loadDataFromGoogleSheets()
                 return TYPE_CATEGORIES[k].name;
             }).join(', '));
             
+            // Check for pending breadcrumb filter and apply it BEFORE rendering buttons
+            if (pendingBreadcrumbFilter) {
+                console.log('📨 Applying pending breadcrumb filter after data load:', pendingBreadcrumbFilter);
+                applyBreadcrumbFilter(pendingBreadcrumbFilter);
+                pendingBreadcrumbFilter = null; // Clear after applying
+            }
+            
             // Render type filter buttons dynamically based on usage
             renderTypeFilterButtons(data.listings, '.type-quick-filters'); // Show all categories
             
@@ -6836,6 +6844,118 @@ function clearPreviewFilters() {
         console.warn('⚠️ Error navigating:', e);
         // Filters are already cleared locally, so at least the UI is updated
     }
+}
+
+// Apply breadcrumb filter directly (no URL params)
+function applyBreadcrumbFilter(filterParams) {
+    if (!data) {
+        console.warn('⚠️ Cannot apply breadcrumb filter - data not loaded');
+        return;
+    }
+    
+    console.log('🔍 Applying breadcrumb filter:', filterParams);
+    
+    // Clear all existing filters first
+    currentCategoryFilter = null;
+    currentTypeFilter = [];
+    currentFeaturedOnly = false;
+    
+    // Clear all filter inputs
+    const searchInput = document.getElementById('previewSearchInput');
+    const mobileSearchInput = document.getElementById('previewSearchInputMobile');
+    const areaFilter = document.getElementById('previewAreaFilter');
+    const amenityFilter = document.getElementById('previewAmenityFilter');
+    const mobileAreaFilter = document.getElementById('mobileAreaFilter');
+    const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
+    
+    if (searchInput) searchInput.value = '';
+    if (mobileSearchInput) mobileSearchInput.value = '';
+    if (areaFilter) areaFilter.value = '';
+    if (amenityFilter) amenityFilter.value = '';
+    if (mobileAreaFilter) mobileAreaFilter.value = '';
+    if (mobileAmenityFilter) mobileAmenityFilter.value = '';
+    
+    // Clear all filter buttons
+    document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+    
+    // Set filter state based on params
+    if (filterParams.category) {
+        currentCategoryFilter = filterParams.category.toLowerCase();
+        console.log('✅ Setting category filter:', currentCategoryFilter);
+        
+        // Get types for this category
+        const categoryData = TYPE_CATEGORIES[currentCategoryFilter];
+        if (categoryData && categoryData.types) {
+            currentTypeFilter = categoryData.types.slice();
+            console.log('✅ Category has types:', currentTypeFilter);
+        } else {
+            currentTypeFilter = [];
+            console.log('⚠️ Category has no types defined');
+        }
+        
+        // Update category button state
+        document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
+            if (btn.dataset.category === currentCategoryFilter) {
+                btn.classList.add('active');
+                console.log('✅ Activated category button:', currentCategoryFilter);
+            }
+        });
+    }
+    
+    if (filterParams.type) {
+        currentTypeFilter = [filterParams.type];
+        currentCategoryFilter = null; // Clear category when filtering by type
+        console.log('✅ Setting type filter:', currentTypeFilter);
+    }
+    
+    // Set area filter
+    if (filterParams.area) {
+        if (areaFilter) {
+            areaFilter.value = filterParams.area;
+            console.log('✅ Setting area filter:', filterParams.area);
+        }
+        if (mobileAreaFilter) mobileAreaFilter.value = filterParams.area;
+    }
+    
+    // Set amenity filter
+    if (filterParams.amenity) {
+        if (amenityFilter) {
+            amenityFilter.value = filterParams.amenity;
+            console.log('✅ Setting amenity filter:', filterParams.amenity);
+        }
+        if (mobileAmenityFilter) mobileAmenityFilter.value = filterParams.amenity;
+    }
+    
+    // Set search
+    if (filterParams.search) {
+        if (searchInput) {
+            searchInput.value = filterParams.search;
+            console.log('✅ Setting search filter:', filterParams.search);
+        }
+        if (mobileSearchInput) mobileSearchInput.value = filterParams.search;
+    }
+    
+    // Set featured filter
+    if (filterParams.featured === 'true') {
+        currentFeaturedOnly = true;
+        console.log('✅ Setting featured filter: true');
+    } else {
+        currentFeaturedOnly = false;
+    }
+    
+    // Apply filters
+    console.log('🔍 Calling filterPreview() with filters:', {
+        category: currentCategoryFilter,
+        type: currentTypeFilter,
+        area: filterParams.area,
+        amenity: filterParams.amenity,
+        search: filterParams.search,
+        featured: currentFeaturedOnly
+    });
+    
+    filterPreview();
 }
 
 // Filter to show only a specific listing (from map popup)
@@ -9137,86 +9257,15 @@ window.addEventListener('message', function(event) {
             // sessionStorage might not be available
         }
         
-        // Apply filters directly without using URL parameters
-        if (data) {
-            // Set filter state directly
-            if (filterParams.category) {
-                currentCategoryFilter = filterParams.category.toLowerCase();
-                // Get types for this category
-                const categoryData = TYPE_CATEGORIES[currentCategoryFilter];
-                if (categoryData && categoryData.types) {
-                    currentTypeFilter = categoryData.types.slice();
-                } else {
-                    currentTypeFilter = [];
-                }
-                // Update category button state
-                document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
-                    btn.classList.remove('active');
-                    if (btn.dataset.category === currentCategoryFilter) {
-                        btn.classList.add('active');
-                    }
-                });
-            } else {
-                currentCategoryFilter = null;
-            }
-            
-            if (filterParams.type) {
-                currentTypeFilter = [filterParams.type];
-                currentCategoryFilter = null; // Clear category when filtering by type
-            }
-            
-            // Set area filter
-            if (filterParams.area) {
-                const areaFilter = document.getElementById('previewAreaFilter');
-                const mobileAreaFilter = document.getElementById('mobileAreaFilter');
-                if (areaFilter) areaFilter.value = filterParams.area;
-                if (mobileAreaFilter) mobileAreaFilter.value = filterParams.area;
-            } else {
-                // Clear area filter
-                const areaFilter = document.getElementById('previewAreaFilter');
-                const mobileAreaFilter = document.getElementById('mobileAreaFilter');
-                if (areaFilter) areaFilter.value = '';
-                if (mobileAreaFilter) mobileAreaFilter.value = '';
-            }
-            
-            // Set amenity filter
-            if (filterParams.amenity) {
-                const amenityFilter = document.getElementById('previewAmenityFilter');
-                const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
-                if (amenityFilter) amenityFilter.value = filterParams.amenity;
-                if (mobileAmenityFilter) mobileAmenityFilter.value = filterParams.amenity;
-            } else {
-                // Clear amenity filter
-                const amenityFilter = document.getElementById('previewAmenityFilter');
-                const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
-                if (amenityFilter) amenityFilter.value = '';
-                if (mobileAmenityFilter) mobileAmenityFilter.value = '';
-            }
-            
-            // Set search
-            if (filterParams.search) {
-                const searchInput = document.getElementById('previewSearchInput');
-                const mobileSearchInput = document.getElementById('previewSearchInputMobile');
-                if (searchInput) searchInput.value = filterParams.search;
-                if (mobileSearchInput) mobileSearchInput.value = filterParams.search;
-            } else {
-                // Clear search
-                const searchInput = document.getElementById('previewSearchInput');
-                const mobileSearchInput = document.getElementById('previewSearchInputMobile');
-                if (searchInput) searchInput.value = '';
-                if (mobileSearchInput) mobileSearchInput.value = '';
-            }
-            
-            // Set featured filter
-            if (filterParams.featured === 'true') {
-                currentFeaturedOnly = true;
-            } else {
-                currentFeaturedOnly = false;
-            }
-            
-            // Apply filters
-            filterPreview();
+        // If data isn't loaded yet, store the filter params to apply later
+        if (!data) {
+            console.log('⏳ Data not loaded yet, storing breadcrumb filter for later:', filterParams);
+            pendingBreadcrumbFilter = filterParams;
+            return;
         }
+        
+        // Apply filters directly without using URL parameters
+        applyBreadcrumbFilter(filterParams);
         
         // Don't update URL - breadcrumbs use direct filtering
         return;
