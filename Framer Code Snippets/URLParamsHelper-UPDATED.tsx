@@ -429,14 +429,20 @@ export default function URLParamsHelper() {
         // Check for pending breadcrumb filter in sessionStorage and send to iframe
         const sendPendingBreadcrumbFilter = (attempt: number = 0) => {
             try {
+                console.log('🍞 URLParamsHelper checking for pending breadcrumb filter (attempt ' + attempt + ')...')
                 const storedFilter = sessionStorage.getItem('pendingBreadcrumbFilter')
+                console.log('🍞 SessionStorage value:', storedFilter)
+                
                 if (!storedFilter) {
                     // No filter stored, stop trying
+                    if (attempt === 0) {
+                        console.log('🍞 No pending breadcrumb filter in sessionStorage')
+                    }
                     return
                 }
                 
                 const filterParams = JSON.parse(storedFilter)
-                console.log('🍞 URLParamsHelper found pending breadcrumb filter (attempt ' + attempt + '):', filterParams)
+                console.log('🍞 ✅ URLParamsHelper found pending breadcrumb filter:', filterParams)
                 
                 // Find iframe
                 const iframe = document.getElementById('adventure-directory-iframe') as HTMLIFrameElement

@@ -3896,7 +3896,11 @@ try {
     }
 } catch (e) {
     console.warn('⚠️ Could not read pending breadcrumb filter from sessionStorage on initial load:', e);
+    console.warn('⚠️ Error details:', e.message, e.stack);
 }
+
+// Log that we're ready to receive postMessage from parent
+console.log('🍞 Iframe ready to receive breadcrumb filter via postMessage');
 
 // Global data variable
 let data = null;
@@ -9280,6 +9284,11 @@ try {
 
 // Listen for messages from parent (height requests and filter parameters)
 window.addEventListener('message', function(event) {
+    // Log ALL incoming messages for debugging breadcrumb filters
+    if (event.data && typeof event.data === 'object') {
+        console.log('📨 Received postMessage:', event.data.type || 'unknown type', event.data);
+    }
+    
     if (event.data && event.data.type === 'requestHeight') {
         // Parent is requesting height update
         reportContentHeight();
@@ -9421,9 +9430,11 @@ window.addEventListener('message', function(event) {
     }
     
     // Handle direct filter application (from breadcrumbs - no URL params)
-    if (event.data && event.data.type === 'applyFilter' && event.data.params && event.data.source === 'breadcrumb') {
+    if (event.data && event.data.type === 'applyFilter' && event.data.params) {
+        // Check source to ensure it's from breadcrumb (or allow any source for now)
         const filterParams = event.data.params;
-        console.log('📨 ✅ Received direct filter command from breadcrumb:', filterParams);
+        console.log('📨 ✅✅✅ RECEIVED APPLYFILTER MESSAGE:', filterParams, 'source:', event.data.source);
+        console.log('📨 Full event.data:', JSON.stringify(event.data));
         
         // Clear the "explicitly cleared" flag since user is setting a filter
         filtersExplicitlyCleared = false;
@@ -9441,7 +9452,7 @@ window.addEventListener('message', function(event) {
         }
         
         // Apply filters directly without using URL parameters
-        console.log('🔍 Applying breadcrumb filter now...');
+        console.log('🔍 ✅ Applying breadcrumb filter now with data loaded...');
         applyBreadcrumbFilter(filterParams);
         
         // Don't update URL - breadcrumbs use direct filtering
