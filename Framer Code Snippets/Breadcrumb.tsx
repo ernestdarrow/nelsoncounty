@@ -62,7 +62,7 @@ export default function Breadcrumb({
     lastItemPadding = 8,
     lastItemBorderRadius = 16
 }: BreadcrumbProps) {
-    const items: Array<{ label: string; url: string }> = []
+    const items: Array<{ label: string; url: string; filterParams?: Record<string, string> }> = []
     
     // Helper to capitalize first letter
     const capitalize = (str: string) => {
@@ -70,32 +70,24 @@ export default function Breadcrumb({
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
     }
     
-    // Helper to build filter URL
-    const buildFilterUrl = (params: Record<string, string>) => {
-        const baseUrl = "/find-your-adventure"
-        
-        // Check if window exists (client-side only)
-        if (typeof window === 'undefined') {
-            // Server-side rendering: return simple URL without search params
-            return baseUrl
-        }
-        
-        const url = new URL(baseUrl, window.location.origin)
-        
+    // Helper to build filter parameters object (no URL needed)
+    const buildFilterParams = (params: Record<string, string>): Record<string, string> => {
+        // Return clean params object (no URL building needed)
+        const cleanParams: Record<string, string> = {}
         Object.entries(params).forEach(([key, value]) => {
             if (value) {
-                url.searchParams.set(key, value)
+                cleanParams[key] = value
             }
         })
-        
-        return url.pathname + url.search
+        return cleanParams
     }
     
     // Home link
     if (showHome) {
         items.push({ 
             label: homeLabel, 
-            url: homeUrl 
+            url: homeUrl,
+            filterParams: {} // Home link doesn't filter
         })
     }
     
@@ -104,7 +96,8 @@ export default function Breadcrumb({
         const categoryLabel = capitalize(category)
         items.push({ 
             label: categoryLabel,
-            url: buildFilterUrl({ category: category.toLowerCase() })
+            url: "", // No URL - will use postMessage
+            filterParams: buildFilterParams({ category: category.toLowerCase() })
         })
     }
     
@@ -112,7 +105,8 @@ export default function Breadcrumb({
     if (area) {
         items.push({ 
             label: area,
-            url: buildFilterUrl({ 
+            url: "", // No URL - will use postMessage
+            filterParams: buildFilterParams({ 
                 category: category ? category.toLowerCase() : "",
                 area: area 
             })
@@ -123,7 +117,8 @@ export default function Breadcrumb({
     if (type) {
         items.push({ 
             label: type,
-            url: buildFilterUrl({ 
+            url: "", // No URL - will use postMessage
+            filterParams: buildFilterParams({ 
                 category: category ? category.toLowerCase() : "",
                 type: type,
                 area: area || ""
@@ -135,7 +130,8 @@ export default function Breadcrumb({
     if (listingName) {
         items.push({ 
             label: listingName,
-            url: "" // Empty URL means it's not clickable
+            url: "", // Empty URL means it's not clickable
+            filterParams: {}
         })
     }
     
@@ -144,7 +140,7 @@ export default function Breadcrumb({
         return null
     }
     
-    const handleClick = (e: React.MouseEvent, url: string) => {
+    const handleClick = (e: React.MouseEvent, filterParams: Record<string, string>) => {
         e.preventDefault()
         
         // Only run on client-side
@@ -152,30 +148,29 @@ export default function Breadcrumb({
             return
         }
         
-        // Update iframe if it exists
+        // Update iframe if it exists - send direct filter command instead of URL params
         const iframe = document.getElementById('adventure-directory-iframe') as HTMLIFrameElement
         if (iframe?.contentWindow) {
             try {
-                const urlObj = new URL(url, window.location.origin)
-                const params: Record<string, string> = {}
-                
-                urlObj.searchParams.forEach((value, key) => {
-                    params[key] = value
-                })
-                
-                // Send to iframe
+                // Send direct filter command to iframe (no URL navigation)
                 iframe.contentWindow.postMessage({
-                    type: 'setUrlParams',
-                    search: urlObj.search,
-                    params: params
+                    type: 'applyFilter',
+                    params: filterParams,
+                    source: 'breadcrumb'
                 }, '*')
+                
+                console.log('📨 Sent filter command to iframe:', filterParams)
             } catch (e) {
-                console.warn('Error parsing URL:', e)
+                console.warn('Error sending filter command:', e)
             }
+        } else {
+            console.warn('⚠️ Iframe not found - cannot apply filter')
         }
         
-        // Navigate to URL
-        window.location.href = url
+        // Navigate to base /find-your-adventure page (without parameters)
+        // The iframe will handle the filtering via postMessage
+        const baseUrl = '/find-your-adventure'
+        window.location.href = baseUrl
     }
     
     return (
@@ -201,7 +196,13 @@ export default function Breadcrumb({
                         {item.url ? (
                             <a
                                 href={item.url}
-                                onClick={(e) => handleClick(e, item.url)}
+                                onClick={(e) => {
+                                    // Only use filter command if filterParams exist (not for home link)
+                                    if (item.filterParams && Object.keys(item.filterParams).length > 0) {
+                                        handleClick(e, item.filterParams)
+                                    }
+                                    // For home link (no filterParams), let it navigate normally
+                                }}
                                 style={{
                                     color: isLast ? lastItemTextColor : linkColor,
                                     backgroundColor: isLast ? lastItemBackgroundColor : 'transparent',

@@ -9124,6 +9124,104 @@ window.addEventListener('message', function(event) {
         }
     }
     
+    // Handle direct filter application (from breadcrumbs - no URL params)
+    if (event.data && event.data.type === 'applyFilter' && event.data.params) {
+        const filterParams = event.data.params;
+        console.log('📨 Received direct filter command (no URL params):', filterParams);
+        
+        // Clear the "explicitly cleared" flag since user is setting a filter
+        filtersExplicitlyCleared = false;
+        try {
+            sessionStorage.removeItem('filtersExplicitlyCleared');
+        } catch (e) {
+            // sessionStorage might not be available
+        }
+        
+        // Apply filters directly without using URL parameters
+        if (data) {
+            // Set filter state directly
+            if (filterParams.category) {
+                currentCategoryFilter = filterParams.category.toLowerCase();
+                // Get types for this category
+                const categoryData = TYPE_CATEGORIES[currentCategoryFilter];
+                if (categoryData && categoryData.types) {
+                    currentTypeFilter = categoryData.types.slice();
+                } else {
+                    currentTypeFilter = [];
+                }
+                // Update category button state
+                document.querySelectorAll('.type-filter-btn').forEach(function(btn) {
+                    btn.classList.remove('active');
+                    if (btn.dataset.category === currentCategoryFilter) {
+                        btn.classList.add('active');
+                    }
+                });
+            } else {
+                currentCategoryFilter = null;
+            }
+            
+            if (filterParams.type) {
+                currentTypeFilter = [filterParams.type];
+                currentCategoryFilter = null; // Clear category when filtering by type
+            }
+            
+            // Set area filter
+            if (filterParams.area) {
+                const areaFilter = document.getElementById('previewAreaFilter');
+                const mobileAreaFilter = document.getElementById('mobileAreaFilter');
+                if (areaFilter) areaFilter.value = filterParams.area;
+                if (mobileAreaFilter) mobileAreaFilter.value = filterParams.area;
+            } else {
+                // Clear area filter
+                const areaFilter = document.getElementById('previewAreaFilter');
+                const mobileAreaFilter = document.getElementById('mobileAreaFilter');
+                if (areaFilter) areaFilter.value = '';
+                if (mobileAreaFilter) mobileAreaFilter.value = '';
+            }
+            
+            // Set amenity filter
+            if (filterParams.amenity) {
+                const amenityFilter = document.getElementById('previewAmenityFilter');
+                const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
+                if (amenityFilter) amenityFilter.value = filterParams.amenity;
+                if (mobileAmenityFilter) mobileAmenityFilter.value = filterParams.amenity;
+            } else {
+                // Clear amenity filter
+                const amenityFilter = document.getElementById('previewAmenityFilter');
+                const mobileAmenityFilter = document.getElementById('mobileAmenityFilter');
+                if (amenityFilter) amenityFilter.value = '';
+                if (mobileAmenityFilter) mobileAmenityFilter.value = '';
+            }
+            
+            // Set search
+            if (filterParams.search) {
+                const searchInput = document.getElementById('previewSearchInput');
+                const mobileSearchInput = document.getElementById('previewSearchInputMobile');
+                if (searchInput) searchInput.value = filterParams.search;
+                if (mobileSearchInput) mobileSearchInput.value = filterParams.search;
+            } else {
+                // Clear search
+                const searchInput = document.getElementById('previewSearchInput');
+                const mobileSearchInput = document.getElementById('previewSearchInputMobile');
+                if (searchInput) searchInput.value = '';
+                if (mobileSearchInput) mobileSearchInput.value = '';
+            }
+            
+            // Set featured filter
+            if (filterParams.featured === 'true') {
+                currentFeaturedOnly = true;
+            } else {
+                currentFeaturedOnly = false;
+            }
+            
+            // Apply filters
+            filterPreview();
+        }
+        
+        // Don't update URL - breadcrumbs use direct filtering
+        return;
+    }
+    
     // Handle direct category setting (simpler API for Framer links)
     if (event.data && event.data.type === 'setCategory' && event.data.category !== undefined) {
         const newParams = { category: event.data.category };
