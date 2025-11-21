@@ -63,22 +63,46 @@ export default function URLParamsHelper() {
             return
         }
         
-        // Check if we're on /find-your-adventure page - if not, clear all URL parameters
+        // Function to check if we're on find-your-adventure page
+        // In Framer, the page might be at root (/) with the iframe, so check for iframe existence
+        const isOnFindYourAdventurePage = () => {
+            const currentPath = window.location.pathname
+            const currentUrl = window.location.href
+            const iframe = document.getElementById('adventure-directory-iframe') as HTMLIFrameElement
+            
+            // Check if URL contains /find-your-adventure
+            const urlContainsFindYourAdventure = currentPath.includes('/find-your-adventure') || 
+                                                 currentUrl.includes('/find-your-adventure') ||
+                                                 window.location.hash.includes('/find-your-adventure')
+            
+            // Also check if iframe exists (indicates we're on the find-your-adventure page)
+            const hasIframe = !!iframe
+            
+            return urlContainsFindYourAdventure || hasIframe
+        }
+        
+        // Function to check and clear parameters if not on find-your-adventure
+        const checkAndClearParamsIfNeeded = () => {
+            const isFindYourAdventurePage = isOnFindYourAdventurePage()
+            
+            if (!isFindYourAdventurePage && window.location.search) {
+                // Not on find-your-adventure page and URL has parameters - clear them immediately
+                const cleanUrl = window.location.origin + window.location.pathname + (window.location.hash || '')
+                console.log('🧹 Not on /find-your-adventure page - clearing URL parameters:', cleanUrl, '(current URL:', window.location.href + ')')
+                window.history.replaceState({}, '', cleanUrl)
+                return true // Parameters were cleared
+            }
+            return false // Parameters not cleared
+        }
+        
+        // Initial check
         const currentPath = window.location.pathname
         const currentUrl = window.location.href
-        const isFindYourAdventurePage = currentPath.includes('/find-your-adventure') || currentUrl.includes('/find-your-adventure')
+        const isFindYourAdventurePage = isOnFindYourAdventurePage()
         
         console.log('🔍 Initial check - Path:', currentPath, 'URL:', currentUrl, 'Has params:', !!window.location.search, 'Is find-your-adventure:', isFindYourAdventurePage)
         
-        if (!isFindYourAdventurePage && window.location.search) {
-            // Not on find-your-adventure page and URL has parameters - clear them
-            const cleanUrl = window.location.origin + window.location.pathname + (window.location.hash || '')
-            console.log('🧹 Not on /find-your-adventure page - clearing URL parameters:', cleanUrl, '(current URL:', window.location.href + ')')
-            window.history.replaceState({}, '', cleanUrl)
-        } else if (isFindYourAdventurePage && window.location.search) {
-            // On find-your-adventure page with parameters - keep them
-            console.log('✅ On /find-your-adventure page - keeping URL parameters:', window.location.search)
-        }
+        checkAndClearParamsIfNeeded()
         
         let lastSentParams = ''
         let paramsClearedAfterLoad = false // Track if we've cleared params after iframe load
@@ -132,17 +156,14 @@ export default function URLParamsHelper() {
         window.addEventListener('message', handleClearMessage)
         
         const sendParams = () => {
-            // Only send params if we're on the /find-your-adventure page
-            const currentPath = window.location.pathname
-            const currentUrl = window.location.href
-            const isFindYourAdventurePage = currentPath.includes('/find-your-adventure') || currentUrl.includes('/find-your-adventure')
+            // First check if we need to clear params (not on find-your-adventure)
+            const isFindYourAdventurePage = isOnFindYourAdventurePage()
             
             if (!isFindYourAdventurePage) {
-                // Not on find-your-adventure page - don't send params
-                // Also check if we need to clear params
+                // Not on find-your-adventure page - clear params and don't send
                 if (window.location.search) {
                     const cleanUrl = window.location.origin + window.location.pathname + (window.location.hash || '')
-                    console.log('🧹 sendParams check: Not on /find-your-adventure - clearing URL parameters:', cleanUrl)
+                    console.log('🧹 sendParams: Not on /find-your-adventure - clearing URL parameters:', cleanUrl)
                     window.history.replaceState({}, '', cleanUrl)
                     lastSentParams = ''
                     paramsClearedAfterLoad = false
@@ -235,9 +256,9 @@ export default function URLParamsHelper() {
         // Also listen for URL changes (popstate for back/forward, but Framer might use pushState)
         const handlePopState = () => {
             // Check if we navigated to or away from /find-your-adventure
+            const isFindYourAdventurePage = isOnFindYourAdventurePage()
             const currentPath = window.location.pathname
             const currentUrl = window.location.href
-            const isFindYourAdventurePage = currentPath.includes('/find-your-adventure') || currentUrl.includes('/find-your-adventure')
             
             console.log('🔍 PopState - Path:', currentPath, 'URL:', currentUrl, 'Has params:', !!window.location.search, 'Is find-your-adventure:', isFindYourAdventurePage)
             
@@ -265,9 +286,9 @@ export default function URLParamsHelper() {
         const originalReplaceState = window.history.replaceState.bind(window.history)
         
         const checkAndClearParams = () => {
+            const isFindYourAdventurePage = isOnFindYourAdventurePage()
             const currentPath = window.location.pathname
             const currentUrl = window.location.href
-            const isFindYourAdventurePage = currentPath.includes('/find-your-adventure') || currentUrl.includes('/find-your-adventure')
             
             console.log('🔍 checkAndClearParams - Path:', currentPath, 'URL:', currentUrl, 'Has params:', !!window.location.search, 'Is find-your-adventure:', isFindYourAdventurePage)
             
@@ -390,34 +411,41 @@ export default function URLParamsHelper() {
         // Track last known pathname to detect navigation
         let lastKnownPathname = window.location.pathname
         let lastKnownUrl = window.location.href
+        let lastKnownSearch = window.location.search
+        let lastKnownIframeExists = !!document.getElementById('adventure-directory-iframe')
         
-        // Check periodically but less frequently (every 500ms to catch navigation quickly)
-        // Only send if URL actually changed
+        // Check periodically (every 300ms to catch navigation quickly)
         const interval = setInterval(() => {
             const currentPath = window.location.pathname
             const currentUrl = window.location.href
-            const isFindYourAdventurePage = currentPath.includes('/find-your-adventure') || currentUrl.includes('/find-your-adventure')
+            const currentSearch = window.location.search
+            const currentIframeExists = !!document.getElementById('adventure-directory-iframe')
+            const isFindYourAdventurePage = isOnFindYourAdventurePage()
             
-            // Check if pathname or URL changed (navigation occurred)
-            if (currentPath !== lastKnownPathname || currentUrl !== lastKnownUrl) {
+            // Check if pathname, URL, search params, or iframe existence changed (navigation occurred)
+            if (currentPath !== lastKnownPathname || currentUrl !== lastKnownUrl || currentSearch !== lastKnownSearch || currentIframeExists !== lastKnownIframeExists) {
                 lastKnownPathname = currentPath
                 lastKnownUrl = currentUrl
-                console.log('📍 URL changed - Path:', currentPath, 'Full URL:', currentUrl)
+                lastKnownSearch = currentSearch
+                lastKnownIframeExists = currentIframeExists
+                console.log('📍 URL/Page changed - Path:', currentPath, 'Search:', currentSearch, 'Iframe exists:', currentIframeExists, 'Full URL:', currentUrl)
             }
             
+            // Always check and clear if needed (more aggressive)
             if (!isFindYourAdventurePage && window.location.search) {
                 // Not on find-your-adventure page and URL has parameters - clear them immediately
                 const cleanUrl = window.location.origin + window.location.pathname + (window.location.hash || '')
-                console.log('🧹 Periodic check: Not on /find-your-adventure - clearing URL parameters:', cleanUrl, '(current path:', currentPath, 'full URL:', currentUrl + ')')
+                console.log('🧹 Periodic check: Not on /find-your-adventure - clearing URL parameters:', cleanUrl, '(current path:', currentPath, 'search:', currentSearch, 'iframe exists:', currentIframeExists + ')')
                 window.history.replaceState({}, '', cleanUrl)
                 lastSentParams = ''
                 paramsClearedAfterLoad = false
                 lastKnownUrl = cleanUrl // Update tracked URL
+                lastKnownSearch = '' // Update tracked search
             } else if (isFindYourAdventurePage) {
                 // Still on find-your-adventure page - send params if needed
                 sendParams()
             }
-        }, 500) // Check every 500ms for faster detection
+        }, 300) // Check every 300ms for faster detection
         
         return () => {
             window.removeEventListener('message', handleClearMessage)

@@ -150,9 +150,31 @@ export default function Breadcrumb({
     }
     
     const handleClick = (e: React.MouseEvent, url: string) => {
-        // Don't prevent default - let the link navigate normally
-        // The URL already contains the filter parameters
+        // Only run on client-side
+        if (typeof window === 'undefined') {
+            return
+        }
+        
         console.log('🍞 Breadcrumb clicked, navigating to:', url)
+        
+        // If the URL contains /find-your-adventure, navigate and let URLParamsHelper handle it
+        if (url.includes('/find-your-adventure')) {
+            // Build full URL
+            const targetUrl = url.startsWith('http') ? url : (url.startsWith('/') ? window.location.origin + url : window.location.origin + '/' + url)
+            
+            console.log('🍞 Navigating to:', targetUrl)
+            
+            // Navigate to the URL - URLParamsHelper will send params to iframe
+            // Prevent default to handle navigation ourselves
+            e.preventDefault()
+            e.stopPropagation()
+            
+            // Navigate immediately
+            window.location.href = targetUrl
+            
+            return false
+        }
+        // For other links (like home), let them navigate normally
     }
     
     return (

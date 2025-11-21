@@ -4911,27 +4911,80 @@ function updateUrlWithCategory(categoryKey) {
     }
 }
 
+// Track last known parent URL to detect navigation
+let lastParentUrl = '';
+let lastParentSearch = '';
+
 // Extract URL parameters from referrer (works cross-origin for iframe embeds)
 function extractParamsFromReferrer() {
+    // Try to get parameters from parent window (same-origin only)
     try {
-        var referrer = document.referrer;
-        console.log('🔍 Checking referrer:', referrer);
-        if (referrer && referrer.includes('?')) {
-            var referrerUrl = new URL(referrer);
-            var params = {};
-            referrerUrl.searchParams.forEach(function(value, key) {
-                params[key] = value;
-            });
-            if (Object.keys(params).length > 0) {
-                console.log('🔗 Extracted parameters from referrer:', params);
-                receivedUrlParams = params;
-                return true;
+        if (window.parent && window.parent.location && window.parent !== window) {
+            var parentUrl = window.parent.location.href;
+            var parentSearch = window.parent.location.search;
+            
+            // Check if parent URL changed (navigation occurred)
+            if (parentUrl !== lastParentUrl || parentSearch !== lastParentSearch) {
+                lastParentUrl = parentUrl;
+                lastParentSearch = parentSearch;
+                console.log('📍 Parent URL changed to:', parentUrl);
+                
+                if (parentSearch && parentSearch.length > 1) {
+                    var params = {};
+                    var searchParams = new URLSearchParams(parentSearch);
+                    for (var pair of searchParams.entries()) {
+                        params[pair[0]] = pair[1];
+                    }
+                    console.log('🔗 Extracted parameters from parent window:', params);
+                    // Store in receivedUrlParams so getUrlParameter can use them
+                    receivedUrlParams = Object.assign({}, receivedUrlParams, params);
+                    
+                    // If data is loaded, apply the parameters immediately
+                    if (data) {
+                        console.log('🔄 Parent URL changed - re-applying URL parameters');
+                        // Reset the processed hash to force re-processing
+                        lastProcessedParamsHash = null;
+                        handleUrlParameters();
+                    }
+                    return true;
+                } else {
+                    // Parent URL changed but no parameters - clear filters if we had params before
+                    if (Object.keys(receivedUrlParams).length > 0) {
+                        console.log('🧹 Parent URL changed to clean URL - clearing received parameters');
+                        receivedUrlParams = {};
+                        lastProcessedParamsHash = null;
+                    }
+                }
+            } else if (parentSearch && parentSearch.length > 1) {
+                // Same URL but check params anyway (in case they were updated)
+                var params = {};
+                var searchParams = new URLSearchParams(parentSearch);
+                for (var pair of searchParams.entries()) {
+                    params[pair[0]] = pair[1];
+                }
+                receivedUrlParams = Object.assign({}, receivedUrlParams, params);
             }
-            // If referrer has ? but no params, that's fine (just a clean URL) - don't log warning
         }
     } catch (e) {
-        // Referrer might not be a valid URL or not available
-        console.log('⚠️ Could not extract params from referrer:', e);
+        // Cross-origin restriction - can't access parent URL directly, try referrer
+        try {
+            var referrer = document.referrer;
+            console.log('🔍 Checking referrer:', referrer);
+            if (referrer && referrer.includes('?')) {
+                var referrerUrl = new URL(referrer);
+                var params = {};
+                referrerUrl.searchParams.forEach(function(value, key) {
+                    params[key] = value;
+                });
+                if (Object.keys(params).length > 0) {
+                    console.log('🔗 Extracted parameters from referrer:', params);
+                    receivedUrlParams = Object.assign({}, receivedUrlParams, params);
+                    return true;
+                }
+            }
+        } catch (e2) {
+            console.log('⚠️ Could not extract params from referrer:', e2);
+        }
     }
     
     // Also try to request URL from parent via postMessage (works cross-origin)
@@ -4946,6 +4999,21 @@ function extractParamsFromReferrer() {
     }
     
     return false;
+}
+
+// Poll parent URL periodically to detect navigation (for cross-origin cases)
+let parentUrlPollInterval = null;
+function startParentUrlPolling() {
+    if (parentUrlPollInterval) return; // Already polling
+    
+    parentUrlPollInterval = setInterval(function() {
+        extractParamsFromReferrer();
+    }, 1000); // Check every second for parent URL changes
+}
+
+// Start polling when page loads
+if (typeof window !== 'undefined') {
+    setTimeout(startParentUrlPolling, 2000); // Start after initial load
 }
 
 // Get URL parameters helper
